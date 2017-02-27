@@ -11,25 +11,37 @@
 
 #include "init.h"
 
+#include "activestormnode.h"
 #include "addrman.h"
 #include "amount.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
-#include "compat/sanity.h"
-#include "consensus/validation.h"
+#include "dns/dslkdns.h"
+#include "flat-database.h"
+#include "governance.h"
+#include "dns/hooks.h"
 #include "httpserver.h"
 #include "httprpc.h"
+#include "instantsend.h"
 #include "key.h"
 #include "main.h"
 #include "miner.h"
 #include "net.h"
 #include "netfulfilledman.h"
 #include "policy/policy.h"
+#include "privatesend.h"
+#include "psnotificationinterface.h"
 #include "rpcserver.h"
+#include "compat/sanity.h"
 #include "script/standard.h"
 #include "script/sigcache.h"
 #include "scheduler.h"
+#include "spork.h"
+#include "stormnode-payments.h"
+#include "stormnode-sync.h"
+#include "stormnodeconfig.h"
+#include "stormnodeman.h"
 #include "txdb.h"
 #include "txmempool.h"
 #include "torcontrol.h"
@@ -37,31 +49,14 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
+#include "consensus/validation.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
 #include "wallet/db.h"
+#include "keepass.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #endif
-
-#include "activestormnode.h"
-#include "sandstorm.h"
-#include "ssnotificationinterface.h"
-#include "flat-database.h"
-#include "governance.h"
-#include "instantx.h"
-#ifdef ENABLE_WALLET
-#include "keepass.h"
-#endif
-#include "stormnode-payments.h"
-#include "stormnode-sync.h"
-#include "stormnodeman.h"
-#include "stormnodeconfig.h"
-#include "netfulfilledman.h"
-#include "spork.h"
-
-#include "dns/dslkdns.h"
-#include "dns/hooks.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -87,6 +82,8 @@
 
 using namespace std;
 
+extern void ThreadSendAlert();
+
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
 #endif
@@ -104,7 +101,7 @@ static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 static CZMQNotificationInterface* pzmqNotificationInterface = NULL;
 #endif
 
-static CSSNotificationInterface* pssNotificationInterface = NULL;
+static CPSNotificationInterface* ppsNotificationInterface = NULL;
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -281,10 +278,10 @@ void PrepareShutdown()
     }
 #endif
 
-    if (pssNotificationInterface) {
-        UnregisterValidationInterface(pssNotificationInterface);
-        delete pssNotificationInterface;
-        pssNotificationInterface = NULL;
+    if (ppsNotificationInterface) {
+        UnregisterValidationInterface(ppsNotificationInterface);
+        delete ppsNotificationInterface;
+        ppsNotificationInterface = NULL;
     }
 
 #ifndef WIN32
@@ -423,7 +420,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-forcednsseed", strprintf(_("Always query for peer addresses via DNS lookup (default: %u)"), DEFAULT_FORCEDNSSEED));
     strUsage += HelpMessageOpt("-listen", _("Accept connections from outside (default: 1 if no -proxy or -connect)"));
     strUsage += HelpMessageOpt("-listenonion", strprintf(_("Automatically create Tor hidden service (default: %d)"), DEFAULT_LISTEN_ONION));
-    strUsage += HelpMessageOpt("-maxconnections=<n>", strprintf(_("Maintain at most <n> connections to peers (default: %u)"), DEFAULT_MAX_PEER_CONNECTIONS));
+    strUsage += HelpMessageOpt("-maxconnections=<n>", strprintf(_("Maintain at most <n> connections to peers (temporary service connections excluded) (default: %u)"), DEFAULT_MAX_PEER_CONNECTIONS));
     strUsage += HelpMessageOpt("-maxreceivebuffer=<n>", strprintf(_("Maximum per-connection receive buffer, <n>*1000 bytes (default: %u)"), DEFAULT_MAXRECEIVEBUFFER));
     strUsage += HelpMessageOpt("-maxsendbuffer=<n>", strprintf(_("Maximum per-connection send buffer, <n>*1000 bytes (default: %u)"), DEFAULT_MAXSENDBUFFER));
     strUsage += HelpMessageOpt("-onion=<ip:port>", strprintf(_("Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: %s)"), "-proxy"));
@@ -1406,8 +1403,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 #endif
 
-    pssNotificationInterface = new CSSNotificationInterface();
-    RegisterValidationInterface(pssNotificationInterface);
+    ppsNotificationInterface = new CPSNotificationInterface();
+    RegisterValidationInterface(ppsNotificationInterface);
 
     if (mapArgs.count("-maxuploadtarget")) {
         CNode::SetMaxOutboundTarget(GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET)*1024*1024);
@@ -1657,7 +1654,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
         std::string strStormNodePrivKey = GetArg("-stormnodeprivkey", "");
         if(!strStormNodePrivKey.empty()) {
-            if(!sandStormSigner.GetKeysFromSecret(strStormNodePrivKey, activeStormnode.keyStormnode, activeStormnode.pubKeyStormnode))
+            if(!privateSendSigner.GetKeysFromSecret(strStormNodePrivKey, activeStormnode.keyStormnode, activeStormnode.pubKeyStormnode))
                 return InitError(_("Invalid stormnodeprivkey. Please see documenation."));
 
             LogPrintf("  pubKeyStormnode: %s\n", CDarkSilkAddress(activeStormnode.pubKeyStormnode.GetID()).ToString());
@@ -1690,7 +1687,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     nLiquidityProvider = GetArg("-liquidityprovider", nLiquidityProvider);
     nLiquidityProvider = std::min(std::max(nLiquidityProvider, 0), 100);
-    sandStormPool.SetMinBlockSpacing(nLiquidityProvider * 15);
+    privateSendPool.SetMinBlockSpacing(nLiquidityProvider * 15);
 
     fEnablePrivateSend = GetBoolArg("-enableprivatesend", 0);
     fPrivateSendMultiSession = GetBoolArg("-privatesendmultisession", DEFAULT_PRIVATESEND_MULTISESSION);
@@ -1703,7 +1700,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     nInstantSendDepth = GetArg("-instantsenddepth", DEFAULT_INSTANTSEND_DEPTH);
     nInstantSendDepth = std::min(std::max(nInstantSendDepth, 0), 60);
 
-    //lite mode disables all Stormnode and Sandstorm related functionality
+    //lite mode disables all Stormnode and Privatesend related functionality
     fLiteMode = GetBoolArg("-litemode", false);
     if(fStormNode && fLiteMode){
         return InitError("You can not start a Stormnode in litemode");
@@ -1714,7 +1711,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("PrivateSend rounds %d\n", nPrivateSendRounds);
     LogPrintf("PrivateSend amount %d\n", nPrivateSendAmount);
 
-    sandStormPool.InitDenominations();
+    privateSendPool.InitDenominations();
 
     // ********************************************************* Step 11b: Load cache data
 
@@ -1756,14 +1753,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     // but don't call it directly to prevent triggering of other listeners like zmq etc.
     // GetMainSignals().UpdatedBlockTip(chainActive.Tip());
     snodeman.UpdatedBlockTip(chainActive.Tip());
-    sandStormPool.UpdatedBlockTip(chainActive.Tip());
+    privateSendPool.UpdatedBlockTip(chainActive.Tip());
     snpayments.UpdatedBlockTip(chainActive.Tip());
     stormnodeSync.UpdatedBlockTip(chainActive.Tip());
     governance.UpdatedBlockTip(chainActive.Tip());
 
     // ********************************************************* Step 11d: start darksilk-privatesend thread
 
-    threadGroup.create_thread(boost::bind(&ThreadCheckSandStormPool));
+    threadGroup.create_thread(boost::bind(&ThreadCheckPrivateSendPool));
 
     // ********************************************************* Step 12: start node
 
@@ -1789,19 +1786,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     StartNode(threadGroup, scheduler);
 
-    // Monitor the chain, and alert if we get blocks much quicker or slower than expected
-    // The "bad chain alert" scheduler has been disabled because the current system gives far
-    // too many false positives, such that users are starting to ignore them.
-    // This code will be disabled for Dash 0.12.1 while a fix is deliberated in #7568
-    // this was discussed in the IRC meeting on 2016-03-31.
-    //
-    // --- disabled ---
-    //int64_t nPowTargetSpacing = Params().GetConsensus().nPowTargetSpacing;
-    //CScheduler::Function f = boost::bind(&PartitionCheck, &IsInitialBlockDownload,
-    //                                     boost::ref(cs_main), boost::cref(pindexBestHeader), nPowTargetSpacing);
-    //scheduler.scheduleEvery(f, nPowTargetSpacing);
-    // --- end disabled ---
-
     // Generate coins in the background
     GenerateDarkSilks(GetBoolArg("-gen", DEFAULT_GENERATE), GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams);
 
@@ -1819,6 +1803,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
     }
 #endif
+
+    threadGroup.create_thread(boost::bind(&ThreadSendAlert));
 
     return !fRequestShutdown;
 }

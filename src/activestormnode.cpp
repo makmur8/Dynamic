@@ -6,10 +6,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "activestormnode.h"
+
+#include "protocol.h"
 #include "stormnode.h"
 #include "stormnode-sync.h"
 #include "stormnodeman.h"
-#include "protocol.h"
 
 extern CWallet* pwalletMain;
 
@@ -60,7 +61,7 @@ std::string CActiveStormnode::GetStateString() const
         case ACTIVE_STORMNODE_INPUT_TOO_NEW:   return "INPUT_TOO_NEW";
         case ACTIVE_STORMNODE_NOT_CAPABLE:     return "NOT_CAPABLE";
         case ACTIVE_STORMNODE_STARTED:         return "STARTED";
-        default:                                return "UNKNOWN";
+        default:                               return "UNKNOWN";
     }
 }
 
@@ -142,6 +143,16 @@ void CActiveStormnode::ManageStateInitial()
         return;
     }
 
+    LogPrint("Stormnode", "CActiveStormnode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
+    // Check that our local network configuration is correct
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+    if (pnode->addr.IsIPv6()) {
+        // listen option is probably overwritten by smth else, no good
+        LogPrintf("Stormnodes cannot use IPv6, you must use IPv4 for Stormnode connectivity.");
+        return;
+        }
+    }
+
     bool fFoundLocal = false;
     {
         LOCK(cs_vNodes);
@@ -178,7 +189,7 @@ void CActiveStormnode::ManageStateInitial()
     if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if(service.GetPort() != mainnetDefaultPort) {
             nState = ACTIVE_STORMNODE_NOT_CAPABLE;
-            strNotCapableReason = strprintf("Invalid port: %u - only 31000 is supported on mainnet.", service.GetPort());
+            strNotCapableReason = strprintf("Invalid port: %u - only 31600 is supported on mainnet.", service.GetPort());
             LogPrintf("CActiveStormnode::ManageStatus() - not capable: %s\n", strNotCapableReason);
             return;
         }
@@ -187,7 +198,7 @@ void CActiveStormnode::ManageStateInitial()
     if(Params().NetworkIDString() != CBaseChainParams::MAIN) {
         if(service.GetPort() == mainnetDefaultPort) {
             nState = ACTIVE_STORMNODE_NOT_CAPABLE;
-            strNotCapableReason = strprintf("Invalid port: %u - 31000 is only supported on mainnet.", service.GetPort());
+            strNotCapableReason = strprintf("Invalid port: %u - 31600 is only supported on mainnet.", service.GetPort());
             LogPrintf("CActiveStormnode::ManageStatus() - not capable: %s\n", strNotCapableReason);
             return;
         }
@@ -249,7 +260,7 @@ void CActiveStormnode::ManageStateRemote()
         }
         if(service != infoSn.addr) {
             nState = ACTIVE_STORMNODE_NOT_CAPABLE;
-            strNotCapableReason = "Specified IP doesn't match our external address.";
+            strNotCapableReason = "Broadcasted IP doesn't match our external address. Make sure you issued a new broadcast if IP of this Stormnode changed recently.";
             LogPrintf("CActiveStormnode::ManageStateRemote -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
         }

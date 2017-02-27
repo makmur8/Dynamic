@@ -112,6 +112,7 @@ struct stormnode_info_t
           nTimeLastChecked(0),
           nTimeLastPaid(0),
           nTimeLastWatchdogVote(0),
+          nTimeLastPing(0),
           nActiveState(0),
           nProtocolVersion(0),
           fInfoValid(false)
@@ -122,17 +123,18 @@ struct stormnode_info_t
     CPubKey pubKeyCollateralAddress;
     CPubKey pubKeyStormnode;
     int64_t sigTime; //snb message time
-    int64_t nLastSsq; //the ssq count from the last ssq broadcast of this node
+    int64_t nLastSsq; //the psq count from the last psq broadcast of this node
     int64_t nTimeLastChecked;
     int64_t nTimeLastPaid;
     int64_t nTimeLastWatchdogVote;
+    int64_t nTimeLastPing;
     int nActiveState;
     int nProtocolVersion;
     bool fInfoValid;
 };
 
 //
-// The Stormnode Class. For managing the Sandstorm process. It contains the input of the 1000DSLK, signature to prove
+// The Stormnode Class. For managing the Privatesend process. It contains the input of the 1000DSLK, signature to prove
 // it's the one who own that ip address and code for calculating the payment election.
 //
 class CStormnode
@@ -160,7 +162,7 @@ public:
     CStormnodePing lastPing;
     std::vector<unsigned char> vchSig;
     int64_t sigTime; //snb message time
-    int64_t nLastSsq; //the ssq count from the last ssq broadcast of this node
+    int64_t nLastSsq; //the psq count from the last psq broadcast of this node
     int64_t nTimeLastChecked;
     int64_t nTimeLastPaid;
     int64_t nTimeLastWatchdogVote;

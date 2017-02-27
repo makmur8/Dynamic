@@ -232,14 +232,14 @@ extern const char *STORMNODEPAYMENTVOTE;
 extern const char *STORMNODEPAYMENTSYNC;
 extern const char *SNANNOUNCE;
 extern const char *SNPING;
-extern const char *SSACCEPT;
-extern const char *SSVIN;
-extern const char *SSFINALTX;
-extern const char *SSSIGNFINALTX;
-extern const char *SSCOMPLETE;
-extern const char *SSSTATUSUPDATE;
-extern const char *SSTX;
-extern const char *SSQUEUE;
+extern const char *PSACCEPT;
+extern const char *PSVIN;
+extern const char *PSFINALTX;
+extern const char *PSSIGNFINALTX;
+extern const char *PSCOMPLETE;
+extern const char *PSSTATUSUPDATE;
+extern const char *PSTX;
+extern const char *PSQUEUE;
 extern const char *SSEG;
 extern const char *SYNCSTATUSCOUNT;
 extern const char *SNGOVERNANCESYNC;
@@ -348,15 +348,11 @@ enum {
     MSG_TXLOCK_VOTE,
     MSG_SPORK,
     MSG_STORMNODE_PAYMENT_VOTE,
-    MSG_STORMNODE_PAYMENT_BLOCK, // reusing, was MSG_STORMNODE_SCANNING_ERROR previousely, was NOT used in 12.0
-    MSG_BUDGET_VOTE, // depreciated since 12.1
-    MSG_BUDGET_PROPOSAL, // depreciated since 12.1
-    MSG_BUDGET_FINALIZED, // depreciated since 12.1
-    MSG_BUDGET_FINALIZED_VOTE, // depreciated since 12.1
+    MSG_STORMNODE_PAYMENT_BLOCK,
     MSG_STORMNODE_QUORUM, // not implemented
     MSG_STORMNODE_ANNOUNCE,
     MSG_STORMNODE_PING,
-    MSG_SSTX,
+    MSG_PSTX,
     MSG_GOVERNANCE_OBJECT,
     MSG_GOVERNANCE_OBJECT_VOTE,
     MSG_STORMNODE_VERIFY,

@@ -3,15 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef DARKSILK_SANDSTORM_H
-#define DARKSILK_SANDSTORM_H
+#ifndef DARKSILK_PRIVATESEND_H
+#define DARKSILK_PRIVATESEND_H
 
 #include "stormnode.h"
 #include "wallet/wallet.h"
 
-class CSandstormPool;
-class CSandStormSigner;
-class CSandstormBroadcastTx;
+class CPrivatesendPool;
+class CPrivateSendSigner;
+class CPrivatesendBroadcastTx;
 
 // timeouts
 static const int PRIVATESEND_AUTO_TIMEOUT_MIN       = 5;
@@ -20,10 +20,11 @@ static const int PRIVATESEND_QUEUE_TIMEOUT          = 30;
 static const int PRIVATESEND_SIGNING_TIMEOUT        = 15;
 
 //! minimum peer version accepted by mixing pool
-static const int MIN_PRIVATESEND_PEER_PROTO_VERSION = 60800;
+static const int MIN_PRIVATESEND_PEER_PROTO_VERSION = 70300;
 
-static const CAmount PRIVATESEND_COLLATERAL         = 0.001 * COIN;
-static const CAmount PRIVATESEND_POOL_MAX           = 999.999 * COIN;
+//! 1/10 of min denom, should not collide with other values to avoid confusion
+static const CAmount PRIVATESEND_COLLATERAL         = 0.01 * COIN + 1;
+static const CAmount PRIVATESEND_ENTRY_MAX_SIZE     = 9;
 static const int DENOMS_COUNT_MAX                   = 100;
 
 static const int DEFAULT_PRIVATESEND_ROUNDS         = 2;
@@ -44,28 +45,28 @@ extern bool fEnablePrivateSend;
 extern bool fPrivateSendMultiSession;
 
 // The main object for accessing mixing
-extern CSandstormPool sandStormPool;
+extern CPrivatesendPool privateSendPool;
 // A helper object for signing messages from Stormnodes
-extern CSandStormSigner sandStormSigner;
+extern CPrivateSendSigner privateSendSigner;
 
-extern std::map<uint256, CSandstormBroadcastTx> mapSandstormBroadcastTxes;
+extern std::map<uint256, CPrivatesendBroadcastTx> mapPrivatesendBroadcastTxes;
 extern std::vector<CAmount> vecPrivateSendDenominations;
 
 /** Holds an mixing input
  */
-class CTxSSIn : public CTxIn
+class CTxPSIn : public CTxIn
 {
 public:
     bool fHasSig; // flag to indicate if signed
     int nSentTimes; //times we've sent this anonymously
 
-    CTxSSIn(const CTxIn& txin) :
+    CTxPSIn(const CTxIn& txin) :
         CTxIn(txin),
         fHasSig(false),
         nSentTimes(0)
         {}
 
-    CTxSSIn() :
+    CTxPSIn() :
         CTxIn(),
         fHasSig(false),
         nSentTimes(0)
@@ -74,52 +75,52 @@ public:
 
 /** Holds an mixing output
  */
-class CTxSSOut : public CTxOut
+class CTxPSOut : public CTxOut
 {
 public:
     int nSentTimes; //times we've sent this anonymously
 
-    CTxSSOut(const CTxOut& out) :
+    CTxPSOut(const CTxOut& out) :
         CTxOut(out),
         nSentTimes(0)
         {}
 
-    CTxSSOut() :
+    CTxPSOut() :
         CTxOut(),
         nSentTimes(0)
         {}
 };
 
 // A clients transaction in the mixing pool
-class CSandStormEntry
+class CPrivateSendEntry
 {
 public:
-    std::vector<CTxSSIn> vecTxSSIn;
-    std::vector<CTxSSOut> vecTxSSOut;
+    std::vector<CTxPSIn> vecTxPSIn;
+    std::vector<CTxPSOut> vecTxPSOut;
     CTransaction txCollateral;
 
-    CSandStormEntry() :
-        vecTxSSIn(std::vector<CTxSSIn>()),
-        vecTxSSOut(std::vector<CTxSSOut>()),
+    CPrivateSendEntry() :
+        vecTxPSIn(std::vector<CTxPSIn>()),
+        vecTxPSOut(std::vector<CTxPSOut>()),
         txCollateral(CTransaction())
         {}
 
-    CSandStormEntry(const std::vector<CTxIn>& vecTxIn, const std::vector<CTxOut>& vecTxOut, const CTransaction& txCollateral) :
+    CPrivateSendEntry(const std::vector<CTxIn>& vecTxIn, const std::vector<CTxOut>& vecTxOut, const CTransaction& txCollateral) :
         txCollateral(txCollateral)
     {
         BOOST_FOREACH(CTxIn txin, vecTxIn)
-            vecTxSSIn.push_back(txin);
+            vecTxPSIn.push_back(txin);
         BOOST_FOREACH(CTxOut txout, vecTxOut)
-            vecTxSSOut.push_back(txout);
+            vecTxPSOut.push_back(txout);
     }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
-        READWRITE(vecTxSSIn);
+        READWRITE(vecTxPSIn);
         READWRITE(txCollateral);
-        READWRITE(vecTxSSOut);
+        READWRITE(vecTxPSOut);
     }
 
     bool AddScriptSig(const CTxIn& txin);
@@ -129,7 +130,7 @@ public:
 /**
  * A currently inprogress mixing merge and denomination information
  */
-class CSandstormQueue
+class CPrivatesendQueue
 {
 public:
     int nDenom;
@@ -140,7 +141,7 @@ public:
     // memory only
     bool fTried;
 
-    CSandstormQueue() :
+    CPrivatesendQueue() :
         nDenom(0),
         vin(CTxIn()),
         nTime(0),
@@ -149,7 +150,7 @@ public:
         fTried(false)
         {}
 
-    CSandstormQueue(int nDenom, CTxIn vin, int64_t nTime, bool fReady) :
+    CPrivatesendQueue(int nDenom, CTxIn vin, int64_t nTime, bool fReady) :
         nDenom(nDenom),
         vin(vin),
         nTime(nTime),
@@ -191,7 +192,7 @@ public:
                         nDenom, nTime, fReady ? "true" : "false", fTried ? "true" : "false", vin.prevout.ToStringShort());
     }
 
-    friend bool operator==(const CSandstormQueue& a, const CSandstormQueue& b)
+    friend bool operator==(const CPrivatesendQueue& a, const CPrivatesendQueue& b)
     {
         return a.nDenom == b.nDenom && a.vin.prevout == b.vin.prevout && a.nTime == b.nTime && a.fReady == b.fReady;
     }
@@ -199,7 +200,7 @@ public:
 
 /** Helper class to store mixing transaction (tx) information.
  */
-class CSandstormBroadcastTx
+class CPrivatesendBroadcastTx
 {
 public:
     CTransaction tx;
@@ -207,14 +208,14 @@ public:
     std::vector<unsigned char> vchSig;
     int64_t sigTime;
 
-    CSandstormBroadcastTx() :
+    CPrivatesendBroadcastTx() :
         tx(CTransaction()),
         vin(CTxIn()),
         vchSig(std::vector<unsigned char>()),
         sigTime(0)
         {}
 
-    CSandstormBroadcastTx(CTransaction tx, CTxIn vin, int64_t sigTime) :
+    CPrivatesendBroadcastTx(CTransaction tx, CTxIn vin, int64_t sigTime) :
         tx(tx),
         vin(vin),
         vchSig(std::vector<unsigned char>()),
@@ -237,7 +238,7 @@ public:
 
 /** Helper object for signing and checking signatures
  */
-class CSandStormSigner
+class CPrivateSendSigner
 {
 public:
     /// Is the input associated with this public key? (and there is 1000 DSLK - checking if valid Stormnode)
@@ -252,7 +253,7 @@ public:
 
 /** Used to keep track of current status of mixing pool
  */
-class CSandstormPool
+class CPrivatesendPool
 {
 private:
     // pool responses
@@ -301,10 +302,10 @@ private:
         STATUS_ACCEPTED
     };
 
-    mutable CCriticalSection cs_sandstorm;
+    mutable CCriticalSection cs_privatesend;
 
     // The current mixing sessions in progress on the network
-    std::vector<CSandstormQueue> vecSandstormQueue;
+    std::vector<CPrivatesendQueue> vecPrivatesendQueue;
     // Keep track of the used Stormnodes
     std::vector<CTxIn> vecStormnodesUsed;
 
@@ -313,7 +314,7 @@ private:
     // Mixing uses collateral transactions to trust parties entering the pool
     // to behave honestly. If they don't it takes their money.
     std::vector<CTransaction> vecSessionCollaterals;
-    std::vector<CSandStormEntry> vecEntries; // Stormnodes/clients entries
+    std::vector<CPrivateSendEntry> vecEntries; // Stormnodes/clients entries
 
     PoolState nState; // should be one of the POOL_STATE_XXX values
     int64_t nTimeLastSuccessfulStep; // the time when last successful mixing step was performed, in UTC milliseconds
@@ -336,7 +337,7 @@ private:
     CMutableTransaction finalMutableTransaction; // the finalized transaction ready for signing
 
     /// Add a clients entry to the pool
-    bool AddEntry(const CSandStormEntry& entryNew, PoolMessage& nMessageIDRet);
+    bool AddEntry(const CPrivateSendEntry& entryNew, PoolMessage& nMessageIDRet);
     /// Add signature to a txin
     bool AddScriptSig(const CTxIn& txin);
 
@@ -375,7 +376,7 @@ private:
     /// Check to make sure a given input matches an input in the pool and its scriptSig is valid
     bool IsInputScriptSigValid(const CTxIn& txin);
     /// Are these outputs compatible with other client in the pool?
-    bool IsOutputsCompatibleWithSessionDenom(const std::vector<CTxSSOut>& vecTxSSOut);
+    bool IsOutputsCompatibleWithSessionDenom(const std::vector<CTxPSOut>& vecTxPSOut);
 
     bool IsDenomSkipped(CAmount nDenomValue) {
         return std::find(vecDenominationsSkipped.begin(), vecDenominationsSkipped.end(), nDenomValue) != vecDenominationsSkipped.end();
@@ -408,7 +409,7 @@ private:
     void RelayFinalTransaction(const CTransaction& txFinal);
     void RelaySignaturesAnon(std::vector<CTxIn>& vin);
     void RelayInAnon(std::vector<CTxIn>& vin, std::vector<CTxOut>& vout);
-    void RelayIn(const CSandStormEntry& entry);
+    void RelayIn(const CPrivateSendEntry& entry);
     void PushStatus(CNode* pnode, PoolStatusUpdate nStatusUpdate, PoolMessage nMessageID);
     void RelayStatus(PoolStatusUpdate nStatusUpdate, PoolMessage nMessageID = MSG_NOERR);
     void RelayCompletedTransaction(PoolMessage nMessageID);
@@ -421,7 +422,7 @@ public:
     int nCachedNumBlocks; //used for the overview screen
     bool fCreateAutoBackups; //builtin support for automatic backups
 
-    CSandstormPool() :
+    CPrivatesendPool() :
         nCachedLastSuccessBlock(0),
         nMinBlockSpacing(0),
         fUnitTest(false),
@@ -434,13 +435,13 @@ public:
      * \param strCommand lower case command string; valid values are:
      *        Command  | Description
      *        -------- | -----------------
-     *        ssa      | Acceptable
-     *        ssc      | Complete
-     *        ssf      | Final tx
-     *        ssi      | Vector of CTxIn
-     *        ssq      | Queue
-     *        sss      | Signal Final Tx
-     *        sssu     | status update
+     *        psa      | Acceptable
+     *        psc      | Complete
+     *        psf      | Final tx
+     *        psi      | Vector of CTxIn
+     *        psq      | Queue
+     *        pss      | Signal Final Tx
+     *        pssu     | status update
      * \param vRecv
      */
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
@@ -450,9 +451,11 @@ public:
 
     /// Get the denominations for a list of outputs (returns a bitshifted integer)
     int GetDenominations(const std::vector<CTxOut>& vecTxOut, bool fSingleRandomDenom = false);
-    int GetDenominations(const std::vector<CTxSSOut>& vecTxSSOut);
+    int GetDenominations(const std::vector<CTxPSOut>& vecTxPSOut);
     std::string GetDenominationsToString(int nDenom);
     bool GetDenominationsBits(int nDenom, std::vector<int> &vecBitsRet);
+
+    CAmount GetMaxPoolAmount() { return vecPrivateSendDenominations.empty() ? 0 : PRIVATESEND_ENTRY_MAX_SIZE * vecPrivateSendDenominations.front(); }
 
     void SetMinBlockSpacing(int nMinBlockSpacingIn) { nMinBlockSpacing = nMinBlockSpacingIn; }
 
@@ -460,7 +463,7 @@ public:
 
     void UnlockCoins();
 
-    int GetQueueSize() const { return vecSandstormQueue.size(); }
+    int GetQueueSize() const { return vecPrivatesendQueue.size(); }
     int GetState() const { return nState; }
     std::string GetStatus();
     std::string GetStateString() const;
@@ -479,6 +482,6 @@ public:
     void UpdatedBlockTip(const CBlockIndex *pindex);
 };
 
-void ThreadCheckSandStormPool();
+void ThreadCheckPrivateSendPool();
 
-#endif // DARKSILK_SANDSTORM_H
+#endif // DARKSILK_PRIVATESEND_H

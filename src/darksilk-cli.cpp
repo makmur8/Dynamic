@@ -12,6 +12,8 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
+#include <univalue.h>
+
 #include <boost/filesystem/operations.hpp>
 #include <stdio.h>
 
@@ -19,8 +21,6 @@
 #include <event2/http.h>
 #include <event2/buffer.h>
 #include <event2/keyvalq_struct.h>
-
-#include <univalue.h>
 
 using namespace std;
 
@@ -220,7 +220,7 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
 
     // Parse reply
     UniValue valReply(UniValue::VSTR);
-    if (!valReply.read(response.body))
+    if (!valReply.read(response.body))     
         throw runtime_error("couldn't parse reply from server");
     const UniValue& reply = valReply.get_obj();
     if (reply.empty())

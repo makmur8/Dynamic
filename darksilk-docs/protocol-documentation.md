@@ -67,7 +67,7 @@ Whenever a Stormnode comes online or a client is syncing, they will send this me
 | 8 | sigTime | int64_t | Time which the signature was created
 | 4 | nProtocolVersion | int | The protocol version of the Stormnode
 | # | lastPing | CStormnodePing | The last known ping of the Stormnode
-| 8 | nLastSsq | int64_t | The last time the Stormnode sent a SSQ message (for mixing)
+| 8 | nLastPsq | int64_t | The last time the Stormnode sent a PSQ message (for mixing)
 
 ### SNPING - "snp"
 
@@ -95,11 +95,11 @@ When a new block is found on the network, a Stormnode quorum will be determined 
 | ? | payeeAddress | CScript | The address to pay to
 | 71-73 | sig | char[] | Signature of the Stormnode which is signing the message
 
-### SSTX - "sstx"
+### PSTX - "pstx"
 
-CSandstormBroadcastTx
+CPrivatesendBroadcastTx
 
-Stormnodes can broadcast subsidised transactions without fees for the sake of security in mixing. This is done via the SSTX message.
+Stormnodes can broadcast subsidised transactions without fees for the sake of security in mixing. This is done via the PSTX message.
 
 | Field Size | Field Name | Data type | Description |
 | ---------- | ----------- | --------- | -------- |
@@ -108,7 +108,7 @@ Stormnodes can broadcast subsidised transactions without fees for the sake of se
 | 71-73 | vchSig | char[] | Signature of this message by Stormnode (verifiable via pubKeyStormnode)
 | 8 | sigTime | int64_t | Time this message was signed
 
-### SSSTATUSUPDATE - "sssu"
+### PSTATUSUPDATE - "pssu"
 
 Mixing pool status update
 
@@ -120,9 +120,9 @@ Mixing pool status update
 | 4 | nMsgStatusUpdate | int | Update state and/or signal if entry was accepted or not
 | 4 | nMsgMessageID | int | ID of the typical Stormnode reply message
 
-### SSQUEUE - "ssq"
+### PSQUEUE - "psq"
 
-CSandstormQueue
+CPrivatesendQueue
 
 Asks users to sign final mixing tx message.
 
@@ -134,35 +134,55 @@ Asks users to sign final mixing tx message.
 | 4 | fReady | int | if the mixing pool is ready to be executed
 | 71-73 | vchSig | char[] | Signature of this message by Stormnode (verifiable via pubKeyStormnode)
 
-### SSACCEPT - "ssa"
+### PSACCEPT - "psa"
 
-Response to SSQ message which allows the user to join a mixing pool
+Response to PSQ message which allows the user to join a mixing pool
 
 | Field Size | Field Name | Data type | Description |
 | ---------- | ----------- | --------- | -------- |
 | 4 | nDenom | int | denomination that will be exclusively used when submitting inputs into the pool
 | 41+ | txCollateral | int | collateral tx that will be charged if this client acts maliciousely
 
-### SSVIN - "ssi"
+### PSVIN - "psi"
 
-CSandstormEntry
+CPrivatesendEntry
 
 When queue is ready user is expected to send his entry to start actual mixing
 
 | Field Size | Field Name | Data type | Description |
 | ---------- | ----------- | --------- | -------- |
-| ? | vecTxSSIn | CTxSSIn[] | vector of users inputs (CTxSSIn serialization is equal to CTxIn serialization)
-| 8 | nAmount | int64_t | depreciated since 12.1, it's used for backwards compatibility only and can be removed with future protocol bump
+| ? | vecTxPSIn | CTxPSIn[] | vector of users inputs (CTxPSIn serialization is equal to CTxIn serialization)
+| 8 | nAmount | int64_t | depreciated, can be removed with future protocol bump
 | ? | txCollateral | CTransaction | Collateral transaction which is used to prevent misbehavior and also to charge fees randomly
-| ? | vecTxSSOut | CTxSSOut[] | vector of user outputs (CTxSSOut serialization is equal to CTxOut serialization)
+| ? | vecTxPSOut | CTxPSOut[] | vector of user outputs (CTxPSOut serialization is equal to CTxOut serialization)
 
-### SSSIGNFINALTX - "sss"
+### PSSIGNFINALTX - "pss"
 
 User's signed inputs for a group transaction in a mixing session
 
 | Field Size | Field Name | Data type | Description |
 | ---------- | ----------- | --------- | -------- |
 | # | inputs | CTxIn[] | signed inputs for mixing session
+
+
+### TXLOCKREQUEST - "is"
+
+CTxLockRequest
+
+Transaction Lock Request, serialization is the same as for CTransaction.
+
+### TXLOCKVOTE - "txlvote"
+
+CTxLockVote
+
+Transaction Lock Vote
+
+| Field Size | Field Name | Data type | Description |
+| ---------- | ----------- | --------- | -------- |
+| 32 | txHash | uint256 | txid of the transaction to lock
+| 36 | outpoint | COutPoint | The utxo to lock in this transaction
+| 36 | outpointStormnode | COutPoint | The utxo of the stormnode which is signing the vote
+| 71-73 | vchStormnodeSignature | char[] | Signature of this message by stormnode (verifiable via pubKeyStormnode)
 
 ### SNGOVERNANCEOBJECT - "govobj"
 
@@ -189,9 +209,9 @@ Stormnodes use governance voting in response to new proposals, contracts, settin
 
 | Field Size | Field Name | Data type | Description |
 | ---------- | ----------- | --------- | -------- |
-| 4 | nVoteSignal | int | ???
 | 41+ | vinStormnode | CTxIn | Unspent output for the Stormnode which is voting
 | 32 | nParentHash | uint256 | Object which we're voting on (proposal, contract, setting or final budget)
 | 4 | nVoteOutcome | int | ???
+| 4 | nVoteSignal | int | ???
 | 8 | nTime | int64_t | Time which the vote was created
 | 71-73 | vchSig | char[] | Signature of the Stormnode

@@ -6,11 +6,11 @@
 #ifndef DARKSILK_STORMNODE_PAYMENTS_H
 #define DARKSILK_STORMNODE_PAYMENTS_H
 
-#include "util.h"
 #include "core_io.h"
 #include "key.h"
 #include "main.h"
 #include "stormnode.h"
+#include "util.h"
 #include "utilstrencodings.h"
 
 class CStormnodePayments;
@@ -22,7 +22,7 @@ static const int SNPAYMENTS_SIGNATURES_TOTAL            = 20;
 
 //! minimum peer version that can receive and send Stormnode payment messages,
 //  vote for Stormnode and be elected as a payment winner
-static const int MIN_STORMNODE_PAYMENT_PROTO_VERSION = 60800;
+static const int MIN_STORMNODE_PAYMENT_PROTO_VERSION = 70300;
 
 extern CCriticalSection cs_vecPayees;
 extern CCriticalSection cs_mapStormnodeBlocks;

@@ -21,9 +21,11 @@
 #include "base58.h"
 #include "coincontrol.h"
 #include "main.h" // mempool and minRelayTxFee
-#include "ui_interface.h"
 #include "txmempool.h"
+#include "ui_interface.h"
 #include "wallet/wallet.h"
+
+#include "privatesend.h"
 
 #include <QMessageBox>
 #include <QScrollBar>
@@ -66,13 +68,13 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *platformStyle, QWidget *pa
 
     // DarkSilk specific
     QSettings settings;
-    if (!settings.contains("bUseSandStorm"))
-        settings.setValue("bUseSandStorm", false);
-    if (!settings.contains("bUseInstantX"))
-        settings.setValue("bUseInstantX", false);
+    if (!settings.contains("bUsePrivateSend"))
+        settings.setValue("bUsePrivateSend", false);
+    if (!settings.contains("bUseInstantSend"))
+        settings.setValue("bUseInstantSend", false);
 
-    bool fUsePrivateSend = settings.value("bUseSandStorm").toBool();
-    bool fUseInstantSend = settings.value("bUseInstantX").toBool();
+    bool fUsePrivateSend = settings.value("bUsePrivateSend").toBool();
+    bool fUseInstantSend = settings.value("bUseInstantSend").toBool();
     if(fLiteMode) {
         ui->checkUsePrivateSend->setChecked(false);
         ui->checkUsePrivateSend->setVisible(false);
@@ -262,7 +264,7 @@ void SendCoinsDialog::on_sendButton_clicked()
         strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
         QString strNearestAmount(
             DarkSilkUnits::formatWithUnit(
-                model->getOptionsModel()->getDisplayUnit(), 0.1 * COIN));
+                model->getOptionsModel()->getDisplayUnit(), vecPrivateSendDenominations.back()));
         strFee = QString(tr(
             "(privatesend requires this amount to be rounded up to the nearest %1)."
         ).arg(strNearestAmount));
@@ -579,7 +581,7 @@ void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& unconfir
     {
 	    uint64_t bal = 0;
         QSettings settings;
-        settings.setValue("bUseSandStorm", ui->checkUsePrivateSend->isChecked());
+        settings.setValue("bUsePrivateSend", ui->checkUsePrivateSend->isChecked());
 	    if(ui->checkUsePrivateSend->isChecked()) {
 		    bal = anonymizedBalance;
 	    } else {
@@ -604,7 +606,7 @@ void SendCoinsDialog::updateDisplayUnit()
 void SendCoinsDialog::updateInstantSend()
 {
     QSettings settings;
-    settings.setValue("bUseInstantX", ui->checkUseInstantSend->isChecked());
+    settings.setValue("bUseInstantSend", ui->checkUseInstantSend->isChecked());
     CoinControlDialog::coinControl->fUseInstantSend = ui->checkUseInstantSend->isChecked();
     coinControlUpdateLabels();
 }
@@ -881,7 +883,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
             }
             else // Known change address
             {
-                ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:black;}");
+                ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:white;}");
 
                 // Query label
                 QString associatedLabel = model->getAddressTableModel()->labelForAddress(text);

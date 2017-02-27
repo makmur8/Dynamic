@@ -127,7 +127,7 @@ UniValue ValueFromAmount(const CAmount& amount)
     int64_t quotient = n_abs / COIN;
     int64_t remainder = n_abs % COIN;
     return UniValue(UniValue::VNUM,
-            strprintf("%s%d.%08d", sign ? "-" : "", quotient, remainder));
+            strprintf("%s%d.%06d", sign ? "-" : "", quotient, remainder));
 }
 
 uint256 ParseHashV(const UniValue& v, string strName)
@@ -318,7 +318,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Raw Transactions",    "sendrawtransaction",     &sendrawtransaction,     false },
     { "Raw Transactions",    "signrawtransaction",     &signrawtransaction,     false }, /* uses wallet if enabled */
 #ifdef ENABLE_WALLET
-    { "Raw transactions",    "fundrawtransaction",     &fundrawtransaction,     false },
+    { "Raw Transactions",    "fundrawtransaction",     &fundrawtransaction,     false },
 #endif
 
     /* Address index */
@@ -546,7 +546,7 @@ std::string JSONRPCExecBatch(const UniValue& vReq)
     for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++)
         ret.push_back(JSONRPCExecOne(vReq[reqIdx]));
 
-    return ret.write() + "\n";
+    return ret.write() + "\n";     
 }
 
 UniValue CRPCTable::execute(const std::string &strMethod, const UniValue &params) const
@@ -597,7 +597,7 @@ std::string HelpExampleCli(const std::string& methodname, const std::string& arg
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
 {
     return "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
-        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:31500/\n";
+        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:31650/\n";
 }
 
 void RPCRegisterTimerInterface(RPCTimerInterface *iface)

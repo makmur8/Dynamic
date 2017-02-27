@@ -8,15 +8,16 @@
 #include "core_io.h"
 
 #include "base58.h"
-#include "primitives/transaction.h"
 #include "script/script.h"
-#include "script/standard.h"
 #include "serialize.h"
+#include "script/standard.h"
 #include "streams.h"
-#include <univalue.h>
+#include "primitives/transaction.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
+
+#include <univalue.h>
 
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
@@ -121,9 +122,9 @@ string ScriptToAsmStr(const CScript& script, const bool fAttemptSighashDecode)
 
 string EncodeHexTx(const CTransaction& tx)
 {
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
-    ssTx << tx;
-    return HexStr(ssTx.begin(), ssTx.end());
+    CDataStream psTx(SER_NETWORK, PROTOCOL_VERSION);
+    psTx << tx;
+    return HexStr(psTx.begin(), psTx.end());
 }
 
 void ScriptPubKeyToUniv(const CScript& scriptPubKey,

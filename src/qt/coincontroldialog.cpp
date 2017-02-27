@@ -13,16 +13,15 @@
 #include "guiutil.h"
 #include "optionsmodel.h"
 #include "platformstyle.h"
-#include "txmempool.h"
 #include "walletmodel.h"
 
 #include "coincontrol.h"
 #include "init.h"
+#include "instantsend.h"
 #include "main.h" // For minRelayTxFee
+#include "privatesend.h"
+#include "txmempool.h"
 #include "wallet/wallet.h"
-
-#include "sandstorm.h"
-#include "instantx.h"
 
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 
@@ -589,6 +588,10 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
         else nBytesInputs += 148;
     }
 
+        // Add inputs to calculate InstantSend Fee later
+        if(coinControl->fUseInstantSend)
+            txDummy.vin.push_back(CTxIn());
+
     // calculation
     if (nQuantity > 0)
     {
@@ -611,7 +614,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
             nPayFee = coinControl->nMinimumTotalFee;
 
         // InstantSend Fee
-        if (coinControl->fUseInstantSend) nPayFee = std::max(nPayFee, INSTANTSEND_MIN_FEE);
+        if (coinControl->fUseInstantSend) nPayFee = std::max(nPayFee, CTxLockRequest(txDummy).GetMinFee());
 
         // Allow free? (require at least hard-coded threshold and default to that if no estimate)
         double dPriorityNeeded = std::max(mempoolEstimatePriority, AllowFreeThreshold());

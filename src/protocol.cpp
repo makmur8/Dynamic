@@ -38,29 +38,24 @@ const char *FILTERCLEAR="filterclear";
 const char *REJECT="reject";
 const char *SENDHEADERS="sendheaders";
 // DarkSilk message types
-const char *TXLOCKREQUEST="ix";
+const char *TXLOCKREQUEST="is";
 const char *TXLOCKVOTE="txlvote";
 const char *SPORK="spork";
 const char *GETSPORKS="getsporks";
 const char *STORMNODEPAYMENTVOTE="snw";
 const char *STORMNODEPAYMENTBLOCK="snwb";
 const char *STORMNODEPAYMENTSYNC="snget";
-const char *SNBUDGETSYNC="snvs"; // depreciated since 12.1
-const char *SNBUDGETVOTE="svote"; // depreciated since 12.1
-const char *SNBUDGETPROPOSAL="sprop"; // depreciated since 12.1
-const char *SNBUDGETFINAL="fbs"; // depreciated since 12.1
-const char *SNBUDGETFINALVOTE="fbvote"; // depreciated since 12.1
 const char *SNQUORUM="sn quorum"; // not implemented
 const char *SNANNOUNCE="snb";
 const char *SNPING="snp";
-const char *SSACCEPT="ssa";
-const char *SSVIN="ssi";
-const char *SSFINALTX="ssf";
-const char *SSSIGNFINALTX="sss";
-const char *SSCOMPLETE="ssc";
-const char *SSSTATUSUPDATE="sssu";
-const char *SSTX="sstx";
-const char *SSQUEUE="ssq";
+const char *PSACCEPT="psa";
+const char *PSVIN="psi";
+const char *PSFINALTX="psf";
+const char *PSSIGNFINALTX="pss";
+const char *PSCOMPLETE="psc";
+const char *PSSTATUSUPDATE="pssu";
+const char *PSTX="pstx";
+const char *PSQUEUE="psq";
 const char *SSEG="sseg";
 const char *SYNCSTATUSCOUNT="ssc";
 const char *SNGOVERNANCESYNC="govsync";
@@ -81,15 +76,11 @@ static const char* ppszTypeName[] =
     NetMsgType::TXLOCKVOTE,
     NetMsgType::SPORK,
     NetMsgType::STORMNODEPAYMENTVOTE,
-    NetMsgType::STORMNODEPAYMENTBLOCK, // reusing, was SNSCANERROR previousely, was NOT used in 12.0, we need this for inv
-    NetMsgType::SNBUDGETVOTE, // depreciated since 12.1
-    NetMsgType::SNBUDGETPROPOSAL, // depreciated since 12.1
-    NetMsgType::SNBUDGETFINAL, // depreciated since 12.1
-    NetMsgType::SNBUDGETFINALVOTE, // depreciated since 12.1
+    NetMsgType::STORMNODEPAYMENTBLOCK,
     NetMsgType::SNQUORUM, // not implemented
     NetMsgType::SNANNOUNCE,
     NetMsgType::SNPING,
-    NetMsgType::SSTX,
+    NetMsgType::PSTX,
     NetMsgType::SNGOVERNANCEOBJECT,
     NetMsgType::SNGOVERNANCEOBJECTVOTE,
     NetMsgType::SNVERIFY,
@@ -132,14 +123,14 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::STORMNODEPAYMENTSYNC,
     NetMsgType::SNANNOUNCE,
     NetMsgType::SNPING,
-    NetMsgType::SSACCEPT,
-    NetMsgType::SSVIN,
-    NetMsgType::SSFINALTX,
-    NetMsgType::SSSIGNFINALTX,
-    NetMsgType::SSCOMPLETE,
-    NetMsgType::SSSTATUSUPDATE,
-    NetMsgType::SSTX,
-    NetMsgType::SSQUEUE,
+    NetMsgType::PSACCEPT,
+    NetMsgType::PSVIN,
+    NetMsgType::PSFINALTX,
+    NetMsgType::PSSIGNFINALTX,
+    NetMsgType::PSCOMPLETE,
+    NetMsgType::PSSTATUSUPDATE,
+    NetMsgType::PSTX,
+    NetMsgType::PSQUEUE,
     NetMsgType::SSEG,
     NetMsgType::SYNCSTATUSCOUNT,
     NetMsgType::SNGOVERNANCESYNC,

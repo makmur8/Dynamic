@@ -4,20 +4,21 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "activestormnode.h"
-#include "sandstorm.h"
 #include "init.h"
 #include "main.h"
+#include "privatesend.h"
+#include "rpcserver.h"
 #include "stormnode-payments.h"
 #include "stormnode-sync.h"
 #include "stormnodeconfig.h"
 #include "stormnodeman.h"
-#include "rpcserver.h"
 #include "util.h"
 #include "utilmoneystr.h"
 
+#include <univalue.h>
+
 #include <fstream>
 #include <iomanip>
-#include <univalue.h>
 
 void EnsureWalletIsUnlocked();
 
@@ -32,18 +33,20 @@ UniValue privatesend(const UniValue& params, bool fHelp)
             "  start       - Start mixing\n"
             "  stop        - Stop mixing\n"
             "  reset       - Reset mixing\n"
-            + HelpRequiringPassphrase());
+            );
 
     if(params[0].get_str() == "start") {
-        if (pwalletMain->IsLocked(true))
-            throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
+        {
+            LOCK(pwalletMain->cs_wallet);
+            EnsureWalletIsUnlocked();
+        }
 
         if(fStormNode)
             return "Mixing is not supported from Stormnodes";
 
         fEnablePrivateSend = true;
-        bool result = sandStormPool.DoAutomaticDenominating();
-        return "Mixing " + (result ? "started successfully" : ("start failed: " + sandStormPool.GetStatus() + ", will retry"));
+        bool result = privateSendPool.DoAutomaticDenominating();
+        return "Mixing " + (result ? "started successfully" : ("start failed: " + privateSendPool.GetStatus() + ", will retry"));
     }
 
     if(params[0].get_str() == "stop") {
@@ -52,7 +55,7 @@ UniValue privatesend(const UniValue& params, bool fHelp)
     }
 
     if(params[0].get_str() == "reset") {
-        sandStormPool.ResetPool();
+        privateSendPool.ResetPool();
         return "Mixing was reset";
     }
 
@@ -67,15 +70,15 @@ UniValue getpoolinfo(const UniValue& params, bool fHelp)
             "Returns an object containing mixing pool related information.\n");
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("state",             sandStormPool.GetStateString()));
+    obj.push_back(Pair("state",             privateSendPool.GetStateString()));
     obj.push_back(Pair("mixing_mode",       fPrivateSendMultiSession ? "multi-session" : "normal"));
-    obj.push_back(Pair("queue",             sandStormPool.GetQueueSize()));
-    obj.push_back(Pair("entries",           sandStormPool.GetEntriesCount()));
-    obj.push_back(Pair("status",            sandStormPool.GetStatus()));
+    obj.push_back(Pair("queue",             privateSendPool.GetQueueSize()));
+    obj.push_back(Pair("entries",           privateSendPool.GetEntriesCount()));
+    obj.push_back(Pair("status",            privateSendPool.GetStatus()));
 
-    if (sandStormPool.pSubmittedToStormnode) {
-        obj.push_back(Pair("outpoint",      sandStormPool.pSubmittedToStormnode->vin.prevout.ToStringShort()));
-        obj.push_back(Pair("addr",          sandStormPool.pSubmittedToStormnode->addr.ToString()));
+    if (privateSendPool.pSubmittedToStormnode) {
+        obj.push_back(Pair("outpoint",      privateSendPool.pSubmittedToStormnode->vin.prevout.ToStringShort()));
+        obj.push_back(Pair("addr",          privateSendPool.pSubmittedToStormnode->addr.ToString()));
     }
 
     if (pwalletMain) {
@@ -103,11 +106,10 @@ UniValue stormnode(const UniValue& params, bool fHelp)
          strCommand != "debug" && strCommand != "current" && strCommand != "winner" && strCommand != "winners" && strCommand != "genkey" &&
          strCommand != "connect" && strCommand != "outputs" && strCommand != "status"))
             throw std::runtime_error(
-                "stormnode \"command\"... ( \"passphrase\" )\n"
+                "stormnode \"command\"...\n"
                 "Set of commands to execute stormnode-sync related actions\n"
                 "\nArguments:\n"
                 "1. \"command\"        (string or set of strings, required) The command to execute\n"
-                "2. \"passphrase\"     (string, optional) The wallet passphrase\n"
                 "\nAvailable commands:\n"
                 "  count        - Print number of all known Stormnodes (optional: 'ps', 'enabled', 'all', 'qualify')\n"
                 "  current      - Print info on current Stormnode winner to be paid the next block (calculated locally)\n"
@@ -503,7 +505,7 @@ UniValue stormnodelist(const UniValue& params, bool fHelp)
                 obj.push_back(Pair(strOutpoint, strAddress));
             } else if (strMode == "full") {
                 std::ostringstream streamFull;
-                streamFull << std::setw(15) <<
+                streamFull << std::setw(18) <<
                                sn.GetStatus() << " " <<
                                sn.nProtocolVersion << " " <<
                                CDarkSilkAddress(sn.pubKeyCollateralAddress.GetID()).ToString() << " " <<
@@ -572,17 +574,16 @@ UniValue stormnodebroadcast(const UniValue& params, bool fHelp)
     if (fHelp  ||
         (strCommand != "create-alias" && strCommand != "create-all" && strCommand != "decode" && strCommand != "relay"))
         throw std::runtime_error(
-                "stormnodebroadcast \"command\"... ( \"passphrase\" )\n"
+                "stormnodebroadcast \"command\"...\n"
                 "Set of commands to create and relay Stormnode broadcast messages\n"
                 "\nArguments:\n"
                 "1. \"command\"        (string or set of strings, required) The command to execute\n"
-                "2. \"passphrase\"     (string, optional) The wallet passphrase\n"
                 "\nAvailable commands:\n"
                 "  create-alias  - Create single remote Stormnode broadcast message by assigned alias configured in stormnode.conf\n"
                 "  create-all    - Create remote Stormnode broadcast messages for all Stormnodes configured in stormnode.conf\n"
                 "  decode        - Decode Stormnode broadcast message\n"
                 "  relay         - Relay Stormnode broadcast message to the network\n"
-                + HelpRequiringPassphrase());
+                );
 
     if (strCommand == "create-alias")
     {

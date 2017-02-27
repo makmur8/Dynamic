@@ -100,12 +100,14 @@ private:
 
     static const int LAST_PAID_SCAN_BLOCKS      = 100;
 
-    static const int MIN_POSE_PROTO_VERSION     = 60800;
+    static const int MIN_POSE_PROTO_VERSION     = 70300;
+    static const int MAX_POSE_CONNECTIONS       = 10;
     static const int MAX_POSE_RANK              = 10;
     static const int MAX_POSE_BLOCKS            = 10;
 
     static const int SNB_RECOVERY_QUORUM_TOTAL      = 10;
     static const int SNB_RECOVERY_QUORUM_REQUIRED   = 10;
+    static const int SNB_RECOVERY_MAX_ASK_ENTRIES   = 10;
     static const int SNB_RECOVERY_WAIT_SECONDS      = 60;
     static const int SNB_RECOVERY_RETRY_SECONDS     = 3 * 60 * 60;
 
@@ -160,7 +162,7 @@ public:
     std::map<uint256, CStormnodePing> mapSeenStormnodePing;
     // Keep track of all verifications I've seen
     std::map<uint256, CStormnodeVerification> mapSeenStormnodeVerification;
-    // keep track of ssq count to prevent Stormnodes from gaming sandstorm queue
+    // keep track of psq count to prevent Stormnodes from gaming privatesend queue
     int64_t nSsqCount;
 
 
@@ -298,7 +300,7 @@ public:
     CStormnode* GetStormnodeByRank(int nRank, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
 
     void ProcessStormnodeConnections();
-    std::pair<CService, uint256> PopScheduledSnbRequestConnection();
+    std::pair<CService, std::set<uint256> > PopScheduledSnbRequestConnection();
 
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 

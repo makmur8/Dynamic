@@ -12,9 +12,9 @@
 #include "netbase.h"
 
 #include "hash.h"
+#include "random.h"
 #include "sync.h"
 #include "uint256.h"
-#include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
 
@@ -52,10 +52,10 @@ static const int SOCKS5_RECV_TIMEOUT = 20 * 1000;
 enum Network ParseNetwork(std::string net) {
     boost::to_lower(net);
     if (net == "ipv4") return NET_IPV4;
-    if (net == "ipv6") return NET_IPV6;
+    if (net == "ipv6") return NET_UNROUTABLE;
     if (net == "tor" || net == "onion")  return NET_TOR;
     return NET_UNROUTABLE;
-}
+} 
 
 std::string GetNetworkName(enum Network net) {
     switch(net)

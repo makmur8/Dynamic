@@ -9,17 +9,18 @@
 
 #include "base58.h"
 #include "chainparams.h"
+#include "crypto/hmac_sha256.h"
 #include "httpserver.h"
+#include "random.h"
 #include "rpcprotocol.h"
 #include "rpcserver.h"
-#include "random.h"
 #include "sync.h"
 #include "util.h"
 #include "utilstrencodings.h"
 #include "ui_interface.h"
-#include "crypto/hmac_sha256.h"
-#include <stdio.h>
 #include "utilstrencodings.h"
+
+#include <stdio.h>
 
 #include <boost/algorithm/string.hpp> // boost::trim
 #include <boost/foreach.hpp> //BOOST_FOREACH
@@ -179,7 +180,7 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
     try {
         // Parse request
         UniValue valRequest;
-        if (!valRequest.read(req->ReadBody()))
+        if (!valRequest.read(req->ReadBody()))     
             throw JSONRPCError(RPC_PARSE_ERROR, "Parse error");
 
         std::string strReply;

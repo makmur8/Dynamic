@@ -3,26 +3,34 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "ssnotificationinterface.h"
-#include "sandstorm.h"
+#include "psnotificationinterface.h"
+
 #include "governance.h"
+#include "instantsend.h"
+#include "privatesend.h"
 #include "stormnodeman.h"
 #include "stormnode-payments.h"
 #include "stormnode-sync.h"
 
-CSSNotificationInterface::CSSNotificationInterface()
+CPSNotificationInterface::CPSNotificationInterface()
 {
 }
 
-CSSNotificationInterface::~CSSNotificationInterface()
+CPSNotificationInterface::~CPSNotificationInterface()
 {
 }
 
-void CSSNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindex)
+void CPSNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindex)
 {
     snodeman.UpdatedBlockTip(pindex);
-    sandStormPool.UpdatedBlockTip(pindex);
+    privateSendPool.UpdatedBlockTip(pindex);
+    instantsend.UpdatedBlockTip(pindex);
     snpayments.UpdatedBlockTip(pindex);
     governance.UpdatedBlockTip(pindex);
     stormnodeSync.UpdatedBlockTip(pindex);
+}
+
+void CPSNotificationInterface::SyncTransaction(const CTransaction &tx, const CBlock *pblock)
+{
+    instantsend.SyncTransaction(tx, pblock);
 }

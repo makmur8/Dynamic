@@ -3,9 +3,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "sandstorm.h"
-#include "main.h"
 #include "spork.h"
+
+#include "main.h"
+#include "privatesend.h"
 
 #include <boost/lexical_cast.hpp>
 
@@ -76,9 +77,27 @@ void CSporkManager::ExecuteSpork(int nSporkID, int nValue)
 {
     //correct fork via spork technology
     if(nSporkID == SPORK_12_RECONSIDER_BLOCKS && nValue > 0) {
+        // allow to reprocess 6h of blocks max which is 2x fork detection time, should be enough to resolve any issues
+        int64_t nMaxBlocks = 144;
+        // this potentially can be a heavy operation, so only allow this to be executed once per 10 minutes
+        int64_t nTimeout = 10 * 60;
+
+        static int64_t nTimeExecuted = 0; // i.e. it was never executed before
+
+        if(GetTime() - nTimeExecuted < nTimeout) {
+            LogPrint("spork", "CSporkManager::ExecuteSpork -- ERROR: Trying to reconsider blocks, too soon - %d/%d\n", GetTime() - nTimeExecuted, nTimeout);
+            return;
+        }
+
+        if(nValue > nMaxBlocks) {
+            LogPrintf("CSporkManager::ExecuteSpork -- ERROR: Trying to reconsider too many blocks %d/%d\n", nValue, nMaxBlocks);
+            return;
+        }
+
         LogPrintf("CSporkManager::ExecuteSpork -- Reconsider Last %d Blocks\n", nValue);
 
         ReprocessBlocks(nValue);
+        nTimeExecuted = GetTime();
     }
 }
 
@@ -205,17 +224,17 @@ bool CSporkMessage::Sign(std::string strSignKey)
     std::string strError = "";
     std::string strMessage = boost::lexical_cast<std::string>(nSporkID) + boost::lexical_cast<std::string>(nValue) + boost::lexical_cast<std::string>(nTimeSigned);
 
-    if(!sandStormSigner.GetKeysFromSecret(strSignKey, key, pubkey)) {
+    if(!privateSendSigner.GetKeysFromSecret(strSignKey, key, pubkey)) {
         LogPrintf("CSporkMessage::Sign -- GetKeysFromSecret() failed, invalid spork key %s\n", strSignKey);
         return false;
     }
 
-    if(!sandStormSigner.SignMessage(strMessage, vchSig, key)) {
+    if(!privateSendSigner.SignMessage(strMessage, vchSig, key)) {
         LogPrintf("CSporkMessage::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    if(!sandStormSigner.VerifyMessage(pubkey, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubkey, vchSig, strMessage, strError)) {
         LogPrintf("CSporkMessage::Sign -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
@@ -230,7 +249,7 @@ bool CSporkMessage::CheckSignature()
     std::string strMessage = boost::lexical_cast<std::string>(nSporkID) + boost::lexical_cast<std::string>(nValue) + boost::lexical_cast<std::string>(nTimeSigned);
     CPubKey pubkey(ParseHex(Params().SporkPubKey()));
 
-    if(!sandStormSigner.VerifyMessage(pubkey, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubkey, vchSig, strMessage, strError)) {
         LogPrintf("CSporkMessage::CheckSignature -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }

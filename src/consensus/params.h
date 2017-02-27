@@ -7,6 +7,7 @@
 #define DARKSILK_CONSENSUS_PARAMS_H
 
 #include "uint256.h"
+
 #include <map>
 #include <string>
 
@@ -38,14 +39,14 @@ struct Params {
     uint256 hashGenesisBlock;
     int nStormnodePaymentsStartBlock;
     int nInstantSendKeepLock; // in blocks
-    int nInstantSendReprocessBlocks;
     int nBudgetPaymentsStartBlock;
     int nBudgetPaymentsCycleBlocks;
     int nBudgetPaymentsWindowBlocks;
     int nBudgetProposalEstablishingTime; // in seconds
     int nSuperblockStartBlock;
     int nSuperblockCycle; // in blocks
-    int nGovernanceMinQuorum; // Min absolute vote count to trigger an action 
+    int nGovernanceMinQuorum; // Min absolute vote count to trigger an action
+    int nGovernanceFilterElements;
     int nStormnodeMinimumConfirmations;
     /** Used to check majorities for block version upgrade */
     int nMajorityEnforceBlockUpgrade;

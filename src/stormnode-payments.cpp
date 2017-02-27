@@ -3,15 +3,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activestormnode.h"
-#include "sandstorm.h"
-#include "governance-classes.h"
-#include "policy/fees.h"
 #include "stormnode-payments.h"
+
+#include "activestormnode.h"
+#include "governance-classes.h"
+#include "netfulfilledman.h"
+#include "policy/fees.h"
+#include "privatesend.h"
+#include "spork.h"
 #include "stormnode-sync.h"
 #include "stormnodeman.h"
-#include "netfulfilledman.h"
-#include "spork.h"
 #include "util.h"
 
 #include <boost/lexical_cast.hpp>
@@ -49,9 +50,7 @@ bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockRewar
         int nOffset = nBlockHeight % consensusParams.nBudgetPaymentsCycleBlocks;
         if(nBlockHeight >= consensusParams.nBudgetPaymentsStartBlock &&
             nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
-            // NOTE: make sure SPORK_13_OLD_SUPERBLOCK_FLAG is disabled when 12.1 starts to go live
             if(stormnodeSync.IsSynced() && !sporkManager.IsSporkActive(SPORK_13_OLD_SUPERBLOCK_FLAG)) {
-                // no budget blocks should be accepted here, if SPORK_13_OLD_SUPERBLOCK_FLAG is disabled
                 LogPrint("gobject", "IsBlockValueValid -- Client synced but budget spork is disabled, checking block value against block reward\n");
                 if(!isBlockRewardValueMet) {
                     strErrorRet = strprintf("coinbase pays too much at height %d (actual=%d vs limit=%d), exceeded block reward, budgets are disabled",
@@ -440,12 +439,12 @@ bool CStormnodePaymentVote::Sign()
                 boost::lexical_cast<std::string>(nBlockHeight) +
                 ScriptToAsmStr(payee);
 
-    if(!sandStormSigner.SignMessage(strMessage, vchSig, activeStormnode.keyStormnode)) {
+    if(!privateSendSigner.SignMessage(strMessage, vchSig, activeStormnode.keyStormnode)) {
         LogPrintf("CStormnodePaymentVote::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    if(!sandStormSigner.VerifyMessage(activeStormnode.pubKeyStormnode, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(activeStormnode.pubKeyStormnode, vchSig, strMessage, strError)) {
         LogPrintf("CStormnodePaymentVote::Sign -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
@@ -679,7 +678,7 @@ bool CStormnodePaymentVote::IsValid(CNode* pnode, int nValidationHeight, std::st
     if(!psn) {
         strError = strprintf("Unknown Stormnode: prevout=%s", vinStormnode.prevout.ToStringShort());
         // Only ask if we are already synced and still have no idea about that Stormnode
-        if(stormnodeSync.IsSynced()) {
+        if(stormnodeSync.IsStormnodeListSynced()) {
             snodeman.AskForSN(pnode, vinStormnode);
         }
 
@@ -791,7 +790,7 @@ bool CStormnodePayments::ProcessBlock(int nBlockHeight)
 void CStormnodePaymentVote::Relay()
 {
     // do not relay until synced
-    if (!stormnodeSync.IsSynced()) return;
+    if (!stormnodeSync.IsWinnersListSynced()) return;
     CInv inv(MSG_STORMNODE_PAYMENT_VOTE, GetHash());
     RelayInv(inv);
 }
@@ -806,11 +805,11 @@ bool CStormnodePaymentVote::CheckSignature(const CPubKey& pubKeyStormnode, int n
                 ScriptToAsmStr(payee);
 
     std::string strError = "";
-    if (!sandStormSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
+    if (!privateSendSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
         // Only ban for future block vote when we are already synced.
         // Otherwise it could be the case when SN which signed this vote is using another key now
         // and we have no idea about the old one.
-        if(stormnodeSync.IsSynced() && nBlockHeight > nValidationHeight) {
+        if(stormnodeSync.IsStormnodeListSynced() && nBlockHeight > nValidationHeight) {
             nDos = 20;
         }
         return error("CStormnodePaymentVote::CheckSignature -- Got bad Stormnode payment signature, Stormnode=%s, error: %s", vinStormnode.prevout.ToStringShort().c_str(), strError);
@@ -925,7 +924,7 @@ void CStormnodePayments::RequestLowDataPaymentBlocks(CNode* pnode)
         }
         // We should not violate GETDATA rules
         if(vToFetch.size() == MAX_INV_SZ) {
-            LogPrintf("CStormnodePayments::SyncLowDataPaymentBlocks -- asking peer %d for %d blocks\n", pnode->id, MAX_INV_SZ);
+            LogPrintf("CStormnodePayments::SyncLowDataPaymentBlocks -- asking peer %d for %d payment blocks\n", pnode->id, MAX_INV_SZ);
             pnode->PushMessage(NetMsgType::GETDATA, vToFetch);
             // Start filling new batch
             vToFetch.clear();
@@ -934,7 +933,7 @@ void CStormnodePayments::RequestLowDataPaymentBlocks(CNode* pnode)
     }
     // Ask for the rest of it
     if(!vToFetch.empty()) {
-        LogPrintf("CStormnodePayments::SyncLowDataPaymentBlocks -- asking peer %d for %d blocks\n", pnode->id, vToFetch.size());
+        LogPrintf("CStormnodePayments::SyncLowDataPaymentBlocks -- asking peer %d for %d payment blocks\n", pnode->id, vToFetch.size());
         pnode->PushMessage(NetMsgType::GETDATA, vToFetch);
     }
 }

@@ -5,14 +5,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "rpcserver.h"
-
 #include "chainparams.h"
 #include "clientversion.h"
 #include "main.h"
 #include "net.h"
 #include "netbase.h"
 #include "protocol.h"
+#include "rpcserver.h"
 #include "sync.h"
 #include "timedata.h"
 #include "ui_interface.h"
@@ -20,9 +19,9 @@
 #include "utilstrencodings.h"
 #include "version.h"
 
-#include <boost/foreach.hpp>
-
 #include <univalue.h>
+
+#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -189,8 +188,8 @@ UniValue addnode(const UniValue& params, bool fHelp)
             "1. \"node\"     (string, required) The node (see getpeerinfo for nodes)\n"
             "2. \"command\"  (string, required) 'add' to add a node to the list, 'remove' to remove a node from the list, 'onetry' to try a connection to the node once\n"
             "\nExamples:\n"
-            + HelpExampleCli("addnode", "\"192.168.0.6:31000\" \"onetry\"")
-            + HelpExampleRpc("addnode", "\"192.168.0.6:31000\", \"onetry\"")
+            + HelpExampleCli("addnode", "\"192.168.0.6:31600\" \"onetry\"")
+            + HelpExampleRpc("addnode", "\"192.168.0.6:31600\", \"onetry\"")
         );
 
     string strNode = params[0].get_str();
@@ -265,7 +264,7 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
             "    \"connected\" : true|false,          (boolean) If connected\n"
             "    \"addresses\" : [\n"
             "       {\n"
-            "         \"address\" : \"192.168.0.201:31000\",  (string) The darksilk server host and port\n"
+            "         \"address\" : \"192.168.0.201:31600\",  (string) The darksilk server host and port\n"
             "         \"connected\" : \"outbound\"           (string) connection, inbound or outbound\n"
             "       }\n"
             "       ,...\n"

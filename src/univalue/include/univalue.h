@@ -122,11 +122,11 @@ public:
     bool pushKVs(const UniValue& obj);
 
     std::string write(unsigned int prettyIndent = 0,
-                      unsigned int indentLevel = 0) const;
+                      unsigned int indentLevel = 0) const;     
 
-    bool read(const char *raw);
-    bool read(const std::string& rawStr) {
-        return read(rawStr.c_str());
+    bool read(const char *raw);        
+    bool read(const std::string& rawStr) {     
+        return read(rawStr.c_str());       
     }
 
 private:
@@ -136,8 +136,8 @@ private:
     std::vector<UniValue> values;
 
     int findKey(const std::string& key) const;
-    void writeArray(unsigned int prettyIndent, unsigned int indentLevel, std::string& s) const;
-    void writeObject(unsigned int prettyIndent, unsigned int indentLevel, std::string& s) const;
+    void writeArray(unsigned int prettyIndent, unsigned int indentLevel, std::string& s) const;        
+    void writeObject(unsigned int prettyIndent, unsigned int indentLevel, std::string& s) const;       
 
 public:
     // Strict type-specific getters, these throw std::runtime_error if the
@@ -240,7 +240,7 @@ enum jtokentype {
 };
 
 extern enum jtokentype getJsonToken(std::string& tokenVal,
-                                    unsigned int& consumed, const char *raw);
+                                    unsigned int& consumed, const char *raw);      
 extern const char *uvTypeName(UniValue::VType t);
 
 static inline bool jsonTokenIsValue(enum jtokentype jtt)

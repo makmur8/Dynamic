@@ -3,14 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "stormnodeman.h"
+
 #include "activestormnode.h"
 #include "addrman.h"
-#include "sandstorm.h"
 #include "governance.h"
+#include "netfulfilledman.h"
+#include "privatesend.h"
 #include "stormnode-payments.h"
 #include "stormnode-sync.h"
-#include "stormnodeman.h"
-#include "netfulfilledman.h"
 #include "util.h"
 
 /** Stormnode manager */
@@ -103,6 +104,9 @@ CStormnodeMan::CStormnodeMan()
   mAskedUsForStormnodeList(),
   mWeAskedForStormnodeList(),
   mWeAskedForStormnodeListEntry(),
+  mWeAskedForVerification(),
+  mSnbRecoveryRequests(),
+  mSnbRecoveryGoodReplies(),
   listScheduledSnbRequestConnections(),
   nLastIndexRebuildTime(0),
   indexStormnodes(),
@@ -161,16 +165,6 @@ void CStormnodeMan::AskForSN(CNode* pnode, const CTxIn &vin)
     pnode->PushMessage(NetMsgType::SSEG, vin);
 }
 
-void CStormnodeMan::AskForSnb(CNode* pnode, const uint256 &hash)
-{
-    if(!pnode || hash == uint256()) return;
-
-    LogPrint("stormnode", "CStormnodeMan::AskForSnb -- asking for snb %s from addr=%s\n", hash.ToString(), pnode->addr.ToString());
-    std::vector<CInv> vToFetch;
-    vToFetch.push_back(CInv(MSG_STORMNODE_ANNOUNCE, hash));
-    pnode->PushMessage(NetMsgType::GETDATA, vToFetch);
-}
-
 void CStormnodeMan::Check()
 {
     LOCK(cs);
@@ -198,7 +192,8 @@ void CStormnodeMan::CheckAndRemove()
         // Remove spent Stormnodes, prepare structures and make requests to reasure the state of inactive ones
         std::vector<CStormnode>::iterator it = vStormnodes.begin();
         std::vector<std::pair<int, CStormnode> > vecStormnodeRanks;
-        bool fAskedForSnbRecovery = false; // ask for one sn at a time
+        // ask for up to SNB_RECOVERY_MAX_ASK_ENTRIES stormnode entries at a time
+        int nAskForSnbRecovery = SNB_RECOVERY_MAX_ASK_ENTRIES;
         while(it != vStormnodes.end()) {
             CStormnodeBroadcast snb = CStormnodeBroadcast(*it);
             uint256 hash = snb.GetHash();
@@ -214,7 +209,7 @@ void CStormnodeMan::CheckAndRemove()
                 fStormnodesRemoved = true;
             } else {
                 bool fAsk = pCurrentBlockIndex &&
-                            !fAskedForSnbRecovery &&
+                            (nAskForSnbRecovery > 0) &&
                             stormnodeSync.IsSynced() &&
                             it->IsNewStartRequired() &&
                             !IsSnbRecoveryRequested(hash);
@@ -226,7 +221,8 @@ void CStormnodeMan::CheckAndRemove()
                         int nRandomBlockHeight = GetRandInt(pCurrentBlockIndex->nHeight);
                         vecStormnodeRanks = GetStormnodeRanks(nRandomBlockHeight);
                     }
-                    // ask first SNB_RECOVERY_QUORUM_TOTAL sn's we can connect to and we haven't asked recently
+                    bool fAskedForSnbRecovery = false;
+                    // ask first SNB_RECOVERY_QUORUM_TOTAL stormnodes we can connect to and we haven't asked recently
                     for(int i = 0; setRequested.size() < SNB_RECOVERY_QUORUM_TOTAL && i < (int)vecStormnodeRanks.size(); i++) {
                         // avoid banning
                         if(mWeAskedForStormnodeListEntry.count(it->vin.prevout) && mWeAskedForStormnodeListEntry[it->vin.prevout].count(vecStormnodeRanks[i].second.addr)) continue;
@@ -235,6 +231,10 @@ void CStormnodeMan::CheckAndRemove()
                         setRequested.insert(addr);
                         listScheduledSnbRequestConnections.push_back(std::make_pair(addr, hash));
                         fAskedForSnbRecovery = true;
+                    }
+                    if(fAskedForSnbRecovery) {
+                        LogPrint("Stormnode", "CStormnodeMan::CheckAndRemove -- Recovery initiated, Stormnode=%s\n", it->vin.prevout.ToStringShort());
+                        nAskForSnbRecovery--;
                     }
                     // wait for snb recovery replies for SNB_RECOVERY_WAIT_SECONDS seconds
                     mSnbRecoveryRequests[hash] = std::make_pair(GetTime() + SNB_RECOVERY_WAIT_SECONDS, setRequested);
@@ -764,20 +764,38 @@ void CStormnodeMan::ProcessStormnodeConnections()
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes) {
         if(pnode->fStormnode) {
-            if(sandStormPool.pSubmittedToStormnode != NULL && pnode->addr == sandStormPool.pSubmittedToStormnode->addr) continue;
+            if(privateSendPool.pSubmittedToStormnode != NULL && pnode->addr == privateSendPool.pSubmittedToStormnode->addr) continue;
             LogPrintf("Closing Stormnode connection: peer=%d, addr=%s\n", pnode->id, pnode->addr.ToString());
             pnode->fDisconnect = true;
         }
     }
 }
 
-std::pair<CService, uint256> CStormnodeMan::PopScheduledSnbRequestConnection()
+std::pair<CService, std::set<uint256> > CStormnodeMan::PopScheduledSnbRequestConnection()
 {
     LOCK(cs);
-    if(listScheduledSnbRequestConnections.empty()) return make_pair(CService(), uint256());
-    std::pair<CService, uint256> p = listScheduledSnbRequestConnections.front();
-    listScheduledSnbRequestConnections.pop_front();
-    return p;
+    if(listScheduledSnbRequestConnections.empty()) {
+        return std::make_pair(CService(), std::set<uint256>());
+    }
+
+    std::set<uint256> setResult;
+
+    listScheduledSnbRequestConnections.sort();
+    std::pair<CService, uint256> pairFront = listScheduledSnbRequestConnections.front();
+
+    // squash hashes from requests with the same CService as the first one into setResult
+    std::list< std::pair<CService, uint256> >::iterator it = listScheduledSnbRequestConnections.begin();
+    while(it != listScheduledSnbRequestConnections.end()) {
+        if(pairFront.first == it->first) {
+            setResult.insert(it->second);
+            it = listScheduledSnbRequestConnections.erase(it);
+        } else {
+            // since list is sorted now, we can be sure that there is no more hashes left
+            // to ask for from this addr
+            break;
+        }
+    }
+    return std::make_pair(pairFront.first, setResult);
 }
 
 void CStormnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
@@ -943,7 +961,6 @@ void CStormnodeMan::DoFullVerificationStep()
     LOCK2(cs_main, cs);
 
     int nCount = 0;
-    int nCountMax = std::max(10, (int)vStormnodes.size() / 100); // verify at least 10 Stormnode at once but at most 1% of all known Stormnodes
 
     int nMyRank = -1;
     int nRanksTotal = (int)vecStormnodeRanks.size();
@@ -959,7 +976,7 @@ void CStormnodeMan::DoFullVerificationStep()
         if(it->second.vin == activeStormnode.vin) {
             nMyRank = it->first;
             LogPrint("Stormnode", "CStormnodeMan::DoFullVerificationStep -- Found self at rank %d/%d, verifying up to %d Stormnodes\n",
-                        nMyRank, nRanksTotal, nCountMax);
+                        nMyRank, nRanksTotal, (int)MAX_POSE_CONNECTIONS);
             break;
         }
         ++it;
@@ -968,9 +985,9 @@ void CStormnodeMan::DoFullVerificationStep()
     // edge case: list is too short and this Stormnode is not enabled
     if(nMyRank == -1) return;
 
-    // send verify requests to up to nCountMax Stormnodes starting from
-    // (MAX_POSE_RANK + nCountMax * (nMyRank - 1) + 1)
-    int nOffset = MAX_POSE_RANK + nCountMax * (nMyRank - 1);
+    // send verify requests to up to MAX_POSE_CONNECTIONS Stormnodes
+    // starting from MAX_POSE_RANK + nMyRank and using MAX_POSE_CONNECTIONS as a step
+    int nOffset = MAX_POSE_RANK + nMyRank - 1;
     if(nOffset >= (int)vecStormnodeRanks.size()) return;
 
     std::vector<CStormnode*> vSortedByAddr;
@@ -988,16 +1005,20 @@ void CStormnodeMan::DoFullVerificationStep()
                         it->second.IsPoSeVerified() && it->second.IsPoSeBanned() ? " and " : "",
                         it->second.IsPoSeBanned() ? "banned" : "",
                         it->second.vin.prevout.ToStringShort(), it->second.addr.ToString());
-            ++it;
+            nOffset += MAX_POSE_CONNECTIONS;
+            if(nOffset >= (int)vecStormnodeRanks.size()) break;
+            it += MAX_POSE_CONNECTIONS;
             continue;
         }
         LogPrint("Stormnode", "CStormnodeMan::DoFullVerificationStep -- Verifying Stormnode %s rank %d/%d address %s\n",
                     it->second.vin.prevout.ToStringShort(), it->first, nRanksTotal, it->second.addr.ToString());
         if(SendVerifyRequest((CAddress)it->second.addr, vSortedByAddr)) {
             nCount++;
-            if(nCount >= nCountMax) break;
+            if(nCount >= MAX_POSE_CONNECTIONS) break;
         }
-        ++it;
+        nOffset += MAX_POSE_CONNECTIONS;
+        if(nOffset >= (int)vecStormnodeRanks.size()) break;
+        it += MAX_POSE_CONNECTIONS;
     }
 
     LogPrint("Stormnode", "CStormnodeMan::DoFullVerificationStep -- Sent verification requests to %d Stormnodes\n", nCount);
@@ -1109,14 +1130,14 @@ void CStormnodeMan::SendVerifyReply(CNode* pnode, CStormnodeVerification& snv)
 
     std::string strMessage = strprintf("%s%d%s", activeStormnode.service.ToString(false), snv.nonce, blockHash.ToString());
 
-    if(!sandStormSigner.SignMessage(strMessage, snv.vchSig1, activeStormnode.keyStormnode)) {
+    if(!privateSendSigner.SignMessage(strMessage, snv.vchSig1, activeStormnode.keyStormnode)) {
         LogPrintf("StormnodeMan::SendVerifyReply -- SignMessage() failed\n");
         return;
     }
 
     std::string strError;
 
-    if(!sandStormSigner.VerifyMessage(activeStormnode.pubKeyStormnode, snv.vchSig1, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(activeStormnode.pubKeyStormnode, snv.vchSig1, strMessage, strError)) {
         LogPrintf("StormnodeMan::SendVerifyReply -- VerifyMessage() failed, error: %s\n", strError);
         return;
     }
@@ -1175,7 +1196,7 @@ void CStormnodeMan::ProcessVerifyReply(CNode* pnode, CStormnodeVerification& snv
         std::string strMessage1 = strprintf("%s%d%s", pnode->addr.ToString(false), snv.nonce, blockHash.ToString());
         while(it != vStormnodes.end()) {
             if((CAddress)it->addr == pnode->addr) {
-                if(sandStormSigner.VerifyMessage(it->pubKeyStormnode, snv.vchSig1, strMessage1, strError)) {
+                if(privateSendSigner.VerifyMessage(it->pubKeyStormnode, snv.vchSig1, strMessage1, strError)) {
                     // found it!
                     prealStormnode = &(*it);
                     if(!it->IsPoSeVerified()) {
@@ -1192,14 +1213,14 @@ void CStormnodeMan::ProcessVerifyReply(CNode* pnode, CStormnodeVerification& snv
                     std::string strMessage2 = strprintf("%s%d%s%s%s", snv.addr.ToString(false), snv.nonce, blockHash.ToString(),
                                             snv.vin1.prevout.ToStringShort(), snv.vin2.prevout.ToStringShort());
                     // ... and sign it
-                    if(!sandStormSigner.SignMessage(strMessage2, snv.vchSig2, activeStormnode.keyStormnode)) {
+                    if(!privateSendSigner.SignMessage(strMessage2, snv.vchSig2, activeStormnode.keyStormnode)) {
                         LogPrintf("StormnodeMan::ProcessVerifyReply -- SignMessage() failed\n");
                         return;
                     }
 
                     std::string strError;
 
-                    if(!sandStormSigner.VerifyMessage(activeStormnode.pubKeyStormnode, snv.vchSig2, strMessage2, strError)) {
+                    if(!privateSendSigner.VerifyMessage(activeStormnode.pubKeyStormnode, snv.vchSig2, strMessage2, strError)) {
                         LogPrintf("StormnodeMan::ProcessVerifyReply -- VerifyMessage() failed, error: %s\n", strError);
                         return;
                     }
@@ -1298,12 +1319,12 @@ void CStormnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CStormnodeVerific
             return;
         }
 
-        if(sandStormSigner.VerifyMessage(psn1->pubKeyStormnode, snv.vchSig1, strMessage1, strError)) {
+        if(privateSendSigner.VerifyMessage(psn1->pubKeyStormnode, snv.vchSig1, strMessage1, strError)) {
             LogPrintf("StormnodeMan::ProcessVerifyBroadcast -- VerifyMessage() for Stormnode1 failed, error: %s\n", strError);
             return;
         }
 
-        if(sandStormSigner.VerifyMessage(psn2->pubKeyStormnode, snv.vchSig2, strMessage2, strError)) {
+        if(privateSendSigner.VerifyMessage(psn2->pubKeyStormnode, snv.vchSig2, strMessage2, strError)) {
             LogPrintf("StormnodeMan::ProcessVerifyBroadcast -- VerifyMessage() for Stormnode2 failed, error: %s\n", strError);
             return;
         }
@@ -1338,6 +1359,7 @@ std::string CStormnodeMan::ToString() const
             ", peers who asked us for Stormnode list: " << (int)mAskedUsForStormnodeList.size() <<
             ", peers we asked for Stormnode list: " << (int)mWeAskedForStormnodeList.size() <<
             ", entries in Stormnode list we asked for: " << (int)mWeAskedForStormnodeListEntry.size() <<
+            ", stormnode index size: " << indexStormnodes.GetSize() <<
             ", nSsqCount: " << (int)nSsqCount;
 
     return info.str();
@@ -1375,7 +1397,7 @@ bool CStormnodeMan::CheckSnbAndUpdateStormnodeList(CNode* pfrom, CStormnodeBroad
     LogPrint("Stormnode", "CStormnodeMan::CheckSnbAndUpdateStormnodeList -- Stormnode=%s\n", snb.vin.prevout.ToStringShort());
 
     uint256 hash = snb.GetHash();
-    if(mapSeenStormnodeBroadcast.count(hash) && !snb.fRecovery) { //seen
+    if(mapSeenStormnodeBroadcast.count(hash) && !snb.fRecovery) { //seen      
         LogPrint("Stormnode", "CStormnodeMan::CheckSnbAndUpdateStormnodeList -- Stormnode=%s seen\n", snb.vin.prevout.ToStringShort());
         // less then 2 pings left before this SN goes into non-recoverable state, bump sync timeout
         if(GetTime() - mapSeenStormnodeBroadcast[hash].first > STORMNODE_NEW_START_REQUIRED_SECONDS - STORMNODE_MIN_SNP_SECONDS * 2) {
@@ -1614,7 +1636,6 @@ void CStormnodeMan::UpdatedBlockTip(const CBlockIndex *pindex)
     CheckSameAddr();
 
     if(fStormNode) {
-        DoFullVerificationStep();
         // normal wallet does not need to update this every block, doing update on rpc call should be enough
         UpdateLastPaid();
     }

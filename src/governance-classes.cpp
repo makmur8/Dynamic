@@ -7,18 +7,18 @@
 
 //#define ENABLE_DARKSILK_DEBUG
 
-#include "core_io.h"
 #include "governance-classes.h"
-#include "init.h"
-#include "chainparams.h"
 
+#include "chainparams.h"
+#include "core_io.h"
+#include "init.h"
 #include "main.h"
 #include "utilstrencodings.h"
 
+#include <univalue.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
-
-#include <univalue.h>
 
 // DECLARE GLOBAL VARIABLES FOR GOVERNANCE CLASSES
 CGovernanceTriggerManager triggerman;
@@ -202,7 +202,7 @@ void CGovernanceTriggerManager::CleanAndRemove()
             case SEEN_OBJECT_IS_VALID:
             case SEEN_OBJECT_EXECUTED:
                 {
-                    int nTriggerBlock = pSuperblock->GetBlockStart();
+                    int nTriggerBlock = Params().GetConsensus().nSuperblockCycle;
                     // Rough approximation: a cycle of superblock ++
                     int nExpirationBlock = nTriggerBlock + GOVERNANCE_TRIGGER_EXPIRATION_BLOCKS;
                     LogPrint("gobject", "CGovernanceTriggerManager::CleanAndRemove -- nTriggerBlock = %d, nExpirationBlock = %d\n", nTriggerBlock, nExpirationBlock);
@@ -316,12 +316,10 @@ bool CSuperblockManager::IsSuperblockTriggered(int nBlockHeight)
 
         LogPrint("gobject", "CSuperblockManager::IsSuperblockTriggered -- data = %s\n", pObj->GetDataAsString());
 
-        // note : 12.1 - is epoch calculation correct?
-
-        if(nBlockHeight != pSuperblock->GetBlockStart()) {
+        if(nBlockHeight != Params().GetConsensus().nSuperblockCycle) {
             LogPrint("gobject", "CSuperblockManager::IsSuperblockTriggered -- block height doesn't match nBlockHeight = %d, blockStart = %d, continuing\n",
                      nBlockHeight,
-                     pSuperblock->GetBlockStart());
+                     Params().GetConsensus().nSuperblockCycle);
             DBG( cout << "IsSuperblockTriggered Not the target block, continuing"
                  << ", nBlockHeight = " << nBlockHeight
                  << ", superblock->GetBlockStart() = " << pSuperblock->GetBlockStart()
@@ -371,7 +369,7 @@ bool CSuperblockManager::GetBestSuperblock(CSuperblock_sptr& pSuperblockRet, int
             continue;
         }
 
-        if(nBlockHeight != pSuperblock->GetBlockStart()) {
+        if(nBlockHeight != Params().GetConsensus().nSuperblockCycle) {
             DBG( cout << "GetBestSuperblock Not the target block, continuing" << endl; );
             continue;
         }

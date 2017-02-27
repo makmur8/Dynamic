@@ -2,14 +2,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "governance-object.h"
+
 #include "core_io.h"
-#include "sandstorm.h"
 #include "governance.h"
 #include "governance-classes.h"
-#include "governance-object.h"
-#include "governance-vote.h"
+#include "privatesend.h"
 #include "stormnodeman.h"
-#include "util.h"
 
 #include <univalue.h>
 
@@ -140,6 +139,16 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
         it2 = recVote.mapInstances.insert(vote_instance_m_t::value_type(int(eSignal), vote_instance_t())).first;
     }
     vote_instance_t& voteInstance = it2->second;
+
+    // Reject obsolete votes
+    if(vote.GetTimestamp() < voteInstance.nCreationTime) {
+        std::ostringstream ostr;
+        ostr << "CGovernanceObject::ProcessVote -- Obsolete vote" << "\n";
+        LogPrint("gobject", ostr.str().c_str());
+        exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_NONE);
+        return false;
+    }
+
     int64_t nNow = GetTime();
     int64_t nVoteTimeUpdate = voteInstance.nTime;
     if(governance.AreRateChecksEnabled()) {
@@ -168,7 +177,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
         governance.AddInvalidVote(vote);
         return false;
     }
-    voteInstance = vote_instance_t(vote.GetOutcome(), nVoteTimeUpdate);
+    voteInstance = vote_instance_t(vote.GetOutcome(), nVoteTimeUpdate, vote.GetTimestamp());
     fileVotes.AddVote(vote);
     snodeman.AddGovernanceVote(vote.GetVinStormnode(), vote.GetParentHash());
     fDirtyCache = true;
@@ -240,12 +249,12 @@ bool CGovernanceObject::Sign(CKey& keyStormnode, CPubKey& pubKeyStormnode)
 
     LOCK(cs);
 
-    if(!sandStormSigner.SignMessage(strMessage, vchSig, keyStormnode)) {
+    if(!privateSendSigner.SignMessage(strMessage, vchSig, keyStormnode)) {
         LogPrintf("CGovernanceObject::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    if(!sandStormSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
         LogPrintf("CGovernanceObject::Sign -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
@@ -264,7 +273,7 @@ bool CGovernanceObject::CheckSignature(CPubKey& pubKeyStormnode)
     std::string strMessage = GetSignatureMessage();
 
     LOCK(cs);
-    if(!sandStormSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
         LogPrintf("CGovernance::CheckSignature -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
@@ -274,9 +283,6 @@ bool CGovernanceObject::CheckSignature(CPubKey& pubKeyStormnode)
 
 int CGovernanceObject::GetObjectSubtype()
 {
-    // todo - 12.1
-    //   - detect subtype from strData json, obj["subtype"]
-
     if(nObjectType == GOVERNANCE_OBJECT_TRIGGER) return TRIGGER_SUPERBLOCK;
     return -1;
 }
@@ -330,9 +336,6 @@ UniValue CGovernanceObject::GetJSONObject()
 
 void CGovernanceObject::LoadData()
 {
-    // todo : 12.1 - resolved
-    //return;
-
     if(strData.empty()) {
         return;
     }
@@ -465,19 +468,6 @@ bool CGovernanceObject::IsValidLocally(std::string& strError, bool& fMissingStor
         }
     }
 
-    /*
-        TODO
-
-        - There might be an issue with multisig in the coinbase on mainnet, we will add support for it in a future release.
-        - Post 12.2+ (test multisig coinbase transaction)
-    */
-
-    // 12.1 - todo - compile error
-    // if(address.IsPayToScriptHash()) {
-    //     strError = "Governance system - multisig is not currently supported";
-    //     return false;
-    // }
-
     return true;
 }
 
@@ -557,7 +547,7 @@ bool CGovernanceObject::IsCollateralValid(std::string& strError)
     // GET CONFIRMATIONS FOR TRANSACTION
 
     LOCK(cs_main);
-    int nConfirmationsIn = GetIXConfirmations(nCollateralHash);
+    int nConfirmationsIn = GetISConfirmations(nCollateralHash);
     if (nBlockHash != uint256()) {
         BlockMap::iterator mi = mapBlockIndex.find(nBlockHash);
         if (mi != mapBlockIndex.end() && (*mi).second) {
@@ -651,11 +641,8 @@ void CGovernanceObject::UpdateSentinelVariables()
 
     // CALCULATE THE MINUMUM VOTE COUNT REQUIRED FOR FULL SIGNAL
 
-    // todo - 12.1 - should be set to `10` after governance vote compression is implemented
     int nAbsVoteReq = std::max(Params().GetConsensus().nGovernanceMinQuorum, nSnCount / 10);
     int nAbsDeleteReq = std::max(Params().GetConsensus().nGovernanceMinQuorum, (2 * nSnCount) / 3);
-    // todo - 12.1 - Temporarily set to 1 for testing - reverted
-    //nAbsVoteReq = 1;
 
     // SET SENTINEL FLAGS TO FALSE
 

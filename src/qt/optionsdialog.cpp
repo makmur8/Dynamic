@@ -17,14 +17,12 @@
 #include "optionsmodel.h"
 
 #include "main.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
+#include "privatesend.h"
 #include "netbase.h"
 #include "txdb.h" // for -dbcache defaults
-
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h" // for CWallet::GetRequiredFee()
 #endif
-
-#include "sandstorm.h"
 
 #include <boost/thread.hpp>
 
@@ -260,7 +258,7 @@ void OptionsDialog::on_resetButton_clicked()
 void OptionsDialog::on_okButton_clicked()
 {
     mapper->submit();
-    sandStormPool.nCachedNumBlocks = std::numeric_limits<int>::max();
+    privateSendPool.nCachedNumBlocks = std::numeric_limits<int>::max();
     pwalletMain->MarkDirty();
     accept();
     updateDefaultProxyNets();

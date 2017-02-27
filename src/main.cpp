@@ -10,42 +10,41 @@
 #include "addrman.h"
 #include "alert.h"
 #include "arith_uint256.h"
+#include "primitives/block.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
 #include "consensus/consensus.h"
-#include "consensus/merkle.h"
-#include "consensus/validation.h"
+#include "dns/dns.h"
+#include "governance.h"
 #include "hash.h"
 #include "init.h"
+#include "instantsend.h"
+#include "consensus/merkle.h"
 #include "merkleblock.h"
 #include "net.h"
 #include "policy/policy.h"
 #include "pow.h"
-#include "primitives/block.h"
-#include "primitives/transaction.h"
+#include "privatesend.h"
 #include "script/script.h"
 #include "script/sigcache.h"
+#include "spork.h"
 #include "script/standard.h"
+#include "stormnode-payments.h"
+#include "stormnode-sync.h"
+#include "stormnodeman.h"
 #include "tinyformat.h"
+#include "primitives/transaction.h"
 #include "txdb.h"
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "undo.h"
 #include "util.h"
-#include "spork.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
+#include "consensus/validation.h"
 #include "validationinterface.h"
 #include "versionbits.h"
-#include "dns/dns.h"
-
-#include "sandstorm.h"
-#include "governance.h"
-#include "instantx.h"
-#include "stormnode-payments.h"
-#include "stormnode-sync.h"
-#include "stormnodeman.h"
 
 #include <sstream>
 
@@ -93,7 +92,7 @@ uint64_t nPruneTarget = 0;
 bool fAlerts = DEFAULT_ALERTS;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
 
-/** Fees smaller than this (in duffs) are considered zero fee (for relaying, mining and transaction creation) */
+/** Fees smaller than this (in satoshis) are considered zero fee (for relaying, mining and transaction creation) */
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 
 CTxMemPool mempool(::minRelayTxFee);
@@ -104,7 +103,7 @@ struct COrphanTx {
 };
 map<uint256, COrphanTx> mapOrphanTransactions GUARDED_BY(cs_main);;
 map<uint256, set<uint256> > mapOrphanTransactionsByPrev GUARDED_BY(cs_main);;
-map<uint256, int64_t> mapRejectedBlocks;
+map<uint256, int64_t> mapRejectedBlocks GUARDED_BY(cs_main);
 void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
@@ -945,6 +944,18 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& in
     return nSigOps;
 }
 
+int GetUTXOHeight(const COutPoint& outpoint)
+{
+    LOCK(cs_main);
+    CCoins coins;
+    if(!pcoinsTip->GetCoins(outpoint.hash, coins) ||
+       (unsigned int)outpoint.n>=coins.vout.size() ||
+       coins.vout[outpoint.n].IsNull()) {
+        return -1;
+    }
+    return coins.nHeight;
+}
+
 int GetInputAge(const CTxIn &txin)
 {
     CCoinsView viewDummy;
@@ -970,15 +981,15 @@ int GetInputAgeIX(const uint256 &nTXHash, const CTxIn &txin)
     int nResult = GetInputAge(txin);
     if(nResult < 0) return -1;
 
-    if (nResult < 6 && IsLockedInstandSendTransaction(nTXHash))
+    if (nResult < 10 && instantsend.IsLockedInstantSendTransaction(nTXHash))
         return nInstantSendDepth + nResult;
 
     return nResult;
 }
 
-int GetIXConfirmations(const uint256 &nTXHash)
+int GetISConfirmations(const uint256 &nTXHash)
 {
-    if (IsLockedInstandSendTransaction(nTXHash))
+    if (instantsend.IsLockedInstantSendTransaction(nTXHash))
         return nInstantSendDepth;
 
     return 0;
@@ -1124,15 +1135,20 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     if (pool.exists(hash))
         return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
 
-    // ----------- InstantSend transaction scanning -----------
+    // If this is a Transaction Lock Request check to see if it's valid
+    if(instantsend.HasTxLockRequest(hash) && !CTxLockRequest(tx).IsValid())
+        return state.DoS(10, error("AcceptToMemoryPool : CTxLockRequest %s is invalid", hash.ToString()),
+                            REJECT_INVALID, "bad-txlockrequest");
 
-    BOOST_FOREACH(const CTxIn& txin, tx.vin) {
-        if(mapLockedInputs.count(txin.prevout) && mapLockedInputs[txin.prevout] != tx.GetHash()) {
-            return state.DoS(0,
-                             error("AcceptToMemoryPool : conflicts with existing transaction lock: %s", reason),
-                             REJECT_INVALID, "tx-lock-conflict");
-        }
-    }
+    // Check for conflicts with a completed Transaction Lock
+    BOOST_FOREACH(const CTxIn &txin, tx.vin)
+    {
+        uint256 hashLocked;
+        if(instantsend.GetLockedOutPointTxHash(txin.prevout, hashLocked) && hash != hashLocked)
+            return state.DoS(10, error("AcceptToMemoryPool : Transaction %s conflicts with completed Transaction Lock %s",
+                                    hash.ToString(), hashLocked.ToString()),
+                            REJECT_INVALID, "tx-txlock-conflict");
+   }
 
     // Check for conflicts with in-memory transactions
     set<uint256> setConflicts;
@@ -1145,6 +1161,18 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             const CTransaction *ptxConflicting = pool.mapNextTx[txin.prevout].ptx;
             if (!setConflicts.count(ptxConflicting->GetHash()))
             {
+                // InstantSend txes are not replacable
+                if(instantsend.HasTxLockRequest(ptxConflicting->GetHash())) {
+                    // this tx conflicts with a Transaction Lock Request candidate
+                    return state.DoS(0, error("AcceptToMemoryPool : Transaction %s conflicts with Transaction Lock Request %s",
+                                            hash.ToString(), ptxConflicting->GetHash().ToString()),
+                                    REJECT_INVALID, "tx-txlockreq-mempool-conflict");
+                } else if (instantsend.HasTxLockRequest(hash)) {
+                    // this tx is a tx lock request and it conflicts with a normal tx
+                    return state.DoS(0, error("AcceptToMemoryPool : Transaction Lock Request %s conflicts with transaction %s",
+                                            hash.ToString(), ptxConflicting->GetHash().ToString()),
+                                    REJECT_INVALID, "txlockreq-tx-mempool-conflict");
+                }
                 // Allow opt-out of transaction replacement by setting
                 // nSequence >= maxint-1 on all inputs.
                 //
@@ -2738,8 +2766,15 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     int64_t nTime3 = GetTimeMicros(); nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs-1), nTimeConnect * 0.000001);
 
-    // DARKSILK : MODIFIED TO CHECK STORMNODE PAYMENTS AND SUPERBLOCKS
-   bool fStormnodePaid = false;
+    // DSLK : MODIFIED TO CHECK STORMNODE PAYMENTS AND SUPERBLOCKS
+
+    // It's possible that we simply don't have enough data and this could fail
+    // (i.e. block itself could be a correct one and we need to store it),
+    // that's why this is in ConnectBlock. Could be the other way around however -
+    // the peer who sent us this block is missing some data and wasn't able
+    // to recognize that block is actually invalid.
+    // TODO: resync data (both ways?) and try to reprocess this block later.
+    bool fStormnodePaid = false;
 
     if(chainActive.Height() > Params().StartStormnodePayments()) {
         fStormnodePaid = true;
@@ -2752,12 +2787,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     std::string strError = "";
 
     if(!IsBlockValueValid(block, pindex->nHeight, nExpectedBlockValue, strError)){
-        return state.DoS(100, error("ConnectBlock(): %s", strError), REJECT_INVALID, "bad-cb-amount");
+        return state.DoS(0, error("ConnectBlock(DSLK): %s", strError), REJECT_INVALID, "bad-cb-amount");
     }
 
     if (!IsBlockPayeeValid(block.vtx[0], pindex->nHeight, nExpectedBlockValue)) {
         mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
-        return state.DoS(100, error("ConnectBlock(DSLK): couldn't find Stormnode or superblock payments"),
+        return state.DoS(0, error("ConnectBlock(DSLK): couldn't find Stormnode or Superblock payments"),
                                 REJECT_INVALID, "bad-cb-payee");
     }
     // END DARKSILK
@@ -3148,21 +3183,25 @@ bool DisconnectBlocks(int blocks)
     const CChainParams& chainparams = Params();
 
     LogPrintf("DisconnectBlocks -- Got command to replay %d blocks\n", blocks);
-    for(int i = 0; i <= blocks; i++)
-        DisconnectTip(state, chainparams.GetConsensus());
+    for(int i = 0; i < blocks; i++) {
+        if(!DisconnectTip(state, chainparams.GetConsensus()) || !state.IsValid()) {
+            return false;
+        }
+    }
 
     return true;
 }
 
 void ReprocessBlocks(int nBlocks)
 {
+    LOCK(cs_main);
+
     std::map<uint256, int64_t>::iterator it = mapRejectedBlocks.begin();
     while(it != mapRejectedBlocks.end()){
         //use a window twice as large as is usual for the nBlocks we want to reset
         if((*it).second  > GetTime() - (nBlocks*60*5)) {
             BlockMap::iterator mi = mapBlockIndex.find((*it).first);
             if (mi != mapBlockIndex.end() && (*mi).second) {
-                LOCK(cs_main);
 
                 CBlockIndex* pindex = (*mi).second;
                 LogPrintf("ReprocessBlocks -- %s\n", (*it).first.ToString());
@@ -3174,15 +3213,10 @@ void ReprocessBlocks(int nBlocks)
         ++it;
     }
 
-    CValidationState state;
-    {
-        LOCK(cs_main);
-        DisconnectBlocks(nBlocks);
-    }
+    DisconnectBlocks(nBlocks);
 
-    if (state.IsValid()) {
-        ActivateBestChain(state, Params());
-    }
+    CValidationState state;
+    ActivateBestChain(state, Params());
 }
 
 /**
@@ -3716,24 +3750,34 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                              REJECT_INVALID, "bad-cb-multiple");
 
 
-    // DARKSILK : CHECK TRANSACTIONS FOR INSTANT SEND
+    // DARKSILK : CHECK TRANSACTIONS FOR INSTANTSEND
 
     if(sporkManager.IsSporkActive(SPORK_3_INSTANTSEND_BLOCK_FILTERING)) {
-        BOOST_FOREACH(const CTransaction& tx, block.vtx) {
+        // We should never accept block which conflicts with completed transaction lock,
+        // that's why this is in CheckBlock unlike coinbase payee/amount.
+        // Require other nodes to comply, send them some data in case they are missing it.
+         BOOST_FOREACH(const CTransaction& tx, block.vtx) {
             // skip coinbase, it has no inputs
             if (tx.IsCoinBase()) continue;
-            // LOOK FOR TRANSACTION LOCK IN OUR MAP OF INPUTS
+            // LOOK FOR TRANSACTION LOCK IN OUR MAP OF OUTPOINTS
             BOOST_FOREACH(const CTxIn& txin, tx.vin) {
-                if(mapLockedInputs.count(txin.prevout) && mapLockedInputs[txin.prevout] != tx.GetHash()) {
+                uint256 hashLocked;
+                if(instantsend.GetLockedOutPointTxHash(txin.prevout, hashLocked) && hashLocked != tx.GetHash()) {
+                    // Every node which relayed this block to us must invalidate it
+                    // but they probably need more data.
+                    // Relay corresponding transaction lock request and all its votes
+                    // to let other nodes complete the lock.
+                    instantsend.Relay(hashLocked);
+                    LOCK(cs_main);
                     mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
-                    LogPrintf("CheckBlock(DSLK): found conflicting transaction with transaction lock %s %s\n", mapLockedInputs[txin.prevout].ToString(), tx.GetHash().ToString());
-                    return state.DoS(0, error("CheckBlock(DSLK): found conflicting transaction with transaction lock"),
-                                     REJECT_INVALID, "conflicting-tx-ix");
+                    return state.DoS(0, error("CheckBlock(DSLK): transaction %s conflicts with transaction lock %s",
+                                                tx.GetHash().ToString(), hashLocked.ToString()),
+                                     REJECT_INVALID, "conflict-tx-lock");
                 }
             }
         }
     } else {
-        LogPrintf("CheckBlock(DSLK): skipping transaction locking checks\n");
+        LogPrintf("CheckBlock(DSLK): spork is off, skipping transaction locking checks\n");
     }
 
     // END DARKSILK
@@ -4900,10 +4944,10 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         We want to only update the time on new hits, so that we can time out appropriately if needed.
     */
     case MSG_TXLOCK_REQUEST:
-        return mapLockRequestAccepted.count(inv.hash) || mapLockRequestRejected.count(inv.hash);
+        return instantsend.AlreadyHave(inv.hash);
 
     case MSG_TXLOCK_VOTE:
-        return mapTxLockVotes.count(inv.hash);
+        return instantsend.AlreadyHave(inv.hash);
 
     case MSG_SPORK:
         return mapSporks.count(inv.hash);
@@ -4918,13 +4962,13 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         }
 
     case MSG_STORMNODE_ANNOUNCE:
-        return snodeman.mapSeenStormnodeBroadcast.count(inv.hash) && !snodeman.IsSnbRecoveryRequested(inv.hash);
+        return snodeman.mapSeenStormnodeBroadcast.count(inv.hash) && !snodeman.IsSnbRecoveryRequested(inv.hash);      
 
     case MSG_STORMNODE_PING:
         return snodeman.mapSeenStormnodePing.count(inv.hash);
 
-    case MSG_SSTX:
-        return mapSandstormBroadcastTxes.count(inv.hash);
+    case MSG_PSTX:
+        return mapPrivatesendBroadcastTxes.count(inv.hash);
 
     case MSG_GOVERNANCE_OBJECT:
     case MSG_GOVERNANCE_OBJECT_VOTE:
@@ -5063,20 +5107,22 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                 }
 
                 if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
-                    if(mapLockRequestAccepted.count(inv.hash)) {
+                    CTxLockRequest txLockRequest;
+                    if(instantsend.GetTxLockRequest(inv.hash, txLockRequest)) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mapLockRequestAccepted[inv.hash];
+                        ss << txLockRequest;
                         pfrom->PushMessage(NetMsgType::TXLOCKREQUEST, ss);
                         pushed = true;
                     }
                 }
 
                 if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
-                    if(mapTxLockVotes.count(inv.hash)) {
+                    CTxLockVote vote;
+                    if(instantsend.GetTxLockVote(inv.hash, vote)) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mapTxLockVotes[inv.hash];
+                        ss << vote;
                         pfrom->PushMessage(NetMsgType::TXLOCKVOTE, ss);
                         pushed = true;
                     }
@@ -5142,12 +5188,12 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                     }
                 }
 
-                if (!pushed && inv.type == MSG_SSTX) {
-                    if(mapSandstormBroadcastTxes.count(inv.hash)) {
+                if (!pushed && inv.type == MSG_PSTX) {
+                    if(mapPrivatesendBroadcastTxes.count(inv.hash)) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mapSandstormBroadcastTxes[inv.hash];
-                        pfrom->PushMessage(NetMsgType::SSTX, ss);
+                        ss << mapPrivatesendBroadcastTxes[inv.hash];
+                        pfrom->PushMessage(NetMsgType::PSTX, ss);
                         pushed = true;
                     }
                 }
@@ -5671,7 +5717,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::TX || strCommand == NetMsgType::SSTX || strCommand == NetMsgType::TXLOCKREQUEST)
+    else if (strCommand == NetMsgType::TX || strCommand == NetMsgType::PSTX || strCommand == NetMsgType::TXLOCKREQUEST)
     {
         // Stop processing the transaction early if
         // We are in blocks only mode and peer is either not whitelisted or whitelistrelay is off
@@ -5684,51 +5730,61 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vector<uint256> vWorkQueue;
         vector<uint256> vEraseQueue;
         CTransaction tx;
-        CSandstormBroadcastTx sstx;
+        CTxLockRequest txLockRequest;
+        CPrivatesendBroadcastTx pstx;
         int nInvType = MSG_TX;
 
+        // Read data and assign inv type
         if(strCommand == NetMsgType::TX) {
             vRecv >> tx;
         } else if(strCommand == NetMsgType::TXLOCKREQUEST) {
-            vRecv >> tx;
+            vRecv >> txLockRequest;
+            tx = txLockRequest;
             nInvType = MSG_TXLOCK_REQUEST;
-        } else if (strCommand == NetMsgType::SSTX) {
-            vRecv >> sstx;
-            tx = sstx.tx;
-            nInvType = MSG_SSTX;
+        } else if (strCommand == NetMsgType::PSTX) {
+            vRecv >> pstx;
+            tx = pstx.tx;
+            nInvType = MSG_PSTX;
         }
 
         CInv inv(nInvType, tx.GetHash());
         pfrom->AddInventoryKnown(inv);
         pfrom->setAskFor.erase(inv.hash);
 
-        if (strCommand == NetMsgType::SSTX) {
+        // Process custom logic, no matter if tx will be accepted to mempool later or not
+        if (strCommand == NetMsgType::TXLOCKREQUEST) {
+            if(!instantsend.ProcessTxLockRequest(txLockRequest)) {
+                LogPrint("instantsend", "TXLOCKREQUEST -- failed %s\n", txLockRequest.GetHash().ToString());
+                return false;
+            }
+        } else if (strCommand == NetMsgType::PSTX) {
+
             uint256 hashTx = tx.GetHash();
 
-            if(mapSandstormBroadcastTxes.count(hashTx)) {
-                LogPrint("privatesend", "SSTX -- Already have %s, skipping...\n", hashTx.ToString());
+            if(mapPrivatesendBroadcastTxes.count(hashTx)) {
+                LogPrint("privatesend", "PSTX -- Already have %s, skipping...\n", hashTx.ToString());
                 return true; // not an error
             }
 
-            CStormnode* psn = snodeman.Find(sstx.vin);
+            CStormnode* psn = snodeman.Find(pstx.vin);
             if(psn == NULL) {
-                LogPrint("privatesend", "SSTX -- Can't find Stormnode %s to verify %s\n", sstx.vin.prevout.ToStringShort(), hashTx.ToString());
+                LogPrint("privatesend", "PSTX -- Can't find Stormnode %s to verify %s\n", pstx.vin.prevout.ToStringShort(), hashTx.ToString());
                 return false;
             }
 
             if(!psn->fAllowMixingTx) {
-                LogPrint("privatesend", "SSTX -- Stormnode %s is sending too many transactions %s\n", sstx.vin.prevout.ToStringShort(), hashTx.ToString());
+                LogPrint("privatesend", "PSTX -- Stormnode %s is sending too many transactions %s\n", pstx.vin.prevout.ToStringShort(), hashTx.ToString());
                 return true;
-                // TODO: Not an error? Could it be that someone is relaying old SSTXes
+                // TODO: Not an error? Could it be that someone is relaying old PSTXes
                 // we have no idea about (e.g we were offline)? How to handle them?
             }
 
-            if(!sstx.CheckSignature(psn->pubKeyStormnode)) {
-                LogPrint("privatesend", "SSTX -- CheckSignature() failed for %s\n", hashTx.ToString());
+            if(!pstx.CheckSignature(psn->pubKeyStormnode)) {
+                LogPrint("privatesend", "PSTX -- CheckSignature() failed for %s\n", hashTx.ToString());
                 return false;
             }
 
-            LogPrintf("SSTX -- Got Stormnode transaction %s\n", hashTx.ToString());
+            LogPrintf("PSTX -- Got Stormnode transaction %s\n", hashTx.ToString());
             mempool.PrioritiseTransaction(hashTx, hashTx.ToString(), 1000, 0.1*COIN);
             psn->fAllowMixingTx = false;
         }
@@ -5742,11 +5798,15 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         if (!AlreadyHave(inv) && AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs))
         {
-            // Process custom txes
-            if (strCommand == NetMsgType::SSTX) {
-                mapSandstormBroadcastTxes.insert(make_pair(tx.GetHash(), sstx));
+            // Process custom txes, this changes AlreadyHave to "true"
+            if (strCommand == NetMsgType::PSTX) {
+                LogPrintf("PSTX -- Stormnode transaction accepted, txid=%s, peer=%d\n",
+                        tx.GetHash().ToString(), pfrom->id);
+                mapPrivatesendBroadcastTxes.insert(make_pair(tx.GetHash(), pstx));
             } else if (strCommand == NetMsgType::TXLOCKREQUEST) {
-                if(!ProcessTxLockRequest(pfrom, tx)) return false;
+                LogPrintf("TXLOCKREQUEST -- Transaction Lock Request accepted, txid=%s, peer=%d\n",
+                        tx.GetHash().ToString(), pfrom->id);
+                instantsend.AcceptLockRequest(txLockRequest);
             }
 
             mempool.check(pcoinsTip);
@@ -5825,18 +5885,16 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             assert(recentRejects);
             recentRejects->insert(tx.GetHash());
 
-            if (strCommand == NetMsgType::TXLOCKREQUEST && !AlreadyHave(inv)) { // i.e. AcceptToMemoryPool failed
-                mapLockRequestRejected.insert(std::make_pair(tx.GetHash(), tx));
-
-                // can we get the conflicting transaction as proof?
-
-                LogPrintf("TXLOCKREQUEST -- Transaction Lock Request: %s %s : rejected %s\n",
-                    pfrom->addr.ToString(), pfrom->cleanSubVer,
-                    tx.GetHash().ToString()
-                );
-
-                LockTransactionInputs(tx);
-                ResolveConflicts(tx);
+            if (strCommand == NetMsgType::TXLOCKREQUEST && !AlreadyHave(inv)) {
+                // i.e. AcceptToMemoryPool failed, probably because it's conflicting
+                // with existing normal tx or tx lock for another tx. For the same tx lock
+                // AlreadyHave would have return "true" already.
+                // It's the first time we failed for this tx lock request,
+                // this should switch AlreadyHave to "true".
+                instantsend.RejectLockRequest(txLockRequest);
+                // this lets other nodes to create lock request candidate i.e.
+                // this allows multiple conflicting lock requests to compete for votes
+                RelayTransaction(tx);
             }
 
             if (pfrom->fWhitelisted && GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) {
@@ -6253,10 +6311,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (found)
         {
             //probably one the extensions
-            sandStormPool.ProcessMessage(pfrom, strCommand, vRecv);
+            privateSendPool.ProcessMessage(pfrom, strCommand, vRecv);
             snodeman.ProcessMessage(pfrom, strCommand, vRecv);
             snpayments.ProcessMessage(pfrom, strCommand, vRecv);
-            ProcessMessageInstantSend(pfrom, strCommand, vRecv);
+            instantsend.ProcessMessage(pfrom, strCommand, vRecv);
             sporkManager.ProcessSpork(pfrom, strCommand, vRecv);
             stormnodeSync.ProcessMessage(pfrom, strCommand, vRecv);
             governance.ProcessMessage(pfrom, strCommand, vRecv);

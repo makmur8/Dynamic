@@ -9,14 +9,14 @@
 
 #include "clientversion.h"
 #include "consensus/consensus.h"
-#include "consensus/validation.h"
-#include "main.h"
 #include "policy/fees.h"
+#include "main.h"
 #include "streams.h"
 #include "timedata.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #include "utiltime.h"
+#include "consensus/validation.h"
 #include "version.h"
 
 using namespace std;
@@ -902,7 +902,7 @@ CTxMemPool::WriteFeeEstimates(CAutoFile& fileout) const
 {
     try {
         LOCK(cs);
-        fileout << 120000; // version required to read: 0.12.00 or later
+        fileout << 1000000; // version required to read: 1.0.0.0 or later
         fileout << CLIENT_VERSION; // version that wrote the file
         minerPolicyEstimator->Write(fileout);
     }

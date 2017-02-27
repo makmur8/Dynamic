@@ -3,16 +3,17 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "stormnode.h"
+
 #include "activestormnode.h"
-#include "consensus/validation.h"
-#include "sandstorm.h"
 #include "init.h"
 #include "governance.h"
-#include "stormnode.h"
+#include "privatesend.h"
 #include "stormnode-payments.h"
 #include "stormnode-sync.h"
 #include "stormnodeman.h"
 #include "util.h"
+#include "consensus/validation.h"
 
 #include <boost/lexical_cast.hpp>
 
@@ -251,6 +252,7 @@ void CStormnode::Check(bool fForce)
         LogPrint("Stormnode", "CStormnode::Check -- outpoint=%s, nTimeLastWatchdogVote=%d, GetTime()=%d, fWatchdogExpired=%d\n",
                 vin.prevout.ToStringShort(), nTimeLastWatchdogVote, GetTime(), fWatchdogExpired);
 
+        // (TODO):: Check to see if WATCHDOG_EXPIRED is fixed or enable once Stormnode network has grown       
         if(fWatchdogExpired) {
             nActiveState = STORMNODE_WATCHDOG_EXPIRED;
             if(nActiveStatePrev != nActiveState) {
@@ -292,7 +294,7 @@ bool CStormnode::IsValidNetAddr(CService addrIn)
     // TODO: regtest is fine with any addresses for now,
     // should probably be a bit smarter if one day we start to implement tests for this
     return Params().NetworkIDString() == CBaseChainParams::REGTEST ||
-            (addrIn.IsIPv4() && IsReachable(addrIn) && addrIn.IsRoutable());
+            (addrIn.IsIPv4() && !addrIn.IsIPv6() && IsReachable(addrIn) && addrIn.IsRoutable());
 }
 
 stormnode_info_t CStormnode::GetInfo()
@@ -307,6 +309,7 @@ stormnode_info_t CStormnode::GetInfo()
     info.nTimeLastChecked = nTimeLastChecked;
     info.nTimeLastPaid = nTimeLastPaid;
     info.nTimeLastWatchdogVote = nTimeLastWatchdogVote;
+    info.nTimeLastPing = lastPing.sigTime;
     info.nActiveState = nActiveState;
     info.nProtocolVersion = nProtocolVersion;
     info.fInfoValid = true;
@@ -414,7 +417,7 @@ bool CStormnodeBroadcast::Create(std::string strService, std::string strKeyStorm
         return false;
     }
 
-    if(!sandStormSigner.GetKeysFromSecret(strKeyStormnode, keyStormnodeNew, pubKeyStormnodeNew)) {
+    if(!privateSendSigner.GetKeysFromSecret(strKeyStormnode, keyStormnodeNew, pubKeyStormnodeNew)) {
         strErrorRet = strprintf("Invalid Stormnode key %s", strKeyStormnode);
         LogPrintf("CStormnodeBroadcast::Create -- %s\n", strErrorRet);
         return false;
@@ -438,6 +441,13 @@ bool CStormnodeBroadcast::Create(std::string strService, std::string strKeyStorm
         strErrorRet = strprintf("Invalid port %u for Stormnode %s, %d is the only supported on mainnet.", service.GetPort(), strService, mainnetDefaultPort);
         LogPrintf("CStormnodeBroadcast::Create -- %s\n", strErrorRet);
         return false;
+    }
+
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+    if (pnode->addr.IsIPv6()) {
+        LogPrintf("Invalid protocol for Stormnode, only IPv4 is supported.");
+        return false;
+        }
     }
 
     return Create(txin, CService(strService), keyCollateralAddressNew, pubKeyCollateralAddressNew, keyStormnodeNew, pubKeyStormnodeNew, strErrorRet, snbRet);
@@ -640,7 +650,7 @@ bool CStormnodeBroadcast::CheckOutpoint(int& nDos)
 
     // make sure the vout that was signed is related to the transaction that spawned the Stormnode
     //  - this is expensive, so it's only done once per Stormnode
-    if(!sandStormSigner.IsVinAssociatedWithPubkey(vin, pubKeyCollateralAddress)) {
+    if(!privateSendSigner.IsVinAssociatedWithPubkey(vin, pubKeyCollateralAddress)) {
         LogPrintf("CStormnodeMan::CheckOutpoint -- Got mismatched pubKeyCollateralAddress and vin\n");
         nDos = 33;
         return false;
@@ -679,12 +689,12 @@ bool CStormnodeBroadcast::Sign(CKey& keyCollateralAddress)
                     pubKeyCollateralAddress.GetID().ToString() + pubKeyStormnode.GetID().ToString() +
                     boost::lexical_cast<std::string>(nProtocolVersion);
 
-    if(!sandStormSigner.SignMessage(strMessage, vchSig, keyCollateralAddress)) {
+    if(!privateSendSigner.SignMessage(strMessage, vchSig, keyCollateralAddress)) {
         LogPrintf("CStormnodeBroadcast::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    if(!sandStormSigner.VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError)) {
         LogPrintf("CStormnodeBroadcast::Sign -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
@@ -704,7 +714,7 @@ bool CStormnodeBroadcast::CheckSignature(int& nDos)
 
     LogPrint("Stormnode", "CStormnodeBroadcast::CheckSignature -- strMessage: %s  pubKeyCollateralAddress address: %s  sig: %s\n", strMessage, CDarkSilkAddress(pubKeyCollateralAddress.GetID()).ToString(), EncodeBase64(&vchSig[0], vchSig.size()));
 
-    if(!sandStormSigner.VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError)){
+    if(!privateSendSigner.VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError)){
         LogPrintf("CStormnodeBroadcast::CheckSignature -- Got bad Stormnode announce signature, error: %s\n", strError);
         nDos = 100;
         return false;
@@ -738,12 +748,12 @@ bool CStormnodePing::Sign(CKey& keyStormnode, CPubKey& pubKeyStormnode)
     sigTime = GetAdjustedTime();
     std::string strMessage = vin.ToString() + blockHash.ToString() + boost::lexical_cast<std::string>(sigTime);
 
-    if(!sandStormSigner.SignMessage(strMessage, vchSig, keyStormnode)) {
+    if(!privateSendSigner.SignMessage(strMessage, vchSig, keyStormnode)) {
         LogPrintf("CStormnodePing::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    if(!sandStormSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
         LogPrintf("CStormnodePing::Sign -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
@@ -757,7 +767,7 @@ bool CStormnodePing::CheckSignature(CPubKey& pubKeyStormnode, int &nDos)
     std::string strError = "";
     nDos = 0;
 
-    if(!sandStormSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
+    if(!privateSendSigner.VerifyMessage(pubKeyStormnode, vchSig, strMessage, strError)) {
         LogPrintf("CStormnodePing::CheckSignature -- Got bad Stormnode ping signature, Stormnode=%s, error: %s\n", vin.prevout.ToStringShort(), strError);
         nDos = 33;
         return false;
@@ -815,16 +825,6 @@ bool CStormnodePing::SimpleCheck(int& nDos)
             LogPrint("Stormnode", "CStormnodePing::CheckAndUpdate -- Stormnode is completely expired, new start is required, Stormnode=%s\n", vin.prevout.ToStringShort());
             return false;
        }
-    }
-
-    {
-        LOCK(cs_main);
-        BlockMap::iterator mi = mapBlockIndex.find(blockHash);
-        if ((*mi).second && (*mi).second->nHeight < chainActive.Height() - 24) {
-            LogPrintf("CStormnodePing::CheckAndUpdate -- Stormnode ping is invalid, block hash is too old: Stormnode=%s  blockHash=%s\n", vin.prevout.ToStringShort(), blockHash.ToString());
-            //nDos = 1;
-            return false;
-        }
     }
 
     LogPrint("Stormnode", "CStormnodePing::CheckAndUpdate -- New ping: Stormnode=%s  blockHash=%s  sigTime=%d\n", vin.prevout.ToStringShort(), blockHash.ToString(), sigTime);

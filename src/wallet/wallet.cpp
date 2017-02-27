@@ -8,32 +8,31 @@
 #include "wallet/wallet.h"
 
 #include "base58.h"
+#include "primitives/block.h"
 #include "checkpoints.h"
 #include "chain.h"
 #include "coincontrol.h"
 #include "consensus/consensus.h"
-#include "consensus/validation.h"
+#include "governance.h"
 #include "init.h"
+#include "instantsend.h"
+#include "keepass.h"
 #include "key.h"
 #include "keystore.h"
 #include "main.h"
 #include "net.h"
 #include "policy/policy.h"
-#include "primitives/block.h"
-#include "primitives/transaction.h"
+#include "privatesend.h"
 #include "rpcprotocol.h"
 #include "script/script.h"
 #include "script/sign.h"
+#include "spork.h"
 #include "timedata.h"
+#include "primitives/transaction.h"
 #include "txmempool.h"
 #include "util.h"
 #include "utilmoneystr.h"
-
-#include "sandstorm.h"
-#include "governance.h"
-#include "instantx.h"
-#include "keepass.h"
-#include "spork.h"
+#include "consensus/validation.h"
 
 #include <assert.h>
 
@@ -56,7 +55,7 @@ const char * DEFAULT_WALLET_DAT = "wallet.dat";
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
 
 /** 
- * Fees smaller than this (in duffs) are considered zero fee (for transaction creation)
+ * Fees smaller than this (in satoshis) are considered zero fee (for transaction creation)
  * Override with -mintxfee
  */
 CFeeRate CWallet::minTxFee = CFeeRate(DEFAULT_TRANSACTION_MINFEE);
@@ -1617,9 +1616,8 @@ bool CWalletTx::RelayWalletTransaction(std::string strCommand)
             uint256 hash = GetHash();
             LogPrintf("Relaying wtx %s\n", hash.ToString());
 
-            if(strCommand == NetMsgType::TXLOCKREQUEST){
-                mapLockRequestAccepted.insert(make_pair(hash, (CTransaction)*this));
-                CreateTxLockCandidate(((CTransaction)*this));
+            if(strCommand == NetMsgType::TXLOCKREQUEST) {
+                instantsend.ProcessTxLockRequest(((CTxLockRequest)*this));
             }
             RelayTransaction((CTransaction)*this);
             return true;
@@ -2041,12 +2039,12 @@ CAmount CWallet::GetAnonymizedBalance() const
 
 // Note: calculated including unconfirmed,
 // that's ok as long as we use it for informational purposes only
-double CWallet::GetAverageAnonymizedRounds() const
+float CWallet::GetAverageAnonymizedRounds() const
 {
     if(fLiteMode) return 0;
 
-    double fTotal = 0;
-    double fCount = 0;
+    int nTotal = 0;
+    int nCount = 0;
 
     {
         LOCK2(cs_main, cs_wallet);
@@ -2058,20 +2056,19 @@ double CWallet::GetAverageAnonymizedRounds() const
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
 
-                CTxIn vin = CTxIn(hash, i);
+                CTxIn txin = CTxIn(hash, i);
 
-                if(IsSpent(hash, i) || IsMine(pcoin->vout[i]) != ISMINE_SPENDABLE || !IsDenominated(vin)) continue;
+                if(IsSpent(hash, i) || IsMine(pcoin->vout[i]) != ISMINE_SPENDABLE || !IsDenominated(txin)) continue;
 
-                int rounds = GetInputPrivateSendRounds(vin);
-                fTotal += (float)rounds;
-                fCount += 1;
+                nTotal += GetInputPrivateSendRounds(txin);
+                nCount++;
             }
         }
     }
 
-    if(fCount == 0) return 0;
+    if(nCount == 0) return 0;
 
-    return fTotal/fCount;
+    return (float)nTotal/nCount;
 }
 
 // Note: calculated including unconfirmed,
@@ -2113,7 +2110,7 @@ CAmount CWallet::GetNeedsToBeAnonymizedBalance(CAmount nMinBalance) const
     CAmount nAnonymizedBalance = GetAnonymizedBalance();
     CAmount nNeedsToAnonymizeBalance = nPrivateSendAmount*COIN - nAnonymizedBalance;
 
-    // try to overshoot target DS balance up to nMinBalance
+    // try to overshoot target PS balance up to nMinBalance
     nNeedsToAnonymizeBalance += nMinBalance;
 
     CAmount nAnonymizableBalance = GetAnonymizableBalance();
@@ -2125,7 +2122,7 @@ CAmount CWallet::GetNeedsToBeAnonymizedBalance(CAmount nMinBalance) const
     if(nNeedsToAnonymizeBalance > nAnonymizableBalance) nNeedsToAnonymizeBalance = nAnonymizableBalance;
 
     // we should never exceed the pool max
-    if (nNeedsToAnonymizeBalance > PRIVATESEND_POOL_MAX) nNeedsToAnonymizeBalance = PRIVATESEND_POOL_MAX;
+    if (nNeedsToAnonymizeBalance > privateSendPool.GetMaxPoolAmount()) nNeedsToAnonymizeBalance = privateSendPool.GetMaxPoolAmount();
 
     return nNeedsToAnonymizeBalance;
 }
@@ -2243,8 +2240,8 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 continue;
 
             int nDepth = pcoin->GetDepthInMainChain(false);
-            // do not use IX for inputs that have less then 10 blockchain confirmations
-            if (fUseInstantSend && nDepth < 10)
+            // do not use IS for inputs that have less then INSTANTSEND_CONFIRMATIONS_REQUIRED blockchain confirmations
+            if (fUseInstantSend && nDepth < INSTANTSEND_CONFIRMATIONS_REQUIRED)
                 continue;
 
             // We should not consider coins which aren't at least in our mempool
@@ -2481,7 +2478,7 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
 
 bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet, const CCoinControl* coinControl, AvailableCoinsType nCoinType, bool fUseInstantSend) const
 {
-    // Note: this function should never be used for "always free" tx types like dstx
+    // Note: this function should never be used for "always free" tx types like pstx
 
     vector<COutput> vCoins;
     AvailableCoins(vCoins, true, coinControl, false, nCoinType, fUseInstantSend);
@@ -2503,6 +2500,7 @@ bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*
             nValueRet += out.tx->vout[out.i].nValue;
             setCoinsRet.insert(make_pair(out.tx, out.i));
         }
+
         return (nValueRet >= nTargetValue);
     }
 
@@ -2643,7 +2641,7 @@ bool CWallet::SelectCoinsByDenominations(int nDenom, CAmount nValueMin, CAmount 
     // bit 3 - .1DSLK+1
 
     std::vector<int> vecBits;
-    if (!sandStormPool.GetDenominationsBits(nDenom, vecBits)) {
+    if (!privateSendPool.GetDenominationsBits(nDenom, vecBits)) {
         return false;
     }
 
@@ -3031,7 +3029,7 @@ bool CWallet::ConvertList(std::vector<CTxIn> vecTxIn, std::vector<CAmount>& vecA
 bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign, AvailableCoinsType nCoinType, bool fUseInstantSend)
 {
-    CAmount nFeePay = fUseInstantSend ? INSTANTSEND_MIN_FEE : 0;
+    CAmount nFeePay = fUseInstantSend ? CTxLockRequest().GetMinFee() : 0;
 
     CAmount nValue = 0;
     unsigned int nSubtractFeeFromAmount = 0;
@@ -3146,19 +3144,23 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 
                 if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl, nCoinType, fUseInstantSend))
                 {
-                    if (nCoinType == ALL_COINS) {
-                        strFailReason = _("Insufficient funds.");
-                    } else if (nCoinType == ONLY_NOT1000IFSN) {
+                    if (nCoinType == ONLY_NOT1000IFSN) {
                         strFailReason = _("Unable to locate enough funds for this transaction that are not equal 1000 DSLK.");
                     } else if (nCoinType == ONLY_NONDENOMINATED_NOT1000IFSN) {
                         strFailReason = _("Unable to locate enough PrivateSend non-denominated funds for this transaction that are not equal 1000 DSLK.");
-                    } else {
+                    } else if (nCoinType == ONLY_DENOMINATED) {
                         strFailReason = _("Unable to locate enough PrivateSend denominated funds for this transaction.");
                         strFailReason += " " + _("PrivateSend uses exact denominated amounts to send funds, you might simply need to anonymize some more coins.");
+                    } else if (nValueIn < nValueToSelect) {
+                        strFailReason = _("Insufficient funds.");
                     }
-
-                    if(fUseInstantSend){
-                        strFailReason += " " + _("InstantSend requires inputs with at least 10 confirmations, you might need to wait a few minutes and try again.");
+                    if (fUseInstantSend) {
+                        if (nValueIn > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
+                            strFailReason += " " + strprintf(_("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 DSLK."), sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
+                        } else {
+                            // could be not true but most likely that's the reason
+                            strFailReason += " " + strprintf(_("InstantSend requires inputs with at least %d confirmations, you might need to wait a few minutes and try again."), INSTANTSEND_CONFIRMATIONS_REQUIRED);
+                        }
                     }
 
                     return false;
@@ -3190,7 +3192,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                         nFeeRet += nChange;
                         wtxNew.mapValue["SS"] = "1";
                         // recheck skipped denominations during next mixing
-                        sandStormPool.ClearSkippedDenominations();
+                        privateSendPool.ClearSkippedDenominations();
                     } else {
 
                         // Fill a vout to ourself
@@ -3350,6 +3352,10 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                 CAmount nFeeNeeded = max(nFeePay, GetMinimumFee(nBytes, nTxConfirmTarget, mempool));
                 if (coinControl && nFeeNeeded > 0 && coinControl->nMinimumTotalFee > nFeeNeeded) {
                     nFeeNeeded = coinControl->nMinimumTotalFee;
+                }
+
+                if(fUseInstantSend) {
+                    nFeeNeeded = std::max(nFeeNeeded, CTxLockRequest(txNew).GetMinFee());
                 }
 
                 // If we made it here and we aren't even able to meet the relay fee on the next pass, give up
@@ -4347,7 +4353,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock& block)
     return chainActive.Height() - pindex->nHeight + 1;
 }
 
-int CMerkleTx::GetDepthInMainChain(const CBlockIndex* &pindexRet, bool enableIX) const
+int CMerkleTx::GetDepthInMainChain(const CBlockIndex* &pindexRet, bool enableIS) const
 {
     int nResult;
 
@@ -4374,7 +4380,7 @@ int CMerkleTx::GetDepthInMainChain(const CBlockIndex* &pindexRet, bool enableIX)
         }
     }
 
-    if(enableIX && nResult < 10 && IsLockedInstandSendTransaction(GetHash()))
+    if(enableIS && nResult < 10 && instantsend.IsLockedInstantSendTransaction(GetHash()))
         return nInstantSendDepth + nResult;
 
     return nResult;
