@@ -64,7 +64,7 @@ endif
 
 .PHONY: FORCE check-symbols check-security
 # dynamic #
-DYNAMIC_H = \
+DYNAMIC_CORE_H = \
   activedynode.h \
   addressindex.h \
   spentindex.h \
