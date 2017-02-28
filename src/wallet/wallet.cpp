@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2017 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Developers
 // Copyright (c) 2014-2017 The Dash CoreDevelopers
-// Copyright (c) 2015-2017 Silk Network Developers
+// Copyright (c) 2016-2017 Duality Blockchain Solutions Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -267,7 +267,7 @@ bool CWallet::LoadCScript(const CScript& redeemScript)
      * these. Do not add them to the wallet and warn. */
     if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE)
     {
-        std::string strAddr = CDarkSilkAddress(CScriptID(redeemScript)).ToString();
+        std::string strAddr = CDynamicAddress(CScriptID(redeemScript)).ToString();
         LogPrintf("%s: Warning: This wallet contains a redeemScript of size %i which exceeds maximum size %i thus can never be redeemed. Do not use address %s.\n",
             __func__, redeemScript.size(), MAX_SCRIPT_ELEMENT_SIZE, strAddr);
         return true;
@@ -2253,12 +2253,12 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 bool found = false;
                 if(nCoinType == ONLY_DENOMINATED) {
                     found = IsDenominatedAmount(pcoin->vout[i].nValue);
-                } else if(nCoinType == ONLY_NOT1000IFSN) {
-                    found = !(fStormNode && pcoin->vout[i].nValue == 1000*COIN);
-                } else if(nCoinType == ONLY_NONDENOMINATED_NOT1000IFSN) {
+                } else if(nCoinType == ONLY_NOT1000IFDN) {
+                    found = !(fDyNode && pcoin->vout[i].nValue == 1000*COIN);
+                } else if(nCoinType == ONLY_NONDENOMINATED_NOT1000IFDN) {
                     if (IsCollateralAmount(pcoin->vout[i].nValue)) continue; // do not use collateral amounts
                     found = !IsDenominatedAmount(pcoin->vout[i].nValue);
-                    if(found && fStormNode) found = pcoin->vout[i].nValue != 1000*COIN; // do not use Hot SN funds
+                    if(found && fDyNode) found = pcoin->vout[i].nValue != 1000*COIN; // do not use Hot DN funds
                 } else if(nCoinType == ONLY_1000) {
                     found = pcoin->vout[i].nValue == 1000*COIN;
                 } else if(nCoinType == ONLY_PRIVATESEND_COLLATERAL) {
@@ -2635,10 +2635,10 @@ bool CWallet::SelectCoinsByDenominations(int nDenom, CAmount nValueMin, CAmount 
     std::random_shuffle(vCoins.rbegin(), vCoins.rend(), GetRandInt);
 
     // ( bit on if present )
-    // bit 0 - 100DSLK+1
-    // bit 1 - 10DSLK+1
-    // bit 2 - 1DSLK+1
-    // bit 3 - .1DSLK+1
+    // bit 0 - 100DYN+1
+    // bit 1 - 10DYN+1
+    // bit 2 - 1DYN+1
+    // bit 3 - .1DYN+1
 
     std::vector<int> vecBits;
     if (!privateSendPool.GetDenominationsBits(nDenom, vecBits)) {
@@ -2650,7 +2650,7 @@ bool CWallet::SelectCoinsByDenominations(int nDenom, CAmount nValueMin, CAmount 
     InsecureRand insecureRand;
     BOOST_FOREACH(const COutput& out, vCoins)
     {
-        // Stormnode-like input should not be selected by AvailableCoins now anyway
+        // Dynode-like input should not be selected by AvailableCoins now anyway
         //if(out.tx->vout[out.i].nValue == 1000*COIN) continue;
         if(nValueRet + out.tx->vout[out.i].nValue <= nValueMax){
 
@@ -2712,7 +2712,7 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
     }
 
     // Tally
-    map<CDarkSilkAddress, CompactTallyItem> mapTally;
+    map<CDynamicAddress, CompactTallyItem> mapTally;
     for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
         const CWalletTx& wtx = (*it).second;
 
@@ -2733,7 +2733,7 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
             if(fAnonymizable) {
                 // ignore collaterals
                 if(IsCollateralAmount(wtx.vout[i].nValue)) continue;
-                if(fStormNode && wtx.vout[i].nValue == 1000*COIN) continue;
+                if(fDyNode && wtx.vout[i].nValue == 1000*COIN) continue;
                 // ignore outputs that are 10 times smaller then the smallest denomination
                 // otherwise they will just lead to higher fee / lower priority
                 if(wtx.vout[i].nValue <= vecPrivateSendDenominations.back()/10) continue;
@@ -2753,7 +2753,7 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
 
     // construct resulting vector
     vecTallyRet.clear();
-    BOOST_FOREACH(const PAIRTYPE(CDarkSilkAddress, CompactTallyItem)& item, mapTally)
+    BOOST_FOREACH(const PAIRTYPE(CDynamicAddress, CompactTallyItem)& item, mapTally)
         vecTallyRet.push_back(item.second);
 
     // order by amounts per address, from smallest to largest
@@ -2787,7 +2787,7 @@ bool CWallet::SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<
     nValueRet = 0;
 
     vector<COutput> vCoins;
-    AvailableCoins(vCoins, true, coinControl, false, nPrivateSendRoundsMin < 0 ? ONLY_NONDENOMINATED_NOT1000IFSN : ONLY_DENOMINATED);
+    AvailableCoins(vCoins, true, coinControl, false, nPrivateSendRoundsMin < 0 ? ONLY_NONDENOMINATED_NOT1000IFDN : ONLY_DENOMINATED);
 
     //order the array so largest nondenom are first, then denominations, then very small inputs.
     sort(vCoins.rbegin(), vCoins.rend(), CompareByPriority());
@@ -2798,7 +2798,7 @@ bool CWallet::SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<
         if(out.tx->vout[out.i].nValue < CENT) continue;
         //do not allow collaterals to be selected
         if(IsCollateralAmount(out.tx->vout[out.i].nValue)) continue;
-        if(fStormNode && out.tx->vout[out.i].nValue == 1000*COIN) continue; //Stormnode input
+        if(fDyNode && out.tx->vout[out.i].nValue == 1000*COIN) continue; //Dynode input
 
         if(nValueRet + out.tx->vout[out.i].nValue <= nValueMax){
             CTxIn txin = CTxIn(out.tx->GetHash(),out.i);
@@ -2839,7 +2839,7 @@ bool CWallet::GetCollateralTxIn(CTxIn& txinRet, CAmount& nValueRet) const
     return false;
 }
 
-bool CWallet::GetStormnodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet, std::string strTxHash, std::string strOutputIndex)
+bool CWallet::GetDynodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet, std::string strTxHash, std::string strOutputIndex)
 {
     // wait for reindex and/or import to finish
     if (fImporting || fReindex) return false;
@@ -2848,7 +2848,7 @@ bool CWallet::GetStormnodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& k
     std::vector<COutput> vPossibleCoins;
     AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_1000);
     if(vPossibleCoins.empty()) {
-        LogPrintf("CWallet::GetStormnodeVinAndKeys -- Could not locate any valid Stormnode vin\n");
+        LogPrintf("CWallet::GetDynodeVinAndKeys -- Could not locate any valid Dynode vin\n");
         return false;
     }
 
@@ -2863,7 +2863,7 @@ bool CWallet::GetStormnodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& k
         if(out.tx->GetHash() == txHash && out.i == nOutputIndex) // found it!
             return GetVinAndKeysFromOutput(out, txinRet, pubKeyRet, keyRet);
 
-    LogPrintf("CWallet::GetStormnodeVinAndKeys -- Could not locate specified Stormnode vin\n");
+    LogPrintf("CWallet::GetDynodeVinAndKeys -- Could not locate specified Dynode vin\n");
     return false;
 }
 
@@ -2879,7 +2879,7 @@ bool CWallet::GetVinAndKeysFromOutput(COutput out, CTxIn& txinRet, CPubKey& pubK
 
     CTxDestination address1;
     ExtractDestination(pubScript, address1);
-    CDarkSilkAddress address2(address1);
+    CDynamicAddress address2(address1);
 
     CKeyID keyID;
     if (!address2.GetKeyID(keyID)) {
@@ -3144,10 +3144,10 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 
                 if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl, nCoinType, fUseInstantSend))
                 {
-                    if (nCoinType == ONLY_NOT1000IFSN) {
-                        strFailReason = _("Unable to locate enough funds for this transaction that are not equal 1000 DSLK.");
-                    } else if (nCoinType == ONLY_NONDENOMINATED_NOT1000IFSN) {
-                        strFailReason = _("Unable to locate enough PrivateSend non-denominated funds for this transaction that are not equal 1000 DSLK.");
+                    if (nCoinType == ONLY_NOT1000IFDN) {
+                        strFailReason = _("Unable to locate enough funds for this transaction that are not equal 1000 DYN.");
+                    } else if (nCoinType == ONLY_NONDENOMINATED_NOT1000IFDN) {
+                        strFailReason = _("Unable to locate enough PrivateSend non-denominated funds for this transaction that are not equal 1000 DYN.");
                     } else if (nCoinType == ONLY_DENOMINATED) {
                         strFailReason = _("Unable to locate enough PrivateSend denominated funds for this transaction.");
                         strFailReason += " " + _("PrivateSend uses exact denominated amounts to send funds, you might simply need to anonymize some more coins.");
@@ -3156,7 +3156,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                     }
                     if (fUseInstantSend) {
                         if (nValueIn > sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE)*COIN) {
-                            strFailReason += " " + strprintf(_("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 DSLK."), sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
+                            strFailReason += " " + strprintf(_("InstantSend doesn't support sending values that high yet. Transactions are currently limited to %1 DYN."), sporkManager.GetSporkValue(SPORK_5_INSTANTSEND_MAX_VALUE));
                         } else {
                             // could be not true but most likely that's the reason
                             strFailReason += " " + strprintf(_("InstantSend requires inputs with at least %d confirmations, you might need to wait a few minutes and try again."), INSTANTSEND_CONFIRMATIONS_REQUIRED);
@@ -3197,7 +3197,7 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
 
                         // Fill a vout to ourself
                         // TODO: pass in scriptChange instead of reservekey so
-                        // change transaction isn't always pay-to-darksilk-address
+                        // change transaction isn't always pay-to-dynamic-address
                         CScript scriptChange;
 
                         // coin control: send change to custom address
@@ -3548,9 +3548,9 @@ bool CWallet::SetAddressBook(const CTxDestination& address, const string& strNam
                              strPurpose, (fUpdated ? CT_UPDATED : CT_NEW) );
     if (!fFileBacked)
         return false;
-    if (!strPurpose.empty() && !CWalletDB(strWalletFile).WritePurpose(CDarkSilkAddress(address).ToString(), strPurpose))
+    if (!strPurpose.empty() && !CWalletDB(strWalletFile).WritePurpose(CDynamicAddress(address).ToString(), strPurpose))
         return false;
-    return CWalletDB(strWalletFile).WriteName(CDarkSilkAddress(address).ToString(), strName);
+    return CWalletDB(strWalletFile).WriteName(CDynamicAddress(address).ToString(), strName);
 }
 
 bool CWallet::DelAddressBook(const CTxDestination& address)
@@ -3561,7 +3561,7 @@ bool CWallet::DelAddressBook(const CTxDestination& address)
         if(fFileBacked)
         {
             // Delete destdata tuples associated with address
-            std::string strAddress = CDarkSilkAddress(address).ToString();
+            std::string strAddress = CDynamicAddress(address).ToString();
             BOOST_FOREACH(const PAIRTYPE(string, string) &item, mapAddressBook[address].destdata)
             {
                 CWalletDB(strWalletFile).EraseDestData(strAddress, item.first);
@@ -3574,8 +3574,8 @@ bool CWallet::DelAddressBook(const CTxDestination& address)
 
     if (!fFileBacked)
         return false;
-    CWalletDB(strWalletFile).ErasePurpose(CDarkSilkAddress(address).ToString());
-    return CWalletDB(strWalletFile).EraseName(CDarkSilkAddress(address).ToString());
+    CWalletDB(strWalletFile).ErasePurpose(CDynamicAddress(address).ToString());
+    return CWalletDB(strWalletFile).EraseName(CDynamicAddress(address).ToString());
 }
 
 bool CWallet::SetDefaultKey(const CPubKey &vchPubKey)
@@ -4097,7 +4097,7 @@ bool CWallet::AddDestData(const CTxDestination &dest, const std::string &key, co
     mapAddressBook[dest].destdata.insert(std::make_pair(key, value));
     if (!fFileBacked)
         return true;
-    return CWalletDB(strWalletFile).WriteDestData(CDarkSilkAddress(dest).ToString(), key, value);
+    return CWalletDB(strWalletFile).WriteDestData(CDynamicAddress(dest).ToString(), key, value);
 }
 
 bool CWallet::EraseDestData(const CTxDestination &dest, const std::string &key)
@@ -4106,7 +4106,7 @@ bool CWallet::EraseDestData(const CTxDestination &dest, const std::string &key)
         return false;
     if (!fFileBacked)
         return true;
-    return CWalletDB(strWalletFile).EraseDestData(CDarkSilkAddress(dest).ToString(), key);
+    return CWalletDB(strWalletFile).EraseDestData(CDynamicAddress(dest).ToString(), key);
 }
 
 bool CWallet::LoadDestData(const CTxDestination &dest, const std::string &key, const std::string &value)
@@ -4423,7 +4423,7 @@ void SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew)
 {
     SendMoneyCheck(nValue);
 
-    // Parse DarkSilk address
+    // Parse Dynamic address
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
