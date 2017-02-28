@@ -1,4 +1,3 @@
-# **Dynamic (DYN) v1.0.0.0**
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 [![Build Status](https://travis-ci.org/Duality-Solutions/Dynamic.png?branch=master)](https://travis-ci.org/Duality-Solutions/Dynamic)
@@ -8,8 +7,9 @@ Graph on Pull Request History
 ====================================
 
 [![Throughput Graph](https://graphs.waffle.io/Duality-Solutions/Dynamic/throughput.svg)](https://waffle.io/Duality-Solutions/Dynamic/metrics/throughput)  
-Dynamic Integration/Staging Tree
-================================
+
+# **Dynamic (DYN) v1.0.0.0**
+
 ![DYN logo](https://github.com/Duality-Solutions/Dynamic/blob/master/src/qt/res/icons/drk/about.png)
 
 **Copyright (c) 2016-2017 Duality Blockchain Solutions**
