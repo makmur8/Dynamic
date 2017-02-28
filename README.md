@@ -10,7 +10,7 @@ Graph on Pull Request History
 [![Throughput Graph](https://graphs.waffle.io/Duality-Solutions/Dynamic/throughput.svg)](https://waffle.io/Duality-Solutions/Dynamic/metrics/throughput)  
 Dynamic Integration/Staging Tree
 ================================
-![DYN logo](https://github.com/Duality-Solutions/Dynamic/blob/master/src/qt/res/images/drk/dynamic_logo_horizontal.png)
+![DYN logo](https://github.com/Duality-Solutions/Dynamic/blob/master/src/qt/res/icons/drk/about.png)
 
 **Copyright (c) 2016-2017 Duality Blockchain Solutions**
 
