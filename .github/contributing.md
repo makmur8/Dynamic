@@ -81,11 +81,7 @@ Project maintainers aim for a quick turnaround on refactoring pull requests, so 
 "Decision Making" Process
 -------------------------
 
-<<<<<<< HEAD
 The following applies to code changes to the Dynamic project (and related projects such as libsecp256k1), and is not to be confused with overall Duality Network Protocol consensus changes.
-=======
-The following applies to code changes to the Dynamic project (and related projects such as libsecp256k1), and is not to be confused with overall SilkNetwork Network Protocol consensus changes.
->>>>>>> 938d2e9f7149d955f547b9ac6799e0ffbec6b282
 
 Whether a pull request is merged into Dynamic rests with the project merge maintainers and ultimately the project lead.
 
