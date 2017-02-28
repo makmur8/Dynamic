@@ -2561,6 +2561,7 @@ https://www.transifex.com/projects/p/dynamic/</translation>
     <message>
         <source>A message that was attached to the dynamic: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Dynamic network.</source>
         <translation>Wiadomość, która została dołączona do dynamic: Link, który zostanie zapisany wraz z transakcją do wglądu w przyszłości. Zauważ. że sama wiadomość nie zostanie wysłana przez sieć Dynamic.</translation>
+dynamic_pl.ts
     </message>
     <message>
         <source>This is an unverified payment request.</source>
