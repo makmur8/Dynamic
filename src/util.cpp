@@ -517,7 +517,7 @@ boost::filesystem::path GetDefaultDataDir()
     namespace fs = boost::filesystem;
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\Dynamic
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\Dynamic
-    // Mac: ~/Library/Application Support/DarkSil
+    // Mac: ~/Library/Application Support/Dynamic
     // Unix: ~/.dynamic
 #ifdef WIN32
     // Windows

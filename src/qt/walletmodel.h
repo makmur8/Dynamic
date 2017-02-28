@@ -102,7 +102,7 @@ public:
     }
 };
 
-/** Interface to DarkDynamic wallet from Qt view code. */
+/** Interface to Dynamic wallet from Qt view code. */
 class WalletModel : public QObject
 {
     Q_OBJECT

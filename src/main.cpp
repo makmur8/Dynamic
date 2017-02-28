@@ -118,7 +118,7 @@ CHooks* hooks = InitHook(); //this adds ddns hooks which allow splicing of code 
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "DarkCoin Signed Message:\n";
+const string strMessageMagic = "Dynamic Signed Message:\n";
 
 // Internal stuff
 namespace {
