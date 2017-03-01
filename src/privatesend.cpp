@@ -443,10 +443,10 @@ void CPrivatesendPool::InitDenominations()
         1DYN+1000 == (.1DYN+100)*10
         10DYN+10000 == (1DYN+1000)*10
     */
-    vecPrivateSendDenominations.push_back( (100      * COIN)+100000 );
     vecPrivateSendDenominations.push_back( (10       * COIN)+10000 );
     vecPrivateSendDenominations.push_back( (1        * COIN)+1000 );
     vecPrivateSendDenominations.push_back( (.1       * COIN)+100 );
+    vecPrivateSendDenominations.push_back( (.01      * COIN)+10 );
 }
 
 void CPrivatesendPool::ResetPool()
@@ -1383,79 +1383,46 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
         return false;
     }
 
-    // ** find the coins we'll use
-    std::vector<CTxIn> vecTxIn;
-    CAmount nValueMin = CENT;
-    CAmount nValueIn = 0;
+    CAmount nValueMin = vecPrivateSendDenominations.back();
 
-    CAmount nOnlyDenominatedBalance;
-    CAmount nBalanceNeedsDenominated;
-
-    CAmount nLowestDenom = vecPrivateSendDenominations.back();
     // if there are no confirmed PS collateral inputs yet
     if(!pwalletMain->HasCollateralInputs()) {
         // should have some additional amount for them
-        nLowestDenom += PRIVATESEND_COLLATERAL*4;
+        nValueMin += PRIVATESEND_COLLATERAL*4;
     }
 
-    CAmount nBalanceNeedsAnonymized = pwalletMain->GetNeedsToBeAnonymizedBalance(nLowestDenom);
+    // including denoms but applying some restrictions
+    CAmount nBalanceNeedsAnonymized = pwalletMain->GetNeedsToBeAnonymizedBalance(nValueMin);
 
     // anonymizable balance is way too small
-    if(nBalanceNeedsAnonymized < nLowestDenom) {
+    if(nBalanceNeedsAnonymized < nValueMin) {
         LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Not enough funds to anonymize\n");
         strAutoDenomResult = _("Not enough funds to anonymize.");
         return false;
     }
 
-    LogPrint("privatesend", "CPrivatesendPool::DoAutomaticDenominating -- nLowestDenom: %f, nBalanceNeedsAnonymized: %f\n", (float)nLowestDenom/COIN, (float)nBalanceNeedsAnonymized/COIN);
+    // excluding denoms
+    CAmount nBalanceAnonimizableNonDenom = pwalletMain->GetAnonymizableBalance(true);
+    // denoms
+    CAmount nBalanceDenominatedConf = pwalletMain->GetDenominatedBalance();
+    CAmount nBalanceDenominatedUnconf = pwalletMain->GetDenominatedBalance(true);
+    CAmount nBalanceDenominated = nBalanceDenominatedConf + nBalanceDenominatedUnconf;
 
-    // select coins that should be given to the pool
-    if(!pwalletMain->SelectCoinsDark(nValueMin, nBalanceNeedsAnonymized, vecTxIn, nValueIn, 0, nPrivateSendRounds))
-    {
-        if(pwalletMain->SelectCoinsDark(nValueMin, 9999999*COIN, vecTxIn, nValueIn, -2, 0))
-        {
-            nOnlyDenominatedBalance = pwalletMain->GetDenominatedBalance(true) + pwalletMain->GetDenominatedBalance() - pwalletMain->GetAnonymizedBalance();
-            nBalanceNeedsDenominated = nBalanceNeedsAnonymized - nOnlyDenominatedBalance;
-
-            if(nBalanceNeedsDenominated > nValueIn) nBalanceNeedsDenominated = nValueIn;
-
-            LogPrint("privatesend", "CPrivatesendPool::DoAutomaticDenominating -- `SelectCoinsDark` (%f - (%f + %f - %f = %f) ) = %f\n",
-                            (float)nBalanceNeedsAnonymized/COIN,
-                            (float)pwalletMain->GetDenominatedBalance(true)/COIN,
-                            (float)pwalletMain->GetDenominatedBalance()/COIN,
-                            (float)pwalletMain->GetAnonymizedBalance()/COIN,
-                            (float)nOnlyDenominatedBalance/COIN,
-                            (float)nBalanceNeedsDenominated/COIN);
-
-            if(nBalanceNeedsDenominated < nLowestDenom) { // most likely we are just waiting for denoms to confirm
-                LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- No funds detected in need of denominating\n");
-                strAutoDenomResult = _("No funds detected in need of denominating.");
-                return false;
-            }
-            if(!fDryRun) return CreateDenominated();
-
-            return true;
-        } else {
-            LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Can't denominate (no compatible inputs left)\n");
-            strAutoDenomResult = _("Can't denominate: no compatible inputs left.");
-            return false;
-        }
-    }
+    LogPrint("privatesend", "CDarksendPool::DoAutomaticDenominating -- nValueMin: %f, nBalanceNeedsAnonymized: %f, nBalanceAnonimizableNonDenom: %f, nBalanceDenominatedConf: %f, nBalanceDenominatedUnconf: %f, nBalanceDenominated: %f\n",
+            (float)nValueMin/COIN,
+            (float)nBalanceNeedsAnonymized/COIN,
+            (float)nBalanceAnonimizableNonDenom/COIN,
+            (float)nBalanceDenominatedConf/COIN,
+            (float)nBalanceDenominatedUnconf/COIN,
+            (float)nBalanceDenominated/COIN);
 
     if(fDryRun) return true;
 
-    nOnlyDenominatedBalance = pwalletMain->GetDenominatedBalance(true) + pwalletMain->GetDenominatedBalance() - pwalletMain->GetAnonymizedBalance();
-    nBalanceNeedsDenominated = nBalanceNeedsAnonymized - nOnlyDenominatedBalance;
-    LogPrint("privatesend", "CPrivatesendPool::DoAutomaticDenominating -- 'nBalanceNeedsDenominated > 0' (%f - (%f + %f - %f = %f) ) = %f\n",
-                    (float)nBalanceNeedsAnonymized/COIN,
-                    (float)pwalletMain->GetDenominatedBalance(true)/COIN,
-                    (float)pwalletMain->GetDenominatedBalance()/COIN,
-                    (float)pwalletMain->GetAnonymizedBalance()/COIN,
-                    (float)nOnlyDenominatedBalance/COIN,
-                    (float)nBalanceNeedsDenominated/COIN);
-
-    //check if we have should create more denominated inputs
-    if(nBalanceNeedsDenominated > 0) return CreateDenominated();
+    // Check if we have should create more denominated inputs i.e.
+    // there are funds to denominate and denominated balance does not exceed
+    // max amount to mix yet.
+    if(nBalanceAnonimizableNonDenom >= nValueMin + PRIVATESEND_COLLATERAL && nBalanceDenominated < nPrivateSendAmount*COIN)
+        return CreateDenominated();
 
     //check if we have the collateral sized inputs
     if(!pwalletMain->HasCollateralInputs())
@@ -1471,7 +1438,8 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     UnlockCoins();
     SetNull();
 
-    if(!fPrivateSendMultiSession && pwalletMain->GetDenominatedBalance(true) > 0) { //get denominated unconfirmed inputs
+    // should be no unconfirmed denoms in non-multi-session mode
+    if(!fPrivateSendMultiSession && nBalanceDenominatedUnconf > 0) {
         LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Found unconfirmed denominated outputs, will wait till they confirm to continue.\n");
         strAutoDenomResult = _("Found unconfirmed denominated outputs, will wait till they confirm to continue.");
         return false;
@@ -1526,8 +1494,11 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
 
             if(pdn->nProtocolVersion < MIN_PRIVATESEND_PEER_PROTO_VERSION) continue;
 
-            // incompatible denom
-            if(psq.nDenom >= (1 << vecPrivateSendDenominations.size())) continue;
+            std::vector<int> vecBits;
+            if(!GetDenominationsBits(psq.nDenom, vecBits)) {
+                // incompatible denom
+                continue;
+            }
 
             // mixing rate limit i.e. nLastSsq check should already pass in PSQUEUE ProcessMessage
             // in order for psq to get into vecPrivatesendQueue, so we should be safe to mix already,
@@ -1535,11 +1506,13 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
 
             LogPrint("privatesend", "CPrivatesendPool::DoAutomaticDenominating -- found valid queue: %s\n", psq.ToString());
 
+            CAmount nValueInTmp = 0;
             std::vector<CTxIn> vecTxInTmp;
             std::vector<COutput> vCoinsTmp;
-            // Try to match their denominations if possible
-            if(!pwalletMain->SelectCoinsByDenominations(psq.nDenom, nValueMin, nBalanceNeedsAnonymized, vecTxInTmp, vCoinsTmp, nValueIn, 0, nPrivateSendRounds)) {
-                LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Couldn't match denominations %d (%s)\n", psq.nDenom, GetDenominationsToString(psq.nDenom));
+
+            // Try to match their denominations if possible, select at least 1 denominations
+            if(!pwalletMain->SelectCoinsByDenominations(psq.nDenom, vecPrivateSendDenominations[vecBits.front()], nBalanceNeedsAnonymized, vecTxInTmp, vCoinsTmp, nValueInTmp, 0, nPrivateSendRounds)) {
+                LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Couldn't match denominations %d %d (%s)\n", vecBits.front(), psq.nDenom, GetDenominationsToString(psq.nDenom));
                 continue;
             }
 
@@ -1587,6 +1560,16 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     if(nLiquidityProvider) return false;
 
     int nTries = 0;
+
+    // ** find the coins we'll use
+    std::vector<CTxIn> vecTxIn;
+    CAmount nValueInTmp = 0;
+    if(!pwalletMain->SelectCoinsDark(nValueMin, nBalanceNeedsAnonymized, vecTxIn, nValueInTmp, 0, nPrivateSendRounds)) {
+        // this should never happen
+        LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Can't mix: no compatible inputs found!\n");
+        strAutoDenomResult = _("Can't mix: no compatible inputs found!");
+        return false;
+    }
 
     // otherwise, try one randomly
     while(nTries < 10) {
@@ -1712,8 +1695,14 @@ bool CPrivatesendPool::PrepareDenominate(int nMinRounds, int nMaxRounds, std::st
 
         if nMinRounds >= 0 it means only denominated inputs are going in and coming out
     */
-    bool fSelected = pwalletMain->SelectCoinsByDenominations(nSessionDenom, vecPrivateSendDenominations.back(), GetMaxPoolAmount(), vecTxIn, vCoins, nValueIn, nMinRounds, nMaxRounds);
-    if (nMinRounds >= 0 && !fSelected) {
+    std::vector<int> vecBits;
+    if (!GetDenominationsBits(nSessionDenom, vecBits)) {
+        strErrorRet = "Incorrect session denom";
+        return false;
+    }
+
+    bool fSelected = pwalletMain->SelectCoinsByDenominations(nSessionDenom, vecPrivateSendDenominations[vecBits.front()], PRIVATESEND_ENTRY_MAX_SIZE, vecTxIn, vCoins, nValueIn, nMinRounds, nMaxRounds);
+     if (nMinRounds >= 0 && !fSelected) {
         strErrorRet = "Can't select current denominated inputs";
         return false;
     }
@@ -1734,11 +1723,6 @@ bool CPrivatesendPool::PrepareDenominate(int nMinRounds, int nMaxRounds, std::st
     // initially shuffled in CWallet::SelectCoinsByDenominations already.
     int nStep = 0;
     int nStepsMax = 5 + GetRandInt(PRIVATESEND_ENTRY_MAX_SIZE-5+1);
-    std::vector<int> vecBits;
-    if (!GetDenominationsBits(nSessionDenom, vecBits)) {
-        strErrorRet = "Incorrect session denom";
-        return false;
-    }
 
     while (nStep < nStepsMax) {
         BOOST_FOREACH(int nBit, vecBits) {
