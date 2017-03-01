@@ -575,8 +575,8 @@ static void WriteConfigFile(FILE* configFile)
     fputs (sUserID.c_str(), configFile);
     fputs (sRPCpassword.c_str(), configFile);
     fputs ("#Do not use special characters with username/password", configFile);
-    fputs ("rpcport=31650\n", configFile);
-    fputs ("port=31600\n",configFile);
+    fputs ("rpcport=31350\n", configFile);
+    fputs ("port=31300\n",configFile);
     fclose(configFile);
 }
 

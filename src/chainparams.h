@@ -83,7 +83,6 @@ public:
     int FulfilledRequestExpireTime() const { return nFulfilledRequestExpireTime; }
     std::string SporkPubKey() const { return strSporkPubKey; }
     std::string DynodePaymentPubKey() const { return strDynodePaymentsPubKey; }
-    int64_t StartDynodePayments() const { return nStartDynodePayments; }
 protected:
     CChainParams() {}
 
@@ -110,7 +109,6 @@ protected:
     int nFulfilledRequestExpireTime;
     std::string strSporkPubKey;
     std::string strDynodePaymentsPubKey;
-    int64_t nStartDynodePayments;
 };
 
 /**

@@ -293,10 +293,10 @@ void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew /*CAmount nFees*
     CAmount dynodePayment;
 
     if (chainActive.Height() == 0) { blockValue = 4000000 * COIN; }
-    else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().StartDynodePayments()) { blockValue = BLOCKCHAIN_INIT_REWARD; }
+    else if (chainActive.Height() >= 1 || chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) { blockValue = BLOCKCHAIN_INIT_REWARD; }
     else { blockValue = STATIC_POW_REWARD; }
 
-    if (!hasPayment && chainActive.Height() < Params().StartDynodePayments()) { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
+    if (!hasPayment && chainActive.Height() < Params().GetConsensus().nDynodePaymentsStartBlock) { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
     else { dynodePayment = STATIC_DYNODE_PAYMENT; }
 
     txNew.vout[0].nValue = blockValue;

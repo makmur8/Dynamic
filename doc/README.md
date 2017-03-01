@@ -50,21 +50,21 @@ Darksend/PrivateSend ported and rebranded as Privatesend/PrivateSend.
 Utilisation of InstantSend/InstantSend for instant transaction confirmation(s).
 
 **MainNet Parameters**
-P2P Port = 31600
-RPC Port = 31650
-Dynodes = 31600
+P2P Port = 31300
+RPC Port = 31350
+Dynodes = 31300
 Magic Bytes: 0x2f 0x32 0x15 0x41
 
 **TestNet Parameters**
-P2P Port = 31700
-RPC Port = 31750
-Dynodes = 31700
+P2P Port = 31400
+RPC Port = 31450
+Dynodes = 31400
 Magic Bytes: 0x2f 0x32 0x15 0x40
 
 **RegTest Parameters**
-P2P Port = 31800
-RPC Port = 31850
-Dynodes = 31800
+P2P Port = 31500
+RPC Port = 31550
+Dynodes = 31500
 Magic Bytes: 0x2f 0x32 0x15 0x3f
 
 

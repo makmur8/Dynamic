@@ -301,6 +301,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Mining",             "getwork",				  &getwork,       		   true  },
     { "Mining",             "getmininginfo",          &getmininginfo,          true  },
     { "Mining",             "getnetworkhashps",       &getnetworkhashps,       true  },
+    { "Mining",             "getpowrewardstart",      &getpowrewardstart,      true  },
     { "Mining",             "prioritisetransaction",  &prioritisetransaction,  true  },
     { "Mining",             "submitblock",            &submitblock,            true  },
 
@@ -351,6 +352,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Dynamic",                "dynodebroadcast",        &dynodebroadcast,        true  },
     { "Dynamic",                "gobject",                &gobject,                true  },
     { "Dynamic",                "getgovernanceinfo",      &getgovernanceinfo,      true  },
+    { "Dynamic",                "getdynoderewardstart",   &getdynoderewardstart,   true  },
     { "Dynamic",                "getsuperblockbudget",    &getsuperblockbudget,    true  },
     { "Dynamic",                "voteraw",                &voteraw,                true  },
     { "Dynamic",                "dnsync",                 &dnsync,                 true  },
@@ -393,6 +395,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Wallet",             "listtransactions",       &listtransactions,       false },
     { "Wallet",             "listunspent",            &listunspent,            false },
     { "Wallet",             "lockunspent",            &lockunspent,            true  },
+    { "Wallet",             "makekeypair",            &makekeypair,            false },
     { "Wallet",             "move",                   &movecmd,                false },
     { "Wallet",             "sendfrom",               &sendfrom,               false },
     { "Wallet",             "sendmany",               &sendmany,               false },
@@ -597,7 +600,7 @@ std::string HelpExampleCli(const std::string& methodname, const std::string& arg
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
 {
     return "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
-        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:31650/\n";
+        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:31350/\n";
 }
 
 void RPCRegisterTimerInterface(RPCTimerInterface *iface)
