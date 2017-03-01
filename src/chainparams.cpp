@@ -147,7 +147,7 @@ public:
         pchMessageStart[1] = 0x32;
         pchMessageStart[2] = 0x15;
         pchMessageStart[3] = 0x41;
-        vAlertPubKey = ParseHex(""); //TODO: Add alert key before release.
+        vAlertPubKey = ParseHex("04ae9821c0e83ed7b23a08513047ec23e3acf41be066239d48c7571032efc858b30af168516aaf3320f57c431cf697de8dfd00b0c86112c231dbef04de46b8a731"); //TODO: Add alert key before release.
         nDefaultPort = 31300;
         nMaxTipAge = 24 * 60 * 64;
         nPruneAfterHeight = 10000;
@@ -190,8 +190,8 @@ public:
 
         nPoolMaxTransactions = 3;
         nFulfilledRequestExpireTime = 60 * 60; // fulfilled requests expire in 1 hour
-        strSporkPubKey = "";
-        strDynodePaymentsPubKey = "";
+        strSporkPubKey = "043eb53fdd03a3f8c4b9b58db4cf6a502a4d19d289d5c97f489eca3970ee7a55b7a230c0cd97684a93e099ffa85d5d568e56c14929cecac1e93623cbc097c5c2ff";
+        strDynodePaymentsPubKey = "04f3df8036c9752b67163ef0cdd97636249a3d0c6af03c698c77a490d2bf748939cd016905c7099b1260fb617e40b4a2c3aa14fe19fd5cdd028f4418519ae595a2";
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of
