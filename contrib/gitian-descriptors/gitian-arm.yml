@@ -1,37 +1,43 @@
 ---
-name: "dynamic-raspberry-1.0"
+name: "dynamic-arm-1.0.0.0"
 enable_cache: true
 suites:
-- "precise"
+- "trusty"
 architectures:
 - "amd64"
-packages:
-- "g++-multilib"
+packages: 
+- "curl"
+- "g++-aarch64-linux-gnu"
+- "g++-4.8-aarch64-linux-gnu"
+- "gcc-4.8-aarch64-linux-gnu"
+- "binutils-aarch64-linux-gnu"
+- "g++-arm-linux-gnueabihf"
+- "g++-4.8-arm-linux-gnueabihf"
+- "gcc-4.8-arm-linux-gnueabihf"
+- "binutils-arm-linux-gnueabihf"
+- "g++-4.8-multilib"
+- "gcc-4.8-multilib"
+- "binutils-gold"
 - "git-core"
 - "pkg-config"
-- "autoconf2.13"
+- "autoconf"
 - "libtool"
 - "automake"
 - "faketime"
 - "bsdmainutils"
-- "binutils-gold"
+- "ca-certificates"
+- "python"
 reference_datetime: "2017-01-01 00:00:00"
 remotes:
 - "url": "https://github.com/duality-solutions/dynamic.git"
   "dir": "dynamic"
-files:
-- "raspberrypi-tools.tar.gz"
+files: []
 script: |
   WRAP_DIR=$HOME/wrapped
-  HOSTS="arm-linux-gnueabihf"
-  CONFIGFLAGS="--enable-upnp-default --enable-glibc-back-compat"
+  HOSTS="arm-linux-gnueabihf aarch64-linux-gnu"
+  CONFIGFLAGS="--enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++"
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="date ar ranlib nm strip"
-  
-  tar --warning=no-timestamp -xzf raspberrypi-tools.tar.gz
-  export TOOLCHAIN_BIN=$(pwd)/raspberrypi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
-  export PATH=$PATH:$TOOLCHAIN_BIN
-
   export QT_RCC_TEST=1
   export GZIP="-9n"
   export TAR_OPTIONS="--mtime="$REFERENCE_DATE\\\ $REFERENCE_TIME""
@@ -43,41 +49,37 @@ script: |
     export BASE_CACHE=${GBUILD_PACKAGE_CACHE}
     mkdir -p ${BASE_CACHE} ${SOURCES_PATH}
   fi
-
   # Create global faketime wrappers
   for prog in ${FAKETIME_PROGS}; do
     echo '#!/bin/bash' > ${WRAP_DIR}/${prog}
     echo "REAL=\`which -a ${prog} | grep -v ${WRAP_DIR}/${prog} | head -1\`" >> ${WRAP_DIR}/${prog}
-    echo 'export LD_PRELOAD=/usr/lib/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${prog}
+    echo 'export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${prog}
     echo "export FAKETIME=\"${REFERENCE_DATETIME}\"" >> ${WRAP_DIR}/${prog}
     echo "\$REAL \$@" >> $WRAP_DIR/${prog}
     chmod +x ${WRAP_DIR}/${prog}
   done
-
   # Create per-host faketime wrappers
   for i in $HOSTS; do
     for prog in ${FAKETIME_HOST_PROGS}; do
         echo '#!/bin/bash' > ${WRAP_DIR}/${i}-${prog}
         echo "REAL=\`which -a ${i}-${prog} | grep -v ${WRAP_DIR}/${i}-${prog} | head -1\`" >> ${WRAP_DIR}/${i}-${prog}
-        echo 'export LD_PRELOAD=/usr/lib/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${i}-${prog}
+        echo 'export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${i}-${prog}
         echo "export FAKETIME=\"${REFERENCE_DATETIME}\"" >> ${WRAP_DIR}/${i}-${prog}
         echo "\$REAL \$@" >> $WRAP_DIR/${i}-${prog}
         chmod +x ${WRAP_DIR}/${i}-${prog}
     done
   done
   export PATH=${WRAP_DIR}:${PATH}
-
   cd dynamic
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
-    make ${MAKEOPTS} NO_QT=1 -C ${BASEPREFIX} HOST="${i}"
+    make ${MAKEOPTS} -C ${BASEPREFIX} HOST="${i}" NO_QT=1
   done
-
   # Create the release tarball using (arbitrarily) the first host
   ./autogen.sh
   ./configure --prefix=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`
-  make NO_QT=1 dist
+  make dist
   SOURCEDIST=`echo dynamic-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
   # Correct tar file order
@@ -86,7 +88,6 @@ script: |
   tar xf ../$SOURCEDIST
   find dynamic-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
   popd
-
   ORIGPATH="$PATH"
   # Extract the release tarball into a dir for each host and build
   for i in ${HOSTS}; do
@@ -96,10 +97,9 @@ script: |
     INSTALLPATH=`pwd`/installed/${DISTNAME}
     mkdir -p ${INSTALLPATH}
     tar --strip-components=1 -xf ../$SOURCEDIST
-
     ./configure --prefix=${BASEPREFIX}/${i} --bindir=${INSTALLPATH}/bin --includedir=${INSTALLPATH}/include --libdir=${INSTALLPATH}/lib --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS}
-    make ${MAKEOPTS} NO_QT=1
-    make NO_QT=1 install-strip
+    make ${MAKEOPTS}
+    make install-strip
     cd installed
     find . -name "lib*.la" -delete
     find . -name "lib*.a" -delete
@@ -109,4 +109,4 @@ script: |
   done
   mkdir -p $OUTDIR/src
   mv $SOURCEDIST $OUTDIR/src
-  mv ${OUTDIR}/${DISTNAME}-arm-*.tar.gz ${OUTDIR}/${DISTNAME}-RPi2.tar.gz
+ 
