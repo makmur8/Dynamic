@@ -23,6 +23,7 @@
 #include "consensus/merkle.h"
 #include "merkleblock.h"
 #include "net.h"
+#include "consensus/params.h"
 #include "policy/policy.h"
 #include "pow.h"
 #include "privatesend.h"
@@ -1772,11 +1773,11 @@ CAmount GetPoWBlockPayment(const int& nHeight, CAmount nFees)
         LogPrint("superblock creation", "GetPoWBlockPayment() : create=%s nSubsidy=%d\n", FormatMoney(nSubsidy), nSubsidy);
         return nSubsidy;
     }
-    else if (chainActive.Height() > 0 && chainActive.Height() <= Params().StartDynodePayments()) {
+    else if (chainActive.Height() >= 1 || chainActive.Height() <= Params().GetConsensus().nRewardsStart) {
         LogPrint("zero-reward block creation", "GetPoWBlockPayment() : create=%s nSubsidy=%d\n", FormatMoney(BLOCKCHAIN_INIT_REWARD), BLOCKCHAIN_INIT_REWARD);
         return BLOCKCHAIN_INIT_REWARD;
     }
-    else if (chainActive.Height() > Params().StartDynodePayments()) {
+    else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) {
         LogPrint("creation", "GetPoWBlockPayment() : create=%s PoW Reward=%d\n", FormatMoney(STATIC_POW_REWARD), STATIC_POW_REWARD);
         return STATIC_POW_REWARD + nFees; // 1 DYN + fees
     }
@@ -1787,7 +1788,7 @@ CAmount GetPoWBlockPayment(const int& nHeight, CAmount nFees)
 
 CAmount GetDynodePayment(bool fDynode)
 {
-    if (fDynode) {
+    if (fDynode && chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {
         LogPrint("creation", "GetDynodePayment() : create=%s DN Payment=%d\n", FormatMoney(STATIC_DYNODE_PAYMENT), STATIC_DYNODE_PAYMENT);
         return STATIC_DYNODE_PAYMENT; // 0.382 DYN
     }
@@ -2776,10 +2777,10 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // TODO: resync data (both ways?) and try to reprocess this block later.
     bool fDynodePaid = false;
 
-    if(chainActive.Height() > Params().StartDynodePayments()) {
+    if(chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {
         fDynodePaid = true;
     }
-    else if (chainActive.Height() <= Params().StartDynodePayments()) {
+    else if (chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) {
         fDynodePaid = false;
     }
 
