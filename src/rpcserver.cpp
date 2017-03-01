@@ -395,6 +395,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Wallet",             "listtransactions",       &listtransactions,       false },
     { "Wallet",             "listunspent",            &listunspent,            false },
     { "Wallet",             "lockunspent",            &lockunspent,            true  },
+    { "Wallet",             "makekeypair",            &makekeypair,            false },
     { "Wallet",             "move",                   &movecmd,                false },
     { "Wallet",             "sendfrom",               &sendfrom,               false },
     { "Wallet",             "sendmany",               &sendmany,               false },
