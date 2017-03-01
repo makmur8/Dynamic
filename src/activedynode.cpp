@@ -189,7 +189,7 @@ void CActiveDynode::ManageStateInitial()
     if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if(service.GetPort() != mainnetDefaultPort) {
             nState = ACTIVE_DYNODE_NOT_CAPABLE;
-            strNotCapableReason = strprintf("Invalid port: %u - only 31600 is supported on mainnet.", service.GetPort());
+            strNotCapableReason = strprintf("Invalid port: %u - only 31300 is supported on mainnet.", service.GetPort());
             LogPrintf("CActiveDynode::ManageStatus() - not capable: %s\n", strNotCapableReason);
             return;
         }
@@ -198,7 +198,7 @@ void CActiveDynode::ManageStateInitial()
     if(Params().NetworkIDString() != CBaseChainParams::MAIN) {
         if(service.GetPort() == mainnetDefaultPort) {
             nState = ACTIVE_DYNODE_NOT_CAPABLE;
-            strNotCapableReason = strprintf("Invalid port: %u - 31600 is only supported on mainnet.", service.GetPort());
+            strNotCapableReason = strprintf("Invalid port: %u - 31300 is only supported on mainnet.", service.GetPort());
             LogPrintf("CActiveDynode::ManageStatus() - not capable: %s\n", strNotCapableReason);
             return;
         }

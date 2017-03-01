@@ -11,7 +11,7 @@ EXTRA_DIST += \
 	test/data/blanktx.hex \
 	test/data/tt-delin1-out.hex \
 	test/data/tt-delout1-out.hex \
-	test/data/tt-locktime317000-out.hex \
+	test/data/tt-locktime314000-out.hex \
 	test/data/tx394b54bb.hex \
 	test/data/txcreate1.hex \
 	test/data/txcreate2.hex \
