@@ -66,6 +66,26 @@ void ShutdownRPCMining()
     delete pMiningKey; pMiningKey = NULL;
 }
 
+UniValue getpowrewardstart(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "getpowrewardstart [nHeight]\n"
+            "Returns block when PoW rewards begin.");
+
+    return Params().GetConsensus().nRewardsStart +1;
+}
+
+UniValue getdynoderewardstart(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "getdynoderewardstart [nHeight]\n"
+            "Returns block when Dynode rewards begin.");
+
+    return Params().GetConsensus().nDynodePaymentsStartBlock +1;
+}
+
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
  * or from the last difficulty change if 'lookup' is nonpositive.

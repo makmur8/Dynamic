@@ -301,6 +301,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Mining",             "getwork",				  &getwork,       		   true  },
     { "Mining",             "getmininginfo",          &getmininginfo,          true  },
     { "Mining",             "getnetworkhashps",       &getnetworkhashps,       true  },
+    { "Mining",             "getpowrewardstart",      &getpowrewardstart,      true  },
     { "Mining",             "prioritisetransaction",  &prioritisetransaction,  true  },
     { "Mining",             "submitblock",            &submitblock,            true  },
 
@@ -351,6 +352,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Dynamic",                "dynodebroadcast",        &dynodebroadcast,        true  },
     { "Dynamic",                "gobject",                &gobject,                true  },
     { "Dynamic",                "getgovernanceinfo",      &getgovernanceinfo,      true  },
+    { "Dynamic",                "getdynoderewardstart",   &getdynoderewardstart,   true  },
     { "Dynamic",                "getsuperblockbudget",    &getsuperblockbudget,    true  },
     { "Dynamic",                "voteraw",                &voteraw,                true  },
     { "Dynamic",                "dnsync",                 &dnsync,                 true  },
