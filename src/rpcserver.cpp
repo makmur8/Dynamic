@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2017 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Developers
 // Copyright (c) 2014-2017 The Dash Core Developers
-// Copyright (c) 2015-2017 Silk Network Developers
+// Copyright (c) 2016-2017 Duality Blockchain Solutions Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -244,11 +244,11 @@ UniValue stop(const UniValue& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop DarkSilk Core server.");
+            "\nStop Dynamic server.");
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
-    return "DarkSilk Core server stopping";
+    return "Dynamic server stopping";
 }
 
 /**
@@ -342,22 +342,22 @@ static const CRPCCommand vRPCCommands[] =
     { "Hidden",             "reconsiderblock",        &reconsiderblock,        true  },
     { "Hidden",             "setmocktime",            &setmocktime,            true  },
 #ifdef ENABLE_WALLET
-    { "Hidden",             "resendwallettransactions", &resendwallettransactions, true},
+    { "Hidden",                 "resendwallettransactions", &resendwallettransactions, true},
 #endif
 
-    /* DarkSilk features */
-    { "DarkSilk",               "stormnode",              &stormnode,              true  },
-    { "DarkSilk",               "stormnodelist",          &stormnodelist,          true  },
-    { "DarkSilk",               "stormnodebroadcast",     &stormnodebroadcast,     true  },
-    { "DarkSilk",               "gobject",                &gobject,                true  },
-    { "DarkSilk",               "getgovernanceinfo",      &getgovernanceinfo,      true  },
-    { "DarkSilk",               "getsuperblockbudget",    &getsuperblockbudget,    true  },
-    { "DarkSilk",               "voteraw",                &voteraw,                true  },
-    { "DarkSilk",               "snsync",                 &snsync,                 true  },
-    { "DarkSilk",               "spork",                  &spork,                  true  },
-    { "DarkSilk",               "getpoolinfo",            &getpoolinfo,            true  },
+    /* Dynamic features */
+    { "Dynamic",                "dynode",                 &dynode,                 true  },
+    { "Dynamic",                "dynodelist",             &dynodelist,             true  },
+    { "Dynamic",                "dynodebroadcast",        &dynodebroadcast,        true  },
+    { "Dynamic",                "gobject",                &gobject,                true  },
+    { "Dynamic",                "getgovernanceinfo",      &getgovernanceinfo,      true  },
+    { "Dynamic",                "getsuperblockbudget",    &getsuperblockbudget,    true  },
+    { "Dynamic",                "voteraw",                &voteraw,                true  },
+    { "Dynamic",                "dnsync",                 &dnsync,                 true  },
+    { "Dynamic",                "spork",                  &spork,                  true  },
+    { "Dynamic",                "getpoolinfo",            &getpoolinfo,            true  },
 #ifdef ENABLE_WALLET
-    { "DarkSilk",               "privatesend",            &privatesend,            false },
+    { "Dynamic",                "privatesend",            &privatesend,            false },
 
     /* Wallet */
     { "Wallet",             "keepass",                &keepass,                true },
@@ -591,7 +591,7 @@ std::vector<std::string> CRPCTable::listCommands() const
 
 std::string HelpExampleCli(const std::string& methodname, const std::string& args)
 {
-    return "> darksilk-cli " + methodname + " " + args + "\n";
+    return "> dynamic-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)

@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2017 Satoshi Nakamoto
 // Copyright (c) 2009-2017 The Bitcoin Developers
 // Copyright (c) 2014-2017 The Dash Core Developers
-// Copyright (c) 2015-2017 Silk Network Developers
+// Copyright (c) 2016-2017 Duality Blockchain Solutions Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -27,7 +27,7 @@
 #include "validationinterface.h"
 
 #ifdef ENABLE_WALLET
-#include "stormnode-sync.h"
+#include "dynode-sync.h"
 #include "wallet/wallet.h"
 #endif
 
@@ -136,7 +136,7 @@ UniValue getgenerate(const UniValue& params, bool fHelp)
         throw runtime_error(
             "getgenerate\n"
             "\nReturn if the server is set to generate coins or not. The default is false.\n"
-            "It is set with the command line argument -gen (or " + std::string(DARKSILK_CONF_FILENAME) + " setting gen)\n"
+            "It is set with the command line argument -gen (or " + std::string(DYNAMIC_CONF_FILENAME) + " setting gen)\n"
             "It can also be set with the setgenerate call.\n"
             "\nResult\n"
             "true|false      (boolean) If the server is set to generate coins or not\n"
@@ -258,7 +258,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
 
     mapArgs["-gen"] = (fGenerate ? "1" : "0");
     mapArgs ["-genproclimit"] = itostr(nGenProcLimit);
-    GenerateDarkSilks(fGenerate, nGenProcLimit, Params());
+    GenerateDynamics(fGenerate, nGenProcLimit, Params());
 
     return NullUniValue;
 }
@@ -410,10 +410,10 @@ UniValue getwork(const UniValue& params, bool fHelp)
         );
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "DarkSilk Core is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Dynamic is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "DarkSilk Core is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Dynamic is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -585,13 +585,13 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             "  \"curtime\" : ttt,                  (numeric) current timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"bits\" : \"xxx\",                 (string) compressed target of next block\n"
             "  \"height\" : n                      (numeric) The height of the next block\n"
-            "  \"stormnode\" : {                   (json object) required Stormnode payee that must be included in the next block\n"
+            "  \"dynode\" : {                   (json object) required Dynode payee that must be included in the next block\n"
             "      \"payee\" : \"xxxx\",             (string) payee address\n"
             "      \"script\" : \"xxxx\",            (string) payee scriptPubKey\n"
             "      \"amount\": n                   (numeric) required amount to pay\n"
             "  },\n"
-            "  \"stormnode_payments_started\" :  true|false, (boolean) true, if Stormnode payments started\n"
-            "  \"stormnode_payments_enforced\" : true|false, (boolean) true, if Stormnode payments are enforced\n"
+            "  \"dynode_payments_started\" :  true|false, (boolean) true, if Dynode payments started\n"
+            "  \"dynode_payments_enforced\" : true|false, (boolean) true, if Dynode payments are enforced\n"
             "  \"superblock\" : [                  (array) required superblock payees that must be included in the next block\n"
             "      {\n"
             "         \"payee\" : \"xxxx\",          (string) payee address\n"
@@ -678,10 +678,10 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "DarkSilk Core is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Dynamic is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "DarkSilk Core is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Dynamic is downloading blocks...");
 
     static unsigned int nTransactionsUpdatedLast;
 
@@ -882,18 +882,18 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
 
-    UniValue stormnodeObj(UniValue::VOBJ);
-    if(pblock->txoutStormnode != CTxOut()) {
+    UniValue dynodeObj(UniValue::VOBJ);
+    if(pblock->txoutDynode != CTxOut()) {
         CTxDestination address1;
-        ExtractDestination(pblock->txoutStormnode.scriptPubKey, address1);
-        CDarkSilkAddress address2(address1);
-        stormnodeObj.push_back(Pair("payee", address2.ToString().c_str()));
-        stormnodeObj.push_back(Pair("script", HexStr(pblock->txoutStormnode.scriptPubKey.begin(), pblock->txoutStormnode.scriptPubKey.end())));
-        stormnodeObj.push_back(Pair("amount", pblock->txoutStormnode.nValue));
+        ExtractDestination(pblock->txoutDynode.scriptPubKey, address1);
+        CDynamicAddress address2(address1);
+        dynodeObj.push_back(Pair("payee", address2.ToString().c_str()));
+        dynodeObj.push_back(Pair("script", HexStr(pblock->txoutDynode.scriptPubKey.begin(), pblock->txoutDynode.scriptPubKey.end())));
+        dynodeObj.push_back(Pair("amount", pblock->txoutDynode.nValue));
     }
-    result.push_back(Pair("stormnode", stormnodeObj));
-    result.push_back(Pair("stormnode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nStormnodePaymentsStartBlock));
-    result.push_back(Pair("stormnode_payments_enforced", sporkManager.IsSporkActive(SPORK_8_STORMNODE_PAYMENT_ENFORCEMENT)));
+    result.push_back(Pair("dynode", dynodeObj));
+    result.push_back(Pair("dynode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nDynodePaymentsStartBlock));
+    result.push_back(Pair("dynode_payments_enforced", sporkManager.IsSporkActive(SPORK_8_DYNODE_PAYMENT_ENFORCEMENT)));
 
     UniValue superblockObjArray(UniValue::VARR);
     if(pblock->voutSuperblock.size()) {
@@ -901,7 +901,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             UniValue entry(UniValue::VOBJ);
             CTxDestination address1;
             ExtractDestination(txout.scriptPubKey, address1);
-            CDarkSilkAddress address2(address1);
+            CDynamicAddress address2(address1);
             entry.push_back(Pair("payee", address2.ToString().c_str()));
             entry.push_back(Pair("script", HexStr(txout.scriptPubKey.begin(), txout.scriptPubKey.end())));
             entry.push_back(Pair("amount", txout.nValue));

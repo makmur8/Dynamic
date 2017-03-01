@@ -812,20 +812,14 @@ QTabBar { alignment: left; }
         </widget>
        </item>
        <item row="10" column="0">
-        <widget class="QLabel" name="stormnodeCountLabel">
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);</string>
-         </property>
+        <widget class="QLabel" name="dynodeCountLabel">
          <property name="text">
-          <string>Number of Stormnodes</string>
+          <string>Number of Dynodes</string>
          </property>
         </widget>
        </item>
        <item row="10" column="1">
-        <widget class="QLabel" name="stormnodeCount">
-         <property name="styleSheet">
-          <string notr="true">color: rgb(255, 255, 255);</string>
-         </property>
+        <widget class="QLabel" name="dynodeCount">
          <property name="text">
           <string>N/A</string>
          </property>
@@ -1010,7 +1004,7 @@ QTabBar { alignment: left; }
          <item>
           <widget class="QPushButton" name="openDebugLogfileButton">
            <property name="toolTip">
-            <string>Open the DarkSilk Core debug log file from the current data directory. This can take a few seconds for large log files.</string>
+            <string>Open the Dynamic debug log file from the current data directory. This can take a few seconds for large log files.</string>
            </property>
            <property name="styleSheet">
             <string notr="true">QWidget#RPCConsole .QPushButton#openDebugLogfileButton {
@@ -1143,7 +1137,7 @@ color: rgb(0, 0, 0);</string>
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../darksilk.qrc">
+            <iconset resource="../dynamic.qrc">
              <normaloff>:/icons/drk/remove</normaloff>:/icons/drk/remove</iconset>
            </property>
            <property name="shortcut">
@@ -3050,7 +3044,7 @@ padding-bottom:5px;
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../darksilk.qrc"/>
+  <include location="../dynamic.qrc"/>
  </resources>
  <connections/>
 </ui>
