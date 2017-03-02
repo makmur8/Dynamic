@@ -6,8 +6,8 @@ suites:
 architectures:
 - "amd64"
 packages: 
+- "g++-multilib"
 - "curl"
-- "g++"
 - "git-core"
 - "pkg-config"
 - "autoconf"
@@ -19,18 +19,16 @@ packages:
 - "libcap-dev"
 - "libz-dev"
 - "libbz2-dev"
-- "ca-certificates"
-- "python"
 reference_datetime: "2017-01-01 00:00:00"
 remotes:
 - "url": "https://github.com/duality-solutions/dynamic.git"
   "dir": "dynamic"
 files:
-- "MacOSX10.1.sdk.tar.gz"
+- "MacOSX10.7.sdk.tar.gz"
 script: |
   WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-apple-darwin11"
-  CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests GENISOIMAGE=$WRAP_DIR/genisoimage"
+  CONFIGFLAGS="--enable-reduce-exports GENISOIMAGE=$WRAP_DIR/genisoimage"
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="ar ranlib date dmg genisoimage"
 
@@ -75,7 +73,7 @@ script: |
   BASEPREFIX=`pwd`/depends
 
   mkdir -p ${BASEPREFIX}/SDKs
-  tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/MacOSX10.9.sdk.tar.gz
+  tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/MacOSX10.7.sdk.tar.gz
 
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -84,7 +82,7 @@ script: |
 
   # Create the release tarball using (arbitrarily) the first host
   ./autogen.sh
-  CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
+  ./configure --disable-tests --prefix=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`
   make dist
   SOURCEDIST=`echo dynamic-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
@@ -106,9 +104,9 @@ script: |
     mkdir -p ${INSTALLPATH}
     tar --strip-components=1 -xf ../$SOURCEDIST
 
-    CONFIG_SITE=${BASEPREFIX}/${i}/share/config.site ./configure --prefix=/ --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS}
+    ./configure --prefix=${BASEPREFIX}/${i} --bindir=${INSTALLPATH}/bin --includedir=${INSTALLPATH}/include --libdir=${INSTALLPATH}/lib --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS}
     make ${MAKEOPTS}
-    make install-strip DESTDIR=${INSTALLPATH}
+    make install-strip
 
     make deploydir
     mkdir -p unsigned-app-${i}
