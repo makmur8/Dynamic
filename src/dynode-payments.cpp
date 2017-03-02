@@ -225,10 +225,12 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
             return;
     }
 
-    // FILL BLOCK PAYEE WITH DYNODE PAYMENT OTHERWISE
-    dnpayments.FillBlockPayee(txNew);
-    LogPrint("dnpayments", "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutDynodeRet %s txNew %s",
-                            nBlockHeight, blockReward, txoutDynodeRet.ToString(), txNew.ToString());
+    if (chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {
+        // FILL BLOCK PAYEE WITH DYNODE PAYMENT OTHERWISE
+        dnpayments.FillBlockPayee(txNew);
+        LogPrint("dnpayments", "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutDynodeRet %s txNew %s",
+                                nBlockHeight, blockReward, txoutDynodeRet.ToString(), txNew.ToString());
+    }
 }
 
 std::string GetRequiredPaymentsString(int nBlockHeight)
@@ -293,11 +295,13 @@ void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew /*CAmount nFees*
     CAmount dynodePayment;
 
     if (chainActive.Height() == 0) { blockValue = 4000000 * COIN; }
-    else if (chainActive.Height() >= 1 || chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) { blockValue = BLOCKCHAIN_INIT_REWARD; }
-    else { blockValue = STATIC_POW_REWARD; }
+    else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().GetConsensus().nRewardsStart) { blockValue = BLOCKCHAIN_INIT_REWARD; }
+    else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) { blockValue = STATIC_POW_REWARD; }
+    else { blockValue = BLOCKCHAIN_INIT_REWARD; }
 
-    if (!hasPayment && chainActive.Height() < Params().GetConsensus().nDynodePaymentsStartBlock) { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
-    else { dynodePayment = STATIC_DYNODE_PAYMENT; }
+    if (!hasPayment && hasPayment && chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
+    else if (hasPayment && chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {dynodePayment = STATIC_DYNODE_PAYMENT; }
+    else { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
 
     txNew.vout[0].nValue = blockValue;
 
