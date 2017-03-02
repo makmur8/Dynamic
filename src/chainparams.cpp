@@ -107,14 +107,14 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nRewardsStart = 10000; // PoW Rewards begin on block 10001
-        consensus.nDynodePaymentsStartBlock = 10000; // Dynode Payments begin on block 10001
+        consensus.nRewardsStart = 20545; // PoW Rewards begin on block 20546
+        consensus.nDynodePaymentsStartBlock = 20545; // Dynode Payments begin on block 20546
         consensus.nInstantSendKeepLock = 24;
-        consensus.nBudgetPaymentsStartBlock = 20545; // actual historical value
+        consensus.nBudgetPaymentsStartBlock = 20546; // actual historical value
         consensus.nBudgetPaymentsCycleBlocks = 20545; //Blocks per month
         consensus.nBudgetPaymentsWindowBlocks = 100;
         consensus.nBudgetProposalEstablishingTime = 24 * 60 * 60;
-        consensus.nSuperblockStartBlock = 20545;
+        consensus.nSuperblockStartBlock = 41092;
         consensus.nSuperblockCycle = 20545; // 675 (Blocks per day) x 365.25 (Days per Year) / 12 = 20545
         consensus.nGovernanceMinQuorum = 10;
         consensus.nGovernanceFilterElements = 20000;
