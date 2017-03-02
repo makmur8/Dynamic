@@ -900,7 +900,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
         BOOST_FOREACH(CDynode& dn, vDynodes) {
             if (vin != CTxIn() && vin != dn.vin) continue; // asked for specific vin but we are not there yet
             if (dn.addr.IsRFC1918() || dn.addr.IsLocal()) continue; // do not send local network Dynode
-            if (dn.IsUpdateRequired()) continue; // do not send outdated masternodes
+            if (dn.IsUpdateRequired()) continue; // do not send outdated Dynodes
 
             LogPrint("Dynode", "SSEG -- Sending Dynode entry: Dynode=%s  addr=%s\n", dn.vin.prevout.ToStringShort(), dn.addr.ToString());
             CDynodeBroadcast dnb = CDynodeBroadcast(dn);
