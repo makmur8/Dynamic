@@ -30,6 +30,7 @@
 #include "validationinterface.h"
 #include "wallet/wallet.h"
 
+#include <memory>
 #include <queue>
 
 #include <openssl/sha.h>
@@ -563,7 +564,11 @@ void static DynamicMiner(const CChainParams& chainparams)
             CBlockIndex* pindexPrev = chainActive.Tip();
             if(!pindexPrev) break;
 
+#ifdef ENABLE_WALLET
             auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript));
+#else
+            auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams));
+#endif
             if (!pblocktemplate.get())
             {
                 LogPrintf("DynamicMiner -- Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
