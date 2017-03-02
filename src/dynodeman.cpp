@@ -880,7 +880,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
             //local network
             bool isLocal = (pfrom->addr.IsRFC1918() || pfrom->addr.IsLocal());
 
-            if(!isLocal && Params().NetworkIDString() == CBaseChainParams::MAIN) {
+            if(!isLocal && Params().NetworkIDString() == CBaseChainParams::MAIN && chainActive.Height() > Params().GetConsensus().nSuperblockStartBlock) {
                 std::map<CNetAddr, int64_t>::iterator i = mAskedUsForDynodeList.find(pfrom->addr);
                 if (i != mAskedUsForDynodeList.end()){
                     int64_t t = (*i).second;

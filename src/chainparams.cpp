@@ -151,7 +151,7 @@ public:
         nDefaultPort = 31300;
         nMaxTipAge = 24 * 60 * 64;
         nPruneAfterHeight = 10000;
-        startNewChain = true;
+        startNewChain = false;
 
         genesis = CreateGenesisBlock(1488487097, 50732, UintToArith256(consensus.powLimit).GetCompact(), 1, (1 * COIN));
         if(startNewChain == true) { MineGenesis(genesis, consensus.powLimit, true); }
@@ -159,8 +159,8 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
 
         if(!startNewChain)
-            //assert(consensus.hashGenesisBlock == uint256S("0x00007cf0db1cecdf77892dc403db603ffb6d4be94db88e4aa15ce64837a9f1c8"));
-            //assert(genesis.hashMerkleRoot == uint256S("0xdd5c3a2e5ee26bd7ab438a0c697d77f3e54fb5e26ea9969ee4f5cc71d52b93b8"));
+            assert(consensus.hashGenesisBlock == uint256S("0x00007cf0db1cecdf77892dc403db603ffb6d4be94db88e4aa15ce64837a9f1c8"));
+            assert(genesis.hashMerkleRoot == uint256S("0xdd5c3a2e5ee26bd7ab438a0c697d77f3e54fb5e26ea9969ee4f5cc71d52b93b8"));
 
         //vSeeds.push_back(CDNSSeedData("", ""));
         //vSeeds.push_back(CDNSSeedData("", ""));
