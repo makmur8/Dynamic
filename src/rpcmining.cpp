@@ -1038,7 +1038,9 @@ UniValue estimatefee(const UniValue& params, bool fHelp)
             "\n"
             "A negative value is returned if not enough transactions and blocks\n"
             "have been observed to make an estimate.\n"
-            "\nExample:\n"
+             "-1 is always returned for nblocks == 1 as it is impossible to calculate\n"
+             "a fee that is high enough to get reliably included in the next block.\n"
+             "\nExample:\n"
             + HelpExampleCli("estimatefee", "10")
             );
 
