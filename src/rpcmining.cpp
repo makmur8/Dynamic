@@ -324,7 +324,7 @@ UniValue getmininginfo(const UniValue& params, bool fHelp)
             "  \"errors\": \"...\"          (string) Current errors\n"
             "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
             "  \"genproclimit\": n          (numeric) The processor limit for generation. -1 if no generation. (see getgenerate or setgenerate calls)\n"
-            "  \"pooledtx\": n              (numeric) The size of the mem pool\n"
+            "  \"pooledtx\": n              (numeric) The size of the mempool\n"
             "  \"testnet\": true|false      (boolean) If using testnet or not\n"
             "  \"chain\": \"xxxx\",         (string) current network name as defined in BIP70 (main, test, regtest)\n"
             "}\n"

@@ -600,7 +600,7 @@ UniValue gettxout(const UniValue& params, bool fHelp)
             "\nArguments:\n"
             "1. \"txid\"       (string, required) The transaction id\n"
             "2. n              (numeric, required) vout value\n"
-            "3. includemempool  (boolean, optional) Whether to included the mem pool\n"
+            "3. includemempool  (boolean, optional) Whether to included the mempool\n"
             "\nResult:\n"
             "{\n"
             "  \"bestblock\" : \"hash\",    (string) the block hash\n"
