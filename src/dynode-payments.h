@@ -9,9 +9,10 @@
 #include "core_io.h"
 #include "key.h"
 #include "main.h"
-#include "dynode.h"
 #include "util.h"
 #include "utilstrencodings.h"
+
+#include "dynode.h"
 
 class CDynodePayments;
 class CDynodePaymentVote;
@@ -207,7 +208,7 @@ public:
     int GetMinDynodePaymentsProto();
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
     std::string GetRequiredPaymentsString(int nBlockHeight);
-    void FillBlockPayee(CMutableTransaction& txNew);
+    void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees);
     std::string ToString() const;
 
     int GetBlockCount() { return mapDynodeBlocks.size(); }

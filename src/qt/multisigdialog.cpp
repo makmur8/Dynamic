@@ -16,7 +16,6 @@
 #include "base58.h"
 #include "chainparamsbase.h"
 #include "core_io.h"
-#include "dns/dns.h"
 #include "dbwrapper.h"
 #include "key.h"
 #include "main.h"
@@ -29,6 +28,8 @@
 #include "util.h"
 #include "consensus/validation.h"
 #include "wallet/wallet.h"
+
+#include "dns/dns.h"
 
 #include <QClipboard>
 #include <QWidget>

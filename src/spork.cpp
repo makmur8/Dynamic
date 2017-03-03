@@ -6,6 +6,7 @@
 #include "spork.h"
 
 #include "main.h"
+
 #include "privatesend.h"
 
 #include <boost/lexical_cast.hpp>
@@ -16,6 +17,21 @@ class CSporkManager;
 CSporkManager sporkManager;
 
 std::map<uint256, CSporkMessage> mapSporks;
+
+bool CSporkManager::SetPrivKey(std::string strPrivKey)
+{
+    CSporkMessage spork;
+
+    spork.Sign(strPrivKey);
+
+    if(spork.CheckSignature()){
+        // Test signing successful, proceed
+        LogPrintf("CSporkManager::SetPrivKey -- Successfully initialized as spork signer\n");
+        return true;
+    } else {
+        return false;
+    }
+}
 
 void CSporkManager::ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
@@ -99,21 +115,6 @@ void CSporkManager::ExecuteSpork(int nSporkID, int nValue)
         ReprocessBlocks(nValue);
         nTimeExecuted = GetTime();
     }
-}
-
-bool CSporkManager::UpdateSpork(int nSporkID, int64_t nValue)
-{
-
-    CSporkMessage spork = CSporkMessage(nSporkID, nValue, GetTime());
-
-    if(spork.Sign(strMasterPrivKey)) {
-        spork.Relay();
-        mapSporks[spork.GetHash()] = spork;
-        mapSporksActive[nSporkID] = spork;
-        return true;
-    }
-
-    return false;
 }
 
 // grab the spork, otherwise say it's off
@@ -201,22 +202,6 @@ std::string CSporkManager::GetSporkNameByID(int nSporkID)
     }
 }
 
-bool CSporkManager::SetPrivKey(std::string strPrivKey)
-{
-    CSporkMessage spork;
-
-    spork.Sign(strPrivKey);
-
-    if(spork.CheckSignature()){
-        // Test signing successful, proceed
-        LogPrintf("CSporkManager::SetPrivKey -- Successfully initialized as spork signer\n");
-        strMasterPrivKey = strPrivKey;
-        return true;
-    } else {
-        return false;
-    }
-}
-
 bool CSporkMessage::Sign(std::string strSignKey)
 {
     CKey key;
@@ -262,3 +247,17 @@ void CSporkMessage::Relay()
     CInv inv(MSG_SPORK, GetHash());
     RelayInv(inv);
 }
+
+bool CSporkManager::UpdateSpork(int nSporkID, int64_t nValue)
+{
+    CSporkMessage spork = CSporkMessage(nSporkID, nValue, GetTime());
+    if(spork.Sign(strMasterPrivKey)) {
+        spork.Relay();
+        mapSporks[spork.GetHash()] = spork;
+        mapSporksActive[nSporkID] = spork;
+        return true;
+    }
+
+    return false;
+}
+

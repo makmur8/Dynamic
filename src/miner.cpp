@@ -24,11 +24,12 @@
 #include "txmempool.h"
 #include "util.h"
 #include "utilmoneystr.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
 #include "consensus/validation.h"
 #include "validationinterface.h"
 #include "wallet/wallet.h"
+
+#include "dynode-payments.h"
+#include "dynode-sync.h"
 
 #include <memory>
 #include <queue>

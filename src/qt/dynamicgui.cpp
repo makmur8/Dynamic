@@ -30,10 +30,11 @@
 #endif
 
 #include "init.h"
-#include "dynode-sync.h"
-#include "dynodelist.h"
 #include "ui_interface.h"
 #include "util.h"
+
+#include "dynode-sync.h"
+#include "dynodelist.h"
 
 #include <iostream>
 

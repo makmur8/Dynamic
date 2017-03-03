@@ -16,12 +16,13 @@
 #include "checkpoints.h"
 #include "clientversion.h"
 #include "net.h"
-#include "privatesend.h"
-#include "dynodeman.h"
-#include "dynode-sync.h"
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
+
+#include "dynodeman.h"
+#include "dynode-sync.h"
+#include "privatesend.h"
 
 #include <stdint.h>
 

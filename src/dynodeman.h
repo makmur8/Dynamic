@@ -6,8 +6,9 @@
 #ifndef DYNAMIC_DYNODEMAN_H
 #define DYNAMIC_DYNODEMAN_H
 
-#include "dynode.h"
 #include "sync.h"
+
+#include "dynode.h"
 
 using namespace std;
 

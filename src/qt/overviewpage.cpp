@@ -12,7 +12,6 @@
 #include "clientmodel.h"
 #include "guiconstants.h"
 #include "guiutil.h"
-#include "init.h"
 #include "optionsmodel.h"
 #include "platformstyle.h"
 #include "transactionfilterproxy.h"
@@ -20,10 +19,13 @@
 #include "utilitydialog.h"
 #include "walletmodel.h"
 
-#include "privatesend.h"
-#include "instantsend.h"
 #include "privatesendconfig.h"
+
+#include "init.h"
+
 #include "dynode-sync.h"
+#include "instantsend.h"
+#include "privatesend.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>

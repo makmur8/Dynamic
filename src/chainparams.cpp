@@ -147,11 +147,11 @@ public:
         pchMessageStart[1] = 0x32;
         pchMessageStart[2] = 0x15;
         pchMessageStart[3] = 0x41;
-        vAlertPubKey = ParseHex("04ae9821c0e83ed7b23a08513047ec23e3acf41be066239d48c7571032efc858b30af168516aaf3320f57c431cf697de8dfd00b0c86112c231dbef04de46b8a731"); //TODO: Add alert key before release.
+        vAlertPubKey = ParseHex("04ae9821c0e83ed7b23a08513047ec23e3acf41be066239d48c7571032efc858b30af168516aaf3320f57c431cf697de8dfd00b0c86112c231dbef04de46b8a731");
         nDefaultPort = 31300;
         nMaxTipAge = 24 * 60 * 64;
         nPruneAfterHeight = 10000;
-        startNewChain = true;
+        startNewChain = false;
 
         genesis = CreateGenesisBlock(1488487097, 50732, UintToArith256(consensus.powLimit).GetCompact(), 1, (1 * COIN));
         if(startNewChain == true) { MineGenesis(genesis, consensus.powLimit, true); }
@@ -159,13 +159,13 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
 
         if(!startNewChain)
-            //assert(consensus.hashGenesisBlock == uint256S("0x00007cf0db1cecdf77892dc403db603ffb6d4be94db88e4aa15ce64837a9f1c8"));
-            //assert(genesis.hashMerkleRoot == uint256S("0xdd5c3a2e5ee26bd7ab438a0c697d77f3e54fb5e26ea9969ee4f5cc71d52b93b8"));
+            assert(consensus.hashGenesisBlock == uint256S("0x00007cf0db1cecdf77892dc403db603ffb6d4be94db88e4aa15ce64837a9f1c8"));
+            assert(genesis.hashMerkleRoot == uint256S("0xdd5c3a2e5ee26bd7ab438a0c697d77f3e54fb5e26ea9969ee4f5cc71d52b93b8"));
 
-        //vSeeds.push_back(CDNSSeedData("", ""));
-        //vSeeds.push_back(CDNSSeedData("", ""));
-        //vSeeds.push_back(CDNSSeedData("", ""));
-        //vSeeds.push_back(CDNSSeedData("", ""));
+        vSeeds.push_back(CDNSSeedData("dnsseeder.io", "dyn.dnsseeder.io"));
+        vSeeds.push_back(CDNSSeedData("dnsseeder.com", "dyn.dnsseeder.com"));
+        vSeeds.push_back(CDNSSeedData("dnsseeder.host", "dyn.dnsseeder.host"));
+        vSeeds.push_back(CDNSSeedData("dnsseeder.net", "dyn.dnsseeder.net"));
 
         // Dynamic addresses start with 'D'
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,30);
@@ -190,8 +190,8 @@ public:
 
         nPoolMaxTransactions = 3;
         nFulfilledRequestExpireTime = 60 * 60; // fulfilled requests expire in 1 hour
-        strSporkPubKey = "043eb53fdd03a3f8c4b9b58db4cf6a502a4d19d289d5c97f489eca3970ee7a55b7a230c0cd97684a93e099ffa85d5d568e56c14929cecac1e93623cbc097c5c2ff";
-        strDynodePaymentsPubKey = "041f7ce93754e38b03aa209b11c33f9ecbb0e7f10166342ec00608d209722ab22672295946c5ece5ff9bb2df093094655ff5c511f4c3e91d60a2fa13a7b6e518ee";
+        strSporkPubKey = "04ae9821c0e83ed7b23a08513047ec23e3acf41be066239d48c7571032efc858b30af168516aaf3320f57c431cf697de8dfd00b0c86112c231dbef04de46b8a731";
+        strDynodePaymentsPubKey = "04ae9821c0e83ed7b23a08513047ec23e3acf41be066239d48c7571032efc858b30af168516aaf3320f57c431cf697de8dfd00b0c86112c231dbef04de46b8a731";
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of

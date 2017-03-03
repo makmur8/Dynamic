@@ -9,16 +9,18 @@
 #include "ui_dnspage.h"
 
 #include "csvmodelwriter.h"
-#include "dnstablemodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
 #include "walletmodel.h"
 
+#include "dnstablemodel.h"
+
 #include "base58.h"
-#include "dns/dns.h"
 #include "main.h"
 #include "ui_interface.h"
 #include "wallet/wallet.h"
+
+#include "dns/dns.h"
 
 #include <QSortFilterProxyModel>
 #include <QMessageBox>

@@ -11,10 +11,12 @@
 //#define ENABLE_DYNAMIC_DEBUG
 
 #include "base58.h"
-#include "governance.h"
+#include "chainparams.h"
 #include "key.h"
 #include "script/standard.h"
 #include "util.h"
+
+#include "governance.h"
 
 #include <boost/shared_ptr.hpp>
 

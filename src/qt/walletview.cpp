@@ -12,8 +12,6 @@
 #include "dynamicgui.h"
 #include "clientmodel.h"
 #include "guiutil.h"
-#include "dnspage.h"
-#include "dynodeconfig.h"
 #include "optionsmodel.h"
 #include "overviewpage.h"
 #include "platformstyle.h"
@@ -24,6 +22,9 @@
 #include "transactionview.h"
 #include "walletmodel.h"
 #include "multisigdialog.h"
+
+#include "dnspage.h"
+#include "dynodeconfig.h"
 
 #include "ui_interface.h"
 

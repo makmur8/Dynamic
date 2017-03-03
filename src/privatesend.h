@@ -6,8 +6,9 @@
 #ifndef DYNAMIC_PRIVATESEND_H
 #define DYNAMIC_PRIVATESEND_H
 
-#include "dynode.h"
 #include "wallet/wallet.h"
+
+#include "dynode.h"
 
 class CPrivatesendPool;
 class CPrivateSendSigner;
