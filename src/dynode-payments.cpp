@@ -227,7 +227,7 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
 
     if (chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {
         // FILL BLOCK PAYEE WITH DYNODE PAYMENT OTHERWISE
-        dnpayments.FillBlockPayee(txNew);
+        dnpayments.FillBlockPayee(txNew, nBlockHeight);
         LogPrint("dnpayments", "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutDynodeRet %s txNew %s",
                                 nBlockHeight, blockReward, txoutDynodeRet.ToString(), txNew.ToString());
     }
@@ -270,7 +270,7 @@ bool CDynodePayments::CanVote(COutPoint outDynode, int nBlockHeight)
 *   Fill Dynode ONLY payment block
 */
 
-void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)  // TODO GB : Add fees
+void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();       
     if(!pindexPrev) return;        
