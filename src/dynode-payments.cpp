@@ -270,7 +270,7 @@ bool CDynodePayments::CanVote(COutPoint outDynode, int nBlockHeight)
 *   Fill Dynode ONLY payment block
 */
 
-void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew /*CAmount nFees*/)  // TODO GB : Add fees
+void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)  // TODO GB : Add fees
 {
     CBlockIndex* pindexPrev = chainActive.Tip();       
     if(!pindexPrev) return;        
@@ -296,7 +296,7 @@ void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew /*CAmount nFees*
 
     if (chainActive.Height() == 0) { blockValue = 4000000 * COIN; }
     else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().GetConsensus().nRewardsStart) { blockValue = BLOCKCHAIN_INIT_REWARD; }
-    else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) { blockValue = STATIC_POW_REWARD; }
+    else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) { blockValue = STATIC_POW_REWARD + nFees; }
     else { blockValue = BLOCKCHAIN_INIT_REWARD; }
 
     if (!hasPayment && hasPayment && chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
@@ -311,7 +311,7 @@ void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew /*CAmount nFees*
         txNew.vout[1].scriptPubKey = payee;
         txNew.vout[1].nValue = dynodePayment;
 
-        txNew.vout[0].nValue = STATIC_POW_REWARD;
+        txNew.vout[0].nValue = STATIC_POW_REWARD + nFees;
 
         CTxDestination address1;
         ExtractDestination(payee, address1);
