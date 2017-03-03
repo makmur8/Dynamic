@@ -5,13 +5,15 @@
 
 #include "governance.h"
 
-#include "governance-classes.h"
-#include "main.h"
-#include "privatesend.h"
 #include "dynode.h"
 #include "dynode-sync.h"
 #include "dynodeman.h"
+#include "governance-classes.h"
+#include "governance-object.h"
+#include "governance-vote.h"
+#include "main.h"
 #include "netfulfilledman.h"
+#include "privatesend.h"
 
 CGovernanceManager governance;
 

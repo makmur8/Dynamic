@@ -5,12 +5,12 @@
 
 #include "psnotificationinterface.h"
 
-#include "governance.h"
-#include "instantsend.h"
-#include "privatesend.h"
 #include "dynodeman.h"
 #include "dynode-payments.h"
 #include "dynode-sync.h"
+#include "governance.h"
+#include "instantsend.h"
+#include "privatesend.h"
 
 CPSNotificationInterface::CPSNotificationInterface()
 {

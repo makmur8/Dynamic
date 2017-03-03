@@ -8,8 +8,8 @@
 #ifndef DYNAMIC_CORE_MEMUSAGE_H
 #define DYNAMIC_CORE_MEMUSAGE_H
 
-#include "primitives/block.h"
 #include "memusage.h"
+#include "primitives/block.h"
 #include "primitives/transaction.h"
 
 static inline size_t RecursiveDynamicUsage(const CScript& script) {

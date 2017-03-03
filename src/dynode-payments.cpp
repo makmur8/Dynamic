@@ -5,15 +5,16 @@
 
 #include "dynode-payments.h"
 
+#include "policy/fees.h"
+#include "util.h"
+
 #include "activedynode.h"
 #include "governance-classes.h"
-#include "netfulfilledman.h"
-#include "policy/fees.h"
-#include "privatesend.h"
-#include "spork.h"
 #include "dynode-sync.h"
 #include "dynodeman.h"
-#include "util.h"
+#include "netfulfilledman.h"
+#include "privatesend.h"
+#include "spork.h"
 
 #include <boost/lexical_cast.hpp>
 

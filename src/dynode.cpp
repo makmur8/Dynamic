@@ -5,18 +5,18 @@
 
 #include "dynode.h"
 
-#include "activedynode.h"
 #include "init.h"
-#include "governance.h"
-#include "privatesend.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
 #include "util.h"
 #include "consensus/validation.h"
 
-#include <boost/lexical_cast.hpp>
+#include "activedynode.h"
+#include "governance.h"
+#include "dynode-payments.h"
+#include "dynode-sync.h"
+#include "dynodeman.h"
+#include "privatesend.h"
 
+#include <boost/lexical_cast.hpp>
 
 CDynode::CDynode() :
     vin(),

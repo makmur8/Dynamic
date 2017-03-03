@@ -6,8 +6,9 @@
 #ifndef DYNAMIC_PRIVATESEND_RELAY_H
 #define DYNAMIC_PRIVATESEND_RELAY_H
 
-#include "activedynode.h"
 #include "main.h"
+
+#include "activedynode.h"
 #include "dynodeman.h"
 
 

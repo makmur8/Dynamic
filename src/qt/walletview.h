@@ -9,6 +9,7 @@
 #define DYNAMIC_QT_WALLETVIEW_H
 
 #include "amount.h"
+
 #include "dynodelist.h"
 
 #include <QStackedWidget>

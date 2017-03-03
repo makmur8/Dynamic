@@ -27,9 +27,10 @@
 
 #include "dns/dyndns.h"
 
+#include "util.h"
+
 #include "dns/dns.h"
 #include "dns/hooks.h"
-#include "util.h"
 
 #include <stdio.h>
 #include <unistd.h>

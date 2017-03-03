@@ -8,10 +8,10 @@
 #ifndef DYNAMIC_MERKLEBLOCK_H
 #define DYNAMIC_MERKLEBLOCK_H
 
-#include "serialize.h"
-#include "uint256.h"
 #include "primitives/block.h"
 #include "bloom.h"
+#include "serialize.h"
+#include "uint256.h"
 
 #include <vector>
 

@@ -17,15 +17,16 @@
 #include "crypto/common.h"
 #include "consensus/consensus.h"
 #include "hash.h"
-#include "instantsend.h"
-#include "privatesend.h"
 #include "scheduler.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
 #include "primitives/transaction.h"
 #include "ui_interface.h"
 #include "utilstrencodings.h"
 #include "wallet/wallet.h"
+
+#include "dynode-sync.h"
+#include "dynodeman.h"
+#include "instantsend.h"
+#include "privatesend.h"
 
 #ifdef WIN32
 #include <string.h>

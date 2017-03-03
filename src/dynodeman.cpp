@@ -5,14 +5,15 @@
 
 #include "dynodeman.h"
 
-#include "activedynode.h"
 #include "addrman.h"
-#include "governance.h"
 #include "netfulfilledman.h"
-#include "privatesend.h"
+#include "util.h"
+
+#include "activedynode.h"
+#include "governance.h"
 #include "dynode-payments.h"
 #include "dynode-sync.h"
-#include "util.h"
+#include "privatesend.h"
 
 /** Dynode manager */
 CDynodeMan dnodeman;

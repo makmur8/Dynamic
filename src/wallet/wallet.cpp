@@ -13,26 +13,27 @@
 #include "chain.h"
 #include "coincontrol.h"
 #include "consensus/consensus.h"
-#include "governance.h"
 #include "init.h"
-#include "instantsend.h"
 #include "keepass.h"
 #include "key.h"
 #include "keystore.h"
 #include "main.h"
 #include "net.h"
 #include "policy/policy.h"
-#include "privatesend.h"
 #include "rpcprotocol.h"
 #include "script/script.h"
 #include "script/sign.h"
-#include "spork.h"
 #include "timedata.h"
 #include "primitives/transaction.h"
 #include "txmempool.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #include "consensus/validation.h"
+
+#include "governance.h"
+#include "instantsend.h"
+#include "privatesend.h"
+#include "spork.h"
 
 #include <assert.h>
 
@@ -2013,7 +2014,7 @@ CAmount CWallet::GetAnonymizableBalance(bool fSkipDenominated) const
         bool fIsDenominated = IsDenominatedAmount(item.nAmount);
         if(fSkipDenominated && fIsDenominated) continue;
         // assume that the fee to create denoms be PRIVATESEND_COLLATERAL at max
-        if(item.nAmount >= vecPrivateSendDenominations.back() + fIsDenominated ? 0 : PRIVATESEND_COLLATERAL)
+        if(item.nAmount >= vecPrivateSendDenominations.back() + (fIsDenominated ? 0 : PRIVATESEND_COLLATERAL))
             nTotal += item.nAmount;
     }
 

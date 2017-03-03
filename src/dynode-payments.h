@@ -9,9 +9,10 @@
 #include "core_io.h"
 #include "key.h"
 #include "main.h"
-#include "dynode.h"
 #include "util.h"
 #include "utilstrencodings.h"
+
+#include "dynode.h"
 
 class CDynodePayments;
 class CDynodePaymentVote;

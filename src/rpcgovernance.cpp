@@ -7,20 +7,21 @@
 
 //#define ENABLE_DYNAMIC_DEBUG
 
-#include "activedynode.h"
-#include "governance.h"
-#include "governance-classes.h"
-#include "governance-vote.h"
 #include "init.h"
 #include "main.h"
-#include "privatesend.h"
 #include "rpcserver.h"
+#include "util.h"
+#include "utilmoneystr.h"
+
+#include "activedynode.h"
 #include "dynode.h"
 #include "dynode-sync.h"
 #include "dynodeconfig.h"
 #include "dynodeman.h"
-#include "util.h"
-#include "utilmoneystr.h"
+#include "governance.h"
+#include "governance-classes.h"
+#include "governance-vote.h"
+#include "privatesend.h"
 
 #include <boost/lexical_cast.hpp>
 

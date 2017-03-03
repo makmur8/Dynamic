@@ -13,8 +13,9 @@
 #include "noui.h"
 #include "rpcserver.h"
 #include "scheduler.h"
-#include "dynodeconfig.h"
 #include "util.h"
+
+#include "dynodeconfig.h"
 
 #include <stdio.h>
 
