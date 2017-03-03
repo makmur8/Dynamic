@@ -25,10 +25,12 @@
 #include "utilstrencodings.h"
 #include "consensus/validation.h"
 #include "validationinterface.h"
+#ifdef ENABLE_WALLET
+#include "wallet/wallet.h"
+#endif
 
 #ifdef ENABLE_WALLET
 #include "dynode-sync.h"
-#include "wallet/wallet.h"
 #endif
 
 #include <univalue.h>

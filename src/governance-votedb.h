@@ -7,6 +7,7 @@
 #define DYNAMIC_GOVERNANCE_VOTEDB_H
 
 #include "governance-vote.h"
+
 #include "serialize.h"
 #include "uint256.h"
 

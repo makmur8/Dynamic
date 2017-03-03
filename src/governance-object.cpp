@@ -5,10 +5,13 @@
 #include "governance-object.h"
 
 #include "core_io.h"
+#include "util.h"
+
+#include "dynodeman.h"
 #include "governance.h"
 #include "governance-classes.h"
+#include "governance-vote.h"
 #include "privatesend.h"
-#include "dynodeman.h"
 
 #include <univalue.h>
 

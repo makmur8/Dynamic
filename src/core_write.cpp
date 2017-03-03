@@ -9,8 +9,8 @@
 
 #include "base58.h"
 #include "script/script.h"
-#include "serialize.h"
 #include "script/standard.h"
+#include "serialize.h"
 #include "streams.h"
 #include "primitives/transaction.h"
 #include "util.h"

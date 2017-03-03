@@ -9,8 +9,9 @@
 #include "config/dynamic-config.h"
 #endif
 
-#include "tinyformat.h"
 #include "utiltime.h"
+
+#include "tinyformat.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>

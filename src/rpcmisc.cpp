@@ -12,16 +12,19 @@
 #include "net.h"
 #include "netbase.h"
 #include "rpcserver.h"
-#include "spork.h"
 #include "timedata.h"
 #include "txmempool.h"
 #include "util.h"
 #include "utilstrencodings.h"
 #ifdef ENABLE_WALLET
-#include "dynode-sync.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #endif
+
+#ifdef ENABLE_WALLET
+#include "dynode-sync.h"
+#endif
+#include "spork.h"
 
 #include <univalue.h>
 
@@ -29,6 +32,9 @@
 
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+
+class CSporkMessage;
+class CSporkManager;
 
 using namespace std;
 

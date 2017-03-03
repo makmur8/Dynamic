@@ -5,18 +5,19 @@
 
 #include "privatesend.h"
 
-#include "activedynode.h"
 #include "coincontrol.h"
 #include "init.h"
-#include "instantsend.h"
 #include "script/sign.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
 #include "txmempool.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #include "consensus/validation.h"
+
+#include "activedynode.h"
+#include "dynode-payments.h"
+#include "dynode-sync.h"
+#include "dynodeman.h"
+#include "instantsend.h"
 
 #include <boost/lexical_cast.hpp>
 

@@ -12,9 +12,9 @@
 #include "dynamicgui.h"
 #include "clientmodel.h"
 #include "guiconstants.h"
+#include "guiutil.h"
 #include "intro.h"
 #include "paymentrequestplus.h"
-#include "guiutil.h"
 
 #include "clientversion.h"
 #include "init.h"

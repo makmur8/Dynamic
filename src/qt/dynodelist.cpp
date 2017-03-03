@@ -8,16 +8,18 @@
 #include "dynodelist.h"
 #include "ui_dynodelist.h"
 
-#include "activedynode.h"
 #include "clientmodel.h"
-#include "init.h"
 #include "guiutil.h"
+#include "walletmodel.h"
+
+#include "init.h"
+#include "sync.h"
+#include "wallet/wallet.h"
+
+#include "activedynode.h"
 #include "dynode-sync.h"
 #include "dynodeconfig.h"
 #include "dynodeman.h"
-#include "sync.h"
-#include "wallet/wallet.h"
-#include "walletmodel.h"
 
 #include <QTimer>
 #include <QMessageBox>

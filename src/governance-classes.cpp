@@ -9,7 +9,6 @@
 
 #include "governance-classes.h"
 
-#include "chainparams.h"
 #include "core_io.h"
 #include "init.h"
 #include "main.h"

@@ -9,9 +9,11 @@
 #define DYNAMIC_QT_DYNODELIST_H
 
 #include "platformstyle.h"
-#include "dynode.h"
+
 #include "sync.h"
 #include "util.h"
+
+#include "dynode.h"
 
 #include <QMenu>
 #include <QTimer>
