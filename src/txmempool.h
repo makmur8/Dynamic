@@ -11,6 +11,7 @@
 #include "addressindex.h"
 #include "amount.h"
 #include "coins.h"
+#include "indirectmap.h"
 #include "primitives/transaction.h"
 #include "spentindex.h"
 #include "sync.h"
@@ -313,20 +314,6 @@ struct ancestor_score {};
 
 class CBlockPolicyEstimator;
 
-/** An inpoint - a combination of a transaction and an index n into its vin */
-class CInPoint
-{
-public:
-    const CTransaction* ptx;
-    uint32_t n;
-
-    CInPoint() { SetNull(); }
-    CInPoint(const CTransaction* ptxIn, uint32_t nIn) { ptx = ptxIn; n = nIn; }
-    void SetNull() { ptx = NULL; n = (uint32_t) -1; }
-    bool IsNull() const { return (ptx == NULL && n == (uint32_t) -1); }
-    size_t DynamicMemoryUsage() const { return 0; }
-};
-
 /**
  * CTxMemPool stores valid-according-to-the-current-best-chain
  * transactions that may be included in the next block.
@@ -497,7 +484,7 @@ private:
     void UpdateChild(txiter entry, txiter child, bool add);
 
 public:
-    std::map<COutPoint, CInPoint> mapNextTx;
+    indirectmap<COutPoint, const CTransaction*> mapNextTx;
     std::map<uint256, std::pair<double, CAmount> > mapDeltas;
 
     /** Create a new CTxMemPool.

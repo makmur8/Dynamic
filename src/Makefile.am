@@ -109,6 +109,7 @@ DYNAMIC_CORE_H = \
   hash.h \
   httprpc.h \
   httpserver.h \
+  indirectmap.h \
   init.h \
   instantsend.h \
   key.h \
