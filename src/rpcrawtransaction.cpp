@@ -855,11 +855,12 @@ UniValue sendrawtransaction(const UniValue& params, bool fHelp)
     const CCoins* existingCoins = view.AccessCoins(hashTx);
     bool fHaveMempool = mempool.exists(hashTx);
     bool fHaveChain = existingCoins && existingCoins->nHeight < 1000000000;
+    CFeeRate txFeeRate = CFeeRate(0);
     if (!fHaveMempool && !fHaveChain) {
         // push to local node and sync with wallets
         CValidationState state;
         bool fMissingInputs;
-        if (!AcceptToMemoryPool(mempool, state, tx, false, &fMissingInputs, false, !fOverrideFees)) {
+        if (!AcceptToMemoryPool(mempool, state, tx, false, &fMissingInputs, &txFeeRate, false, !fOverrideFees)) {
             if (state.IsInvalid()) {
                 throw JSONRPCError(RPC_TRANSACTION_REJECTED, strprintf("%i: %s", state.GetRejectCode(), state.GetRejectReason()));
             } else {
@@ -875,7 +876,7 @@ UniValue sendrawtransaction(const UniValue& params, bool fHelp)
     if (fInstantSend && !instantsend.ProcessTxLockRequest(tx)) {
         throw JSONRPCError(RPC_TRANSACTION_ERROR, "Not a valid InstantSend transaction, see debug.log for more info");
     }
-    RelayTransaction(tx);
+    RelayTransaction(tx, txFeeRate);
 
     return hashTx.GetHex();
 }

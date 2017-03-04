@@ -2096,7 +2096,7 @@ void CExplicitNetCleanup::callCleanup()
     delete tmp; // Stroustrup's gonna kill me for that
 }
 
-void RelayTransaction(const CTransaction& tx)
+void RelayTransaction(const CTransaction& tx, CFeeRate feerate)
 {
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss.reserve(10000);
@@ -2109,10 +2109,10 @@ void RelayTransaction(const CTransaction& tx)
     } else { // MSG_TX
         ss << tx;
     }
-    RelayTransaction(tx, ss);
+    RelayTransaction(tx, feerate, ss);
 }
 
-void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
+void RelayTransaction(const CTransaction& tx, CFeeRate feerate, const CDataStream& ss)
 {
     uint256 hash = tx.GetHash();
     int nInv = mapPrivatesendBroadcastTxes.count(hash) ? MSG_PSTX :
@@ -2134,15 +2134,7 @@ void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
-        if(!pnode->fRelayTxes)
-            continue;
-        LOCK(pnode->cs_filter);
-        if (pnode->pfilter)
-        {
-            if (pnode->pfilter->IsRelevantAndUpdate(tx))
-                pnode->PushInventory(inv);
-        } else
-            pnode->PushInventory(inv);
+        pnode->PushInventory(inv);
     }
 }
 
@@ -2437,6 +2429,7 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     hashContinue = uint256();
     nStartingHeight = -1;
     filterInventoryKnown.reset();
+    fSendMempool = false;
     fGetAddr = false;
     nNextLocalAddrSend = 0;
     nNextAddrSend = 0;
@@ -2449,6 +2442,9 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     fPingQueued = false;
     fDynode = false;
     nMinPingUsecTime = std::numeric_limits<int64_t>::max();
+    minFeeFilter = 0;
+    lastSentFeeFilter = 0;
+    nextSendTimeFeeFilter = 0;
 
     {
         LOCK(cs_nLastNodeId);

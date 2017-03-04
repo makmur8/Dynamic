@@ -10,6 +10,7 @@
 
 #include "dynode.h"
 
+class CTxMemPool;
 class CPrivatesendPool;
 class CPrivateSendSigner;
 class CPrivatesendBroadcastTx;

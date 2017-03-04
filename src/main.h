@@ -99,6 +99,10 @@ static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 /** Average delay between local address broadcasts in seconds. */
 static const unsigned int AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL = 24 * 24 * 60;
+/** Average delay between feefilter broadcasts in seconds. */
+static const unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;
+/** Maximum feefilter broadcast delay after significant change. */
+static const unsigned int MAX_FEEFILTER_CHANGE_DELAY = 5 * 60;
 /** Average delay between peer address broadcasts in seconds. */
 static const unsigned int AVG_ADDRESS_BROADCAST_INTERVAL = 30;
 /** Average delay between trickled inventory transmissions in seconds.
@@ -128,6 +132,8 @@ static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
 static const bool DEFAULT_TESTSAFEMODE = false;
 /** Default for -mempoolreplacement */
 static const bool DEFAULT_ENABLE_REPLACEMENT = false;
+/** Default for using fee filter */
+static const bool DEFAULT_FEEFILTER = true;
 
 /** Maximum number of headers to announce when relaying blocks with headers message.*/
 static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 12;
@@ -294,7 +300,7 @@ void PruneAndFlush();
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
-                        bool* pfMissingInputs, bool fOverrideMempoolLimit=false, bool fRejectAbsurdFee=false, bool fDryRun=false);
+                        bool* pfMissingInputs, CFeeRate* txFeeRate, bool fOverrideMempoolLimit=false, bool fRejectAbsurdFee=false, bool fDryRun=false);
 
 int GetUTXOHeight(const COutPoint& outpoint);
 int GetInputAge(const CTxIn &txin);
