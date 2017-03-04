@@ -167,7 +167,7 @@ void CTxMemPool::UpdateTransactionsFromBlock(const std::vector<uint256> &vHashes
     }
 }
 
-bool CTxMemPool::CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents /* = true */)
+bool CTxMemPool::CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents /* = true */) const
 {
     setEntries parentHashes;
     const CTransaction &tx = entry.GetTx();
@@ -821,10 +821,27 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const
             i++;
         }
         assert(setParentCheck == GetMemPoolParents(it));
-        // Also check to make sure ancestor size/sigops are >= sum with immediate
-        // parents.
-        assert(it->GetSizeWithAncestors() >= parentSizes + it->GetTxSize());
-        assert(it->GetSigOpCountWithAncestors() >= parentSigOpCount + it->GetSigOpCount());
+        // Verify ancestor state is correct.
+        setEntries setAncestors;
+        uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
+        std::string dummy;
+        CalculateMemPoolAncestors(*it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy);
+        uint64_t nCountCheck = setAncestors.size() + 1;
+        uint64_t nSizeCheck = it->GetTxSize();
+        CAmount nFeesCheck = it->GetModifiedFee();
+        unsigned int nSigOpCheck = it->GetSigOpCount();
+
+        BOOST_FOREACH(txiter ancestorIt, setAncestors) {
+            nSizeCheck += ancestorIt->GetTxSize();
+            nFeesCheck += ancestorIt->GetModifiedFee();
+            nSigOpCheck += ancestorIt->GetSigOpCount();
+        }
+
+        assert(it->GetCountWithAncestors() == nCountCheck);
+        assert(it->GetSizeWithAncestors() == nSizeCheck);
+        assert(it->GetSigOpCountWithAncestors() == nSigOpCheck);
+        assert(it->GetModFeesWithAncestors() == nFeesCheck);
+
         // Check children against mapNextTx
         CTxMemPool::setEntries setChildrenCheck;
         std::map<COutPoint, CInPoint>::const_iterator iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetHash(), 0));
@@ -1021,8 +1038,8 @@ bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) const {
 
 size_t CTxMemPool::DynamicMemoryUsage() const {
     LOCK(cs);
-    // Estimate the overhead of mapTx to be 12 pointers + an allocation, as no exact formula for boost::multi_index_contained is implemented.
-    return memusage::MallocUsage(sizeof(CTxMemPoolEntry) + 12 * sizeof(void*)) * mapTx.size() + memusage::DynamicUsage(mapNextTx) + memusage::DynamicUsage(mapDeltas) + memusage::DynamicUsage(mapLinks) + cachedInnerUsage;
+    // Estimate the overhead of mapTx to be 15 pointers + an allocation, as no exact formula for boost::multi_index_contained is implemented.
+    return memusage::MallocUsage(sizeof(CTxMemPoolEntry) + 15 * sizeof(void*)) * mapTx.size() + memusage::DynamicUsage(mapNextTx) + memusage::DynamicUsage(mapDeltas) + memusage::DynamicUsage(mapLinks) + cachedInnerUsage;
 }
 
 void CTxMemPool::RemoveStaged(setEntries &stage, bool updateDescendants) {
