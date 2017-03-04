@@ -710,13 +710,14 @@ uint256 blockHash = uint256S("0");
     }
 
     CMerkleTx cmt;
+    CFeeRate txFeeRate = CFeeRate(0);
     // Send the transaction to the local node
     //   CTxDB txdb("r");
     if(!cmt.AcceptToMemoryPool(false))
     return;
     SyncWithWallets(tx, NULL);
     //(CInv(MSG_TX, txHash), tx);
-    RelayTransaction(tx);
+    RelayTransaction(tx, txFeeRate);
 }
 
 MultisigInputEntry * MultisigDialog::addInput()

@@ -43,4 +43,7 @@ static const int NO_BLOOM_VERSION = 70500;
 //! "sendheaders" command and announcing blocks with headers starts with this version
 static const int SENDHEADERS_VERSION = 70500;
 
+//! "feefilter" tells peers to filter invs to you by fee starts with this version
+static const int FEEFILTER_VERSION = 70500;
+
 #endif // DYNAMIC_VERSION_H

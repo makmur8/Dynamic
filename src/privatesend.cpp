@@ -262,7 +262,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
                 LOCK(cs_main);
                 CValidationState validationState;
                 mempool.PrioritiseTransaction(tx.GetHash(), tx.GetHash().ToString(), 1000, 0.1*COIN);
-                if(!AcceptToMemoryPool(mempool, validationState, CTransaction(tx), false, NULL, false, true, true)) {
+                if(!AcceptToMemoryPool(mempool, validationState, CTransaction(tx), false, NULL, NULL, false, true, true)) {
                     LogPrintf("PSVIN -- transaction not valid! tx=%s", tx.ToString());
                     PushStatus(pfrom, STATUS_REJECTED, ERR_INVALID_TX);
                     return;
@@ -629,7 +629,7 @@ void CPrivatesendPool::CommitFinalTransaction()
         TRY_LOCK(cs_main, lockMain);
         CValidationState validationState;
         mempool.PrioritiseTransaction(hashTx, hashTx.ToString(), 1000, 0.1*COIN);
-        if(!lockMain || !AcceptToMemoryPool(mempool, validationState, finalTransaction, false, NULL, false, true, true))
+        if(!lockMain || !AcceptToMemoryPool(mempool, validationState, finalTransaction, false, NULL, NULL, false, true, true))
         {
             LogPrintf("CPrivatesendPool::CommitFinalTransaction -- AcceptToMemoryPool() error: Transaction not valid\n");
             SetNull();
@@ -730,13 +730,15 @@ void CPrivatesendPool::ChargeFees()
 
         LOCK(cs_main);
 
+        CFeeRate txFeeRate = CFeeRate(0);
+
         CValidationState state;
         bool fMissingInputs;
-        if(!AcceptToMemoryPool(mempool, state, vecOffendersCollaterals[0], false, &fMissingInputs, false, true)) {
+        if(!AcceptToMemoryPool(mempool, state, vecOffendersCollaterals[0], false, &fMissingInputs, &txFeeRate, false, true)) {
             // should never really happen
             LogPrintf("CPrivatesendPool::ChargeFees -- ERROR: AcceptToMemoryPool failed!\n");
         } else {
-            RelayTransaction(vecOffendersCollaterals[0]);
+            RelayTransaction(vecOffendersCollaterals[0], txFeeRate);
         }
     }
 }
@@ -765,13 +767,15 @@ void CPrivatesendPool::ChargeRandomFees()
 
         LogPrintf("CPrivatesendPool::ChargeRandomFees -- charging random fees, txCollateral=%s", txCollateral.ToString());
 
+        CFeeRate txFeeRate = CFeeRate(0);
+
         CValidationState state;
         bool fMissingInputs;
-        if(!AcceptToMemoryPool(mempool, state, txCollateral, false, &fMissingInputs, false, true)) {
+        if(!AcceptToMemoryPool(mempool, state, txCollateral, false, &fMissingInputs, &txFeeRate, false, true)) {
             // should never really happen
             LogPrintf("CPrivatesendPool::ChargeRandomFees -- ERROR: AcceptToMemoryPool failed!\n");
         } else {
-            RelayTransaction(txCollateral);
+            RelayTransaction(txCollateral, txFeeRate);
         }
     }
 }
@@ -937,7 +941,7 @@ bool CPrivatesendPool::IsCollateralValid(const CTransaction& txCollateral)
     {
         LOCK(cs_main);
         CValidationState validationState;
-        if(!AcceptToMemoryPool(mempool, validationState, txCollateral, false, NULL, false, true, true)) {
+        if(!AcceptToMemoryPool(mempool, validationState, txCollateral, false, NULL, NULL, false, true, true)) {
             LogPrint("privatesend", "CPrivatesendPool::IsCollateralValid -- didn't pass AcceptToMemoryPool()\n");
             return false;
         }
@@ -1107,7 +1111,7 @@ bool CPrivatesendPool::SendDenominate(const std::vector<CTxIn>& vecTxIn, const s
 
         mempool.PrioritiseTransaction(tx.GetHash(), tx.GetHash().ToString(), 1000, 0.1*COIN);
         TRY_LOCK(cs_main, lockMain);
-        if(!lockMain || !AcceptToMemoryPool(mempool, validationState, CTransaction(tx), false, NULL, false, true, true)) {
+        if(!lockMain || !AcceptToMemoryPool(mempool, validationState, CTransaction(tx), false, NULL, NULL, false, true, true)) {
             LogPrintf("CPrivatesendPool::SendDenominate -- AcceptToMemoryPool() failed! tx=%s", tx.ToString());
             UnlockCoins();
             SetNull();

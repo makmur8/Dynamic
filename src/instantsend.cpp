@@ -516,8 +516,9 @@ bool CInstantSend::ResolveConflicts(const CTxLockCandidate& txLockCandidate)
         mempool.removeConflicts(txLockCandidate.txLockRequest, removed);
         // and try to accept it in mempool again
         CValidationState state;
+        CFeeRate txFeeRate = CFeeRate(0);
         bool fMissingInputs = false;
-        if(!AcceptToMemoryPool(mempool, state, txLockCandidate.txLockRequest, true, &fMissingInputs)) {
+        if(!AcceptToMemoryPool(mempool, state, txLockCandidate.txLockRequest, true, &fMissingInputs, &txFeeRate)) {
             LogPrintf("CInstantSend::ResolveConflicts -- ERROR: Failed to accept completed Transaction Lock to mempool, txid=%s\n", txHash.ToString());
             return false;
         }
@@ -1141,7 +1142,8 @@ bool CTxLockCandidate::IsExpired(int nHeight) const
 
 void CTxLockCandidate::Relay() const
 {
-    RelayTransaction(txLockRequest);
+    CFeeRate txFeeRate = CFeeRate(0);
+    RelayTransaction(txLockRequest, txFeeRate);
     std::map<COutPoint, COutPointLock>::const_iterator itOutpointLock = mapOutPointLocks.begin();
     while(itOutpointLock != mapOutPointLocks.end()) {
         itOutpointLock->second.Relay();
