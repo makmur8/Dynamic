@@ -1158,10 +1158,9 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     LOCK(pool.cs); // protect pool.mapNextTx
     BOOST_FOREACH(const CTxIn &txin, tx.vin)
     {
-        auto itConflicting = pool.mapNextTx.find(txin.prevout);
-        if (itConflicting != pool.mapNextTx.end())
+        if (pool.mapNextTx.count(txin.prevout))
         {
-            const CTransaction *ptxConflicting = itConflicting->second;
+            const CTransaction *ptxConflicting = pool.mapNextTx[txin.prevout].ptx;
             if (!setConflicts.count(ptxConflicting->GetHash()))
             {
                 // InstantSend txes are not replacable

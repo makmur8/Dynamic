@@ -5,7 +5,6 @@
 
 #include "instantsend.h"
 
-#include "indirectmap.h"
 #include "key.h"
 #include "main.h"
 #include "net.h"
@@ -497,8 +496,7 @@ bool CInstantSend::ResolveConflicts(const CTxLockCandidate& txLockCandidate)
         } else if (mempool.mapNextTx.count(txin.prevout)) {
             // conflicting with tx in mempool
             fMempoolConflict = true;
-            auto itConflicting = mempool.mapNextTx.find(txin.prevout);
-            const CTransaction *ptxConflicting = itConflicting->second;
+            const CTransaction *ptxConflicting = mempool.mapNextTx[txin.prevout].ptx;
             uint256 hashConflicting = ptxConflicting->GetHash();
             if(HasTxLockRequest(hashConflicting)) {
                 // There can be only one completed lock, the other lock request should never complete,
