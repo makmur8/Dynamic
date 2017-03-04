@@ -880,8 +880,9 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
         if(vin == CTxIn()) { //only should ask for this once
             //local network
             bool isLocal = (pfrom->addr.IsRFC1918() || pfrom->addr.IsLocal());
-
-            if(!isLocal && Params().NetworkIDString() == CBaseChainParams::MAIN && chainActive.Height() > Params().GetConsensus().nSuperblockStartBlock) {
+            int nDnCount = dnodeman.CountDynodes();
+            // This is to prevent unnecessary banning of Dynodes whilst the network is in its infancy
+            if(!isLocal && Params().NetworkIDString() == CBaseChainParams::MAIN && nDnCount > 500) {
                 std::map<CNetAddr, int64_t>::iterator i = mAskedUsForDynodeList.find(pfrom->addr);
                 if (i != mAskedUsForDynodeList.end()){
                     int64_t t = (*i).second;
