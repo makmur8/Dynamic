@@ -381,6 +381,8 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
         return tr("Payment to yourself");
     case TransactionRecord::Generated:
         return tr("Mined");
+    case TransactionRecord::NameOp:
+        return tr("Name operation");
 
     case TransactionRecord::PrivateSendDenominate:
         return tr("PrivateSend Denominate");
@@ -412,6 +414,8 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     case TransactionRecord::SendToAddress:
     case TransactionRecord::SendToOther:
         return QIcon(":/icons/" + theme + "/tx_output");
+    case TransactionRecord::NameOp:
+        return QIcon(":/icons/decentralised");
     default:
         return QIcon(":/icons/" + theme + "/tx_inout");
     }
@@ -436,6 +440,8 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
     case TransactionRecord::PrivateSend:
         return lookupAddress(wtx->address, tooltip) + watchAddress;
     case TransactionRecord::SendToOther:
+        return QString::fromStdString(wtx->address) + watchAddress;
+    case TransactionRecord::NameOp:
         return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::SendToSelf:
     default:
@@ -534,7 +540,8 @@ QString TransactionTableModel::formatTooltip(const TransactionRecord *rec) const
 {
     QString tooltip = formatTxStatus(rec) + QString("\n") + formatTxType(rec);
     if(rec->type==TransactionRecord::RecvFromOther || rec->type==TransactionRecord::SendToOther ||
-       rec->type==TransactionRecord::SendToAddress || rec->type==TransactionRecord::RecvWithAddress)
+       rec->type==TransactionRecord::SendToAddress || rec->type==TransactionRecord::RecvWithAddress ||
+       rec->type==TransactionRecord::NameOp)
     {
         tooltip += QString(" ") + formatTxToAddress(rec, true);
     }

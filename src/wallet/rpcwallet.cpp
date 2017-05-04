@@ -370,38 +370,6 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
     return ret;
 }
 
-static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseInstantSend=false, bool fUsePrivateSend=false)
-{
-    CAmount curBalance = pwalletMain->GetBalance();
-
-    // Check amount
-    if (nValue <= 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
-
-    if (nValue > curBalance)
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
-
-    // Parse Dynamic address
-    CScript scriptPubKey = GetScriptForDestination(address);
-
-    // Create and send the transaction
-    CReserveKey reservekey(pwalletMain);
-    CAmount nFeeRequired;
-    std::string strError;
-    std::vector<CRecipient> vecSend;
-    int nChangePosRet = -1;
-    CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
-    vecSend.push_back(recipient);
-    if (!pwalletMain->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePosRet,
-                                         strError, NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
-        if (!fSubtractFeeFromAmount && nValue + nFeeRequired > pwalletMain->GetBalance())
-            strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
-        throw JSONRPCError(RPC_WALLET_ERROR, strError);
-    }
-    if (!pwalletMain->CommitTransaction(wtxNew, reservekey, fUseInstantSend ? NetMsgType::TXLOCKREQUEST : NetMsgType::TX))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
-}
-
 UniValue sendtoaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
@@ -446,6 +414,7 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
 
     // Wallet comments
     CWalletTx wtx;
+    CWalletTx wtxNameIn;
     if (params.size() > 2 && !params[2].isNull() && !params[2].get_str().empty())
         wtx.mapValue["comment"] = params[2].get_str();
     if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
@@ -464,7 +433,7 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
-    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, fUseInstantSend, fUsePrivateSend);
+    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, wtxNameIn, fUseInstantSend, fUsePrivateSend);
 
     return wtx.GetHash().GetHex();
 }
@@ -511,6 +480,7 @@ UniValue instantsendtoaddress(const UniValue& params, bool fHelp)
 
     // Wallet comments
     CWalletTx wtx;
+    CWalletTx wtxNameIn;
     if (params.size() > 2 && !params[2].isNull() && !params[2].get_str().empty())
         wtx.mapValue["comment"] = params[2].get_str();
     if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
@@ -522,7 +492,7 @@ UniValue instantsendtoaddress(const UniValue& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
-    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, true);
+    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, wtxNameIn, true);
 
     return wtx.GetHash().GetHex();
 }
@@ -957,6 +927,7 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
         nMinDepth = params[3].get_int();
 
     CWalletTx wtx;
+    CWalletTx wtxNameIn;
     wtx.strFromAccount = strAccount;
     if (params.size() > 4 && !params[4].isNull() && !params[4].get_str().empty())
         wtx.mapValue["comment"] = params[4].get_str();
@@ -965,12 +936,16 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
+    bool fSubtractFeeFromAmount = false;
+    if (params.size() > 4)
+        fSubtractFeeFromAmount = params[4].get_bool();
+    
     // Check funds
     CAmount nBalance = pwalletMain->GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
     if (nAmount > nBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
-    SendMoney(address.Get(), nAmount, false, wtx);
+    SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, wtxNameIn, true);
 
     return wtx.GetHash().GetHex();
 }
@@ -1026,6 +1001,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
         nMinDepth = params[2].get_int();
 
     CWalletTx wtx;
+    CWalletTx wtxNameIn;
     wtx.strFromAccount = strAccount;
     if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
         wtx.mapValue["comment"] = params[3].get_str();
@@ -1085,7 +1061,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
     if (params.size() > 6)
         fUsePrivateSend = params[6].get_bool();
 
-    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason,
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, wtxNameIn, keyChange, nFeeRequired, nChangePosRet, strFailReason,
                                                    NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend);
     if (!fCreated)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);

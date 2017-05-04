@@ -83,6 +83,7 @@ public:
         RecvWithAddress,
         RecvFromOther,
         SendToSelf,
+        NameOp,
         RecvWithPrivateSend,
         PrivateSendDenominate,
         PrivateSendCollateralPayment,

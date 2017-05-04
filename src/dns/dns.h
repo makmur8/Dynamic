@@ -5,17 +5,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef DNS_H
-#define DNS_H
+#ifndef NAMECOIN_H
+#define NAMECOIN_H
 
-#include "base58.h"
 #include "wallet/db.h"
-#include "hooks.h"
+#include "base58.h"
+#include "dns/hooks.h"
 #include "keystore.h"
 #include "main.h"
 #include "rpcprotocol.h"
-
-class CTxMemPool;
 
 static const unsigned int NAMEINDEX_CHAIN_SIZE = 1000;
 static const int RELEASE_HEIGHT = 1<<16;
@@ -139,4 +137,4 @@ struct nameTempProxy
     CNameIndex ind;
 };
 
-#endif // DNS_H
+#endif

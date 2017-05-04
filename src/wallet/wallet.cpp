@@ -13,6 +13,8 @@
 #include "chain.h"
 #include "coincontrol.h"
 #include "consensus/consensus.h"
+#include "dns/dns.h"
+#include "dns/hooks.h"
 #include "governance.h"
 #include "init.h"
 #include "instantsend.h"
@@ -1358,8 +1360,12 @@ bool CWallet::IsChange(const CTxOut& txout) const
     // a better way of identifying which outputs are 'the send' and which are
     // 'the change' will need to be implemented (maybe extend CWalletTx to remember
     // which output, if any, was change).
-    if (::IsMine(*this, txout.scriptPubKey))
+    bool fName;
+    if (::IsMine(*this, txout.scriptPubKey, fName))
     {
+        if (fName)
+            return false;   // names are technicaly change, but they are much more than that, so we do not want to group them with change.
+
         CTxDestination address;
         if (!ExtractDestination(txout.scriptPubKey, address))
             return true;
@@ -1867,6 +1873,10 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache) const
     uint256 hashTx = GetHash();
     for (unsigned int i = 0; i < vout.size(); i++)
     {
+        // ignore namecoin TxOut
+        if (nVersion == NAMECOIN_TX_VERSION && hooks->IsNameScript(vout[i].scriptPubKey))
+            continue;
+
         if (!pwallet->IsSpent(hashTx, i))
         {
             const CTxOut &txout = vout[i];
@@ -2405,6 +2415,10 @@ void CWallet::AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed, 
                 }
                 if(!found) continue;
 
+                // ignore namecoin TxOut
+                if (pcoin->nVersion == NAMECOIN_TX_VERSION && hooks->IsNameScript(pcoin->vout[i].scriptPubKey))
+                    continue;
+
                 isminetype mine = IsMine(pcoin->vout[i]);
                 if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
                     (!IsLockedCoin((*it).first, i) || nCoinType == ONLY_1000) &&
@@ -2521,12 +2535,17 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
 
             const CWalletTx *pcoin = output.tx;
 
-//            if (fDebug) LogPrint("selectcoins", "value %s confirms %d\n", FormatMoney(pcoin->vout[output.i].nValue), output.nDepth);
+          //if (fDebug) LogPrint("selectcoins", "value %s confirms %d\n", FormatMoney(pcoin->vout[output.i].nValue), output.nDepth);
             if (output.nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? nConfMine : nConfTheirs))
                 continue;
 
             int i = output.i;
             CAmount n = pcoin->vout[i].nValue;
+
+            // ignore namecoin TxOut
+            if (pcoin->nVersion == NAMECOIN_TX_VERSION && hooks->IsNameScript(pcoin->vout[i].scriptPubKey))
+            continue;
+
             if (tryDenom == 0 && IsDenominatedAmount(n)) continue; // we don't want denom values on first run
 
             std::pair<CAmount,std::pair<const CWalletTx*,unsigned int> > coin = std::make_pair(n,std::make_pair(pcoin, i));
@@ -2751,7 +2770,8 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount &nFeeRet, int& nC
 
     CReserveKey reservekey(this);
     CWalletTx wtx;
-    if (!CreateTransaction(vecSend, wtx, reservekey, nFeeRet, nChangePosRet, strFailReason, &coinControl, false))
+    CWalletTx wtxNameIn;
+    if (!CreateTransaction(vecSend, wtx, wtxNameIn, reservekey, nFeeRet, nChangePosRet, strFailReason, &coinControl, false))
         return false;
 
     if (nChangePosRet != -1)
@@ -3152,7 +3172,7 @@ bool CWallet::GetBudgetSystemCollateralTX(CWalletTx& tx, uint256 hash, CAmount a
     vecSend.push_back((CRecipient){scriptChange, amount, false});
 
     CCoinControl *coinControl=NULL;
-    bool success = CreateTransaction(vecSend, tx, reservekey, nFeeRet, nChangePosRet, strFail, coinControl, true, ALL_COINS, fUseInstantSend);
+    bool success = CreateTransaction(vecSend, tx, tx, reservekey, nFeeRet, nChangePosRet, strFail, coinControl, true, ALL_COINS, fUseInstantSend);
     if(!success){
         LogPrintf("CWallet::GetBudgetSystemCollateralTX -- Error: %s\n", strFail);
         return false;
@@ -3177,7 +3197,7 @@ bool CWallet::ConvertList(std::vector<CTxIn> vecTxIn, std::vector<CAmount>& vecA
     return true;
 }
 
-bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
+bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, const CWalletTx& wtxNameIn, CReserveKey& reservekey, CAmount& nFeeRet,
                                 int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign, AvailableCoinsType nCoinType, bool fUseInstantSend)
 {
     CAmount nFeePay = fUseInstantSend ? CTxLockRequest().GetMinFee() : 0;
@@ -3202,9 +3222,19 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
         return false;
     }
 
+    // Dynamic: define some values used in case of name tx creation
+    CAmount nNameTxInCredit = 0;
+    unsigned int nNameTxOut = 0;
+    if (!wtxNameIn.IsNull())
+    {
+        nNameTxOut = IndexOfNameOutput(wtxNameIn);
+        nNameTxInCredit = wtxNameIn.vout[nNameTxOut].nValue;
+    }
+
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
+    txNew.nVersion = wtxNew.nVersion; // Sequence: important for name transactions
 
     // Discourage fee sniping.
     //
@@ -3292,6 +3322,32 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                 // Choose coins to use
                 std::set<std::pair<const CWalletTx*,unsigned int> > setCoins;
                 CAmount nValueIn = 0;
+
+                // Dynamic: in case of namecoin tx we have already supplied input.
+                // If we have enough money: skip coin selection, unless we have ordered it with coinControl.
+                if (!wtxNameIn.IsNull())
+                {
+                    if ( (nValueToSelect - nNameTxInCredit > 0 || (coinControl && coinControl->HasSelected()))
+                        && !SelectCoins(nValueToSelect - nNameTxInCredit, setCoins, nValueIn, coinControl) )
+                    {
+                        strFailReason = _("Insufficient funds");
+                        return false;
+                    }
+                }
+                // otherwise proceed as we normaly would in Dynamic
+                else
+                if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl, nCoinType, fUseInstantSend))
+                {
+                    strFailReason = _("Insufficient funds");
+                    return false;
+                }
+
+                // Dynamic: name tx always at first position
+                if (!wtxNameIn.IsNull())
+                {
+                    setCoins.insert(setCoins.begin(), std::make_pair(&wtxNameIn, nNameTxOut));
+                    nValueIn += nNameTxInCredit;
+                }
 
                 if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl, nCoinType, fUseInstantSend))
                 {
@@ -3531,12 +3587,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
     return true;
 }
 
-bool CWallet::CreateNameTx(CScript scriptPubKey, const CAmount& nValue, CWalletTx wtxNameIn, CAmount nFeeInput,
-                                CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int nSplitBlock, std::string& strFailReason, const CCoinControl* coinControl)
+bool CWallet::CreateNameTx(CScript scriptPubKey, const CAmount& nValue, const CWalletTx wtxNameIn,
+                                CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign, AvailableCoinsType nCoinType, bool fUseInstantSend)
 {
     std::vector<CRecipient> vecSend;
     vecSend.push_back((CRecipient){scriptPubKey, nValue, false});
-    return CreateTransaction(vecSend, wtxNameIn, reservekey, nFeeInput, nSplitBlock, strFailReason, coinControl);
+    return CreateTransaction(vecSend, wtxNew, wtxNameIn, reservekey, nFeeRet, nChangePosRet, strFailReason, coinControl, true, ALL_COINS, fUseInstantSend);
 }
 
 /**
@@ -4498,7 +4554,7 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree, bool fRejectAbsurdFee)
 }
 
 extern CWallet* pwalletMain;
-static void SendMoneyCheck(const CAmount& nValue)
+void SendMoneyCheck(const CAmount& nValue)
 {
     // Check amount
     if (nValue <= 0)
@@ -4516,42 +4572,48 @@ static void SendMoneyCheck(const CAmount& nValue)
     }
 }
 
-void SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew)
+void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, const CWalletTx& wtxNameIn, bool fUseInstantSend, bool fUsePrivateSend)
 {
-    SendMoneyCheck(nValue);
+    CAmount curBalance = pwalletMain->GetBalance();
+
+    // Check amount
+    if (nValue <= 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
+
+    if (nValue > curBalance)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
 
     // Parse Dynamic address
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
-    int nSplitBlock = 0;
-    std::string strError;
     CReserveKey reservekey(pwalletMain);
     CAmount nFeeRequired;
+    std::string strError;
     std::vector<CRecipient> vecSend;
-    CRecipient recipient = {scriptPubKey, nValue, false};
+    int nChangePosRet = -1;
+    CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
-    if (!pwalletMain->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nSplitBlock, strError))
-    {
-        if (nValue + nFeeRequired > pwalletMain->GetBalance())
+    if (!pwalletMain->CreateTransaction(vecSend, wtxNew, wtxNameIn, reservekey, nFeeRequired, nChangePosRet,
+                                         strError, NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
+        if (!fSubtractFeeFromAmount && nValue + nFeeRequired > pwalletMain->GetBalance())
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
-        LogPrintf("SendMoney() : %s\n", strError);
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
-    if (!pwalletMain->CommitTransaction(wtxNew, reservekey))
+    if (!pwalletMain->CommitTransaction(wtxNew, reservekey, fUseInstantSend ? NetMsgType::TXLOCKREQUEST : NetMsgType::TX))
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
 }
 
-void SendName(CScript scriptPubKey, CAmount nValue, CWalletTx& wtxNew, const CWalletTx& wtxNameIn, CAmount nFeeInput)
+void SendName(CScript scriptPubKey, CAmount nValue, CWalletTx& wtxNew, const CWalletTx& wtxNameIn)
 {
     SendMoneyCheck(nValue);
 
     // Create and send the transaction
-    int nSplitBlock = 0;
     std::string strError;
     CReserveKey reservekey(pwalletMain);
     CAmount nFeeRequired;
-    if (!pwalletMain->CreateNameTx(scriptPubKey, nValue, wtxNameIn, nFeeInput, wtxNew, reservekey, nFeeRequired, nSplitBlock, strError))
+    int nChangePosRet = -1;
+    if (!pwalletMain->CreateNameTx(scriptPubKey, nValue, wtxNameIn, wtxNew, reservekey, nFeeRequired, nChangePosRet, strError))
     {
         if (nValue + nFeeRequired > pwalletMain->GetBalance())
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));

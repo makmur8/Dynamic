@@ -28,16 +28,16 @@
 #include "dns/dyndns.h"
 
 #include "dns/dns.h"
-#include "hooks.h"
+#include "dns/hooks.h"
 #include "util.h"
 
-#include <ctype.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <stdlib.h>
+
+#include <string.h>
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -45,6 +45,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
+
+#include <ctype.h>
 
 /*---------------------------------------------------*/
 
@@ -116,7 +118,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
     // Create and socket
     int ret = socket(PF_INET, SOCK_DGRAM, 0);
     if(ret < 0) {
-      throw std::runtime_error("DynDns::DynDns: Cannot create socket");
+      throw runtime_error("DynDns::DynDns: Cannot create socket");
     } else {
       m_sockfd = ret;
     }
@@ -130,7 +132,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
     if(::bind(m_sockfd, (struct sockaddr *) &m_address, sizeof (struct sockaddr_in)) < 0) {
       char buf[80];
       sprintf(buf, "DynDns::DynDns: Cannot bind to port %u", port_no);
-      throw std::runtime_error(buf);
+      throw runtime_error(buf);
     }
 
     // Create temporary local buf on stack
@@ -176,7 +178,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
       m_gw_suf_len + allowed_len + local_len + 4);
  
     if(m_value == NULL) 
-      throw std::runtime_error("DynDns::DynDns: Cannot allocate buffer");
+      throw runtime_error("DynDns::DynDns: Cannot allocate buffer");
 
     // Temporary use m_value for parse enum-verifiers and toll-free lists, if exist
     if(enums && *enums) {
@@ -185,8 +187,8 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
       while(char *p_tok = strsep(&str, "|,"))
         if(*p_tok) {
           if(m_verbose > 5)
-          LogPrintf("\tEmcDns::EmcDns: enumtrust=%s\n", p_tok);
-          m_verifiers[std::string(p_tok)] = empty_ver;
+          LogPrintf("\tDynDns::DynDns: enumtrust=%s\n", p_tok);
+          m_verifiers[string(p_tok)] = empty_ver;
         }
     } // ENUMs completed 
 
@@ -227,7 +229,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
       }
       m_allowed_qty++;
      if(m_verbose > 3)
-       LogPrintf("\tDynDns::EmcDns: Insert %s TLD=%s:%u\n", dnstype, p + 1, *p);
+       LogPrintf("\tDynDns::DynDns: Insert %s TLD=%s:%u\n", dnstype, p + 1, *p);
     }
    pos = step = 0;
     continue;
@@ -271,7 +273,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
 
     if(tollfree && *tollfree) {
       if(m_verbose > 3)
-    LogPrintf("\tDynDns::EmcDns: Setup deferred toll-free=%s\n", tollfree);
+    LogPrintf("\tDynDns::DynDns: Setup deferred toll-free=%s\n", tollfree);
       strcpy(m_value, tollfree);
     } else
       m_value[0] = 0;
@@ -298,7 +300,7 @@ void DynDns::AddTF(char *tf_tok) {
       m_tollfree.push_back(TollFree(tf_tok + 1));
   } else 
       if(!m_tollfree.empty())
-        m_tollfree.back().e2u.push_back(std::string(tf_tok));
+        m_tollfree.back().e2u.push_back(string(tf_tok));
 
   if(m_verbose > 3)
     LogPrintf("\tDynDns::AddTF: Added token [%s] %u:%u\n", tf_tok, m_tollfree.size(), m_tollfree.back().e2u.size()); 
@@ -326,7 +328,7 @@ DynDns::~DynDns() {
 void DynDns::StatRun(void *p) {
   DynDns *obj = (DynDns*)p;
   obj->Run();
-//dynamic  ExitThread(0);
+//Dynamic  ExitThread(0);
 } // DynDns::StatRun
 
 /*---------------------------------------------------*/
@@ -416,8 +418,8 @@ void DynDns::HandlePacket() {
           if(m_verbose > 3)
       LogPrintf("\tDynDns::HandlePacket: handle deferred toll-free=%s\n", tf_fname);
           if(tf_fname[0] == '@') { // this is NVS record
-            std::string value;
-            if(hooks->getNameValue(std::string(tf_fname + 1), value)) {
+            string value;
+            if(hooks->getNameValue(string(tf_fname + 1), value)) {
               char *tf_val = strcpy(m_value, value.c_str());
               while(char *tf_tok = strsep(&tf_val, "\r\n"))
           AddTF(tf_tok);
@@ -818,8 +820,8 @@ int DynDns::Search(uint8_t *key) {
   if(m_verbose > 1) 
     LogPrintf("DynDns::Search(%s)\n", key);
 
-  std::string value;
-  if (!hooks->getNameValue(std::string("dns:") + (const char *)key, value))
+  string value;
+  if (!hooks->getNameValue(string("dns:") + (const char *)key, value))
     return 0;
 
   strcpy(m_value, value.c_str());
@@ -903,8 +905,8 @@ int DynDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
         if(m_verbose > 1) 
           LogPrintf("\tDynDns::SpfunENUM Search(%s)\n", q_str);
 
-        std::string value;
-        if(!hooks->getNameValue(std::string(q_str), value))
+        string value;
+        if(!hooks->getNameValue(string(q_str), value))
           break;
 
         strcpy(m_value, value.c_str());
@@ -914,15 +916,15 @@ int DynDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
       // If notheing found in the ENUM - try to search in the Toll-Free
       m_ttl = 24 * 3600; // 24h by default
       boost::xpressive::smatch nameparts;
-      for(std::vector<TollFree>::const_iterator tf = m_tollfree.begin(); 
+      for(vector<TollFree>::const_iterator tf = m_tollfree.begin(); 
         m_hdr->ANCount == 0 && tf != m_tollfree.end(); 
         tf++) {
-  bool matched = regex_match(std::string(itut_num), nameparts, tf->regex);
+  bool matched = regex_match(string(itut_num), nameparts, tf->regex);
   // bool matched = regex_search(string(itut_num), nameparts, tf->regex);
         if(m_verbose > 3) 
           LogPrintf("\tEmcDns::SpfunENUM TF-match N=[%s] RE=[%s] -> %u\n", itut_num, tf->regex_str.c_str(), matched);
         if(matched)
-    for(std::vector<std::string>::const_iterator e2u = tf->e2u.begin(); e2u != tf->e2u.end(); e2u++)
+    for(vector<string>::const_iterator e2u = tf->e2u.begin(); e2u != tf->e2u.end(); e2u++)
         HandleE2U(strcpy(m_value, e2u->c_str()));
       } // tf processing
 
@@ -1048,7 +1050,7 @@ bool DynDns::CheckEnumSig(const char *q_str, char *sig_str) {
     for(char *p = signature; *--p <= 040; *p = 0) {}
     *signature++ = 0;
 
-    std::map<std::string, Verifier>::iterator it = m_verifiers.find(sig_str);
+    map<string, Verifier>::iterator it = m_verifiers.find(sig_str);
     if(it == m_verifiers.end())
       return false; // Unknown verifier - do not trust it
 
@@ -1127,14 +1129,14 @@ bool DynDns::CheckEnumSig(const char *q_str, char *sig_str) {
       signature++;
 
     bool fInvalid = false;
-    std::vector<unsigned char> vchSig(DecodeBase64(signature, &fInvalid));
+    vector<unsigned char> vchSig(DecodeBase64(signature, &fInvalid));
 
     if(fInvalid)
       return false;
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
-    ss << std::string(q_str);
+    ss << string(q_str);
 
     CPubKey pubkey;
     if(!pubkey.RecoverCompact(ss.GetHash(), vchSig))
@@ -1154,12 +1156,12 @@ bool DynDns::CheckEnumSig(const char *q_str, char *sig_str) {
   h += (h << 5) + *p;
     sprintf(valbuf, ver.srl_tpl.c_str(), h & ver.mask);
 
-    std::string value;
-    if(!hooks->getNameValue(std::string(valbuf), value))
+    string value;
+    if(!hooks->getNameValue(string(valbuf), value))
       return true; // Unable fetch SRL - as same as SRL does not exist
 
     // Is q_str missing in the SRL
-    return value.find(q_str) == std::string::npos;
+    return value.find(q_str) == string::npos;
 
 #if 0
     char *valstr = strcpy(valbuf, value.c_str());

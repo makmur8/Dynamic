@@ -7,6 +7,7 @@
 
 #include "wallet_ismine.h"
 
+#include "dns/hooks.h"
 #include "key.h"
 #include "keystore.h"
 #include "script/script.h"
@@ -29,16 +30,9 @@ unsigned int HaveKeys(const std::vector<valtype>& pubkeys, const CKeyStore& keys
     return nResult;
 }
 
-isminetype IsMine(const CKeyStore &keystore, const CTxDestination& dest)
-{
-    CScript script = GetScriptForDestination(dest);
-    return IsMine(keystore, script);
-}
-
-isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
+isminetype IsMineInner(const CKeyStore &keystore, const CScript& scriptPubKey, txnouttype& whichType)
 {
     std::vector<valtype> vSolutions;
-    txnouttype whichType;
     if (!Solver(scriptPubKey, whichType, vSolutions)) {
         if (keystore.HaveWatchOnly(scriptPubKey))
             return ISMINE_WATCH_UNSOLVABLE;
@@ -57,12 +51,12 @@ isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
             return ISMINE_SPENDABLE;
         break;
     case TX_PUBKEYHASH:
+    case TX_NAME:
         keyID = CKeyID(uint160(vSolutions[0]));
         if (keystore.HaveKey(keyID))
             return ISMINE_SPENDABLE;
         break;
     case TX_SCRIPTHASH:
-    case TX_NAME:
     {
         CScriptID scriptID = CScriptID(uint160(vSolutions[0]));
         CScript subscript;
@@ -93,4 +87,28 @@ isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
         return ProduceSignature(DummySignatureCreator(&keystore), scriptPubKey, scriptSig) ? ISMINE_WATCH_SOLVABLE : ISMINE_WATCH_UNSOLVABLE;
     }
     return ISMINE_NO;
+}
+
+isminetype IsMine(const CKeyStore &keystore, const CTxDestination& dest)
+{
+    CScript script = GetScriptForDestination(dest);
+    txnouttype whichType;
+    return IsMineInner(keystore, script, whichType);
+}
+
+isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
+{
+    txnouttype whichType;
+    return IsMineInner(keystore, scriptPubKey, whichType);
+}
+
+// normal check + name check
+isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey, bool &fName)
+{
+    fName = false;
+    txnouttype whichType;
+    isminetype ret = IsMineInner(keystore, scriptPubKey, whichType);
+    fName = whichType == TX_NAME;
+
+    return ret;
 }

@@ -9,6 +9,7 @@
 
 #include "base58.h"
 #include "consensus/consensus.h"
+#include "dns/hooks.h"
 #include "instantsend.h"
 #include "main.h"
 #include "privatesend.h"
@@ -47,7 +48,18 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
     uint256 hash = wtx.GetHash();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
-    if (nNet > 0 || wtx.IsCoinBase())
+    if (wtx.nVersion == NAMECOIN_TX_VERSION) // Sequence: name transaction
+    {
+        std::string address = "failed to get address";
+        for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
+        {
+            const CTxOut& txout = wtx.vout[nOut];
+            if (hooks->ExtractAddress(txout.scriptPubKey, address))
+                break;
+        }
+        parts.append(TransactionRecord(hash, nTime, TransactionRecord::NameOp, address, nNet, 0));
+    }
+    else if (nNet > 0 || wtx.IsCoinBase())
     {
         //
         // Credit

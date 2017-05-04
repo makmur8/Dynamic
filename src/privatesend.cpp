@@ -1811,6 +1811,7 @@ bool CPrivatesendPool::MakeCollateralAmounts()
 bool CPrivatesendPool::MakeCollateralAmounts(const CompactTallyItem& tallyItem)
 {
     CWalletTx wtx;
+    CWalletTx wtxNameIn;
     CAmount nFeeRet = 0;
     int nChangePosRet = -1;
     std::string strFail = "";
@@ -1837,14 +1838,14 @@ bool CPrivatesendPool::MakeCollateralAmounts(const CompactTallyItem& tallyItem)
     BOOST_FOREACH(const CTxIn& txin, tallyItem.vecTxIn)
         coinControl.Select(txin.prevout);
 
-    bool fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange,
+    bool fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, wtxNameIn, reservekeyChange,
             nFeeRet, nChangePosRet, strFail, &coinControl, true, ONLY_NONDENOMINATED_NOT1000IFDN);
     if(!fSuccess) {
         // if we failed (most likeky not enough funds), try to use all coins instead -
         // DN-like funds should not be touched in any case and we can't mix denominated without collaterals anyway
         LogPrintf("CPrivatesendPool::MakeCollateralAmounts -- ONLY_NONDENOMINATED_NOT1000IFDN Error: %s\n", strFail);
         CCoinControl *coinControlNull = NULL;
-        fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange,
+        fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, wtxNameIn, reservekeyChange,
                 nFeeRet, nChangePosRet, strFail, coinControlNull, true, ONLY_NOT1000IFDN);
         if(!fSuccess) {
             LogPrintf("CPrivatesendPool::MakeCollateralAmounts -- ONLY_NOT1000IFDN Error: %s\n", strFail);
@@ -1979,13 +1980,14 @@ bool CPrivatesendPool::CreateDenominated(const CompactTallyItem& tallyItem, bool
         coinControl.Select(txin.prevout);
 
     CWalletTx wtx;
+    CWalletTx wtxNameIn;
     CAmount nFeeRet = 0;
     int nChangePosRet = -1;
     std::string strFail = "";
     // make our change address
     CReserveKey reservekeyChange(pwalletMain);
 
-    bool fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange,
+    bool fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, wtxNameIn, reservekeyChange,
             nFeeRet, nChangePosRet, strFail, &coinControl, true, ONLY_NONDENOMINATED_NOT1000IFDN);
     if(!fSuccess) {
         LogPrintf("CPrivatesendPool::CreateDenominated -- Error: %s\n", strFail);
