@@ -3597,7 +3597,6 @@ bool CWallet::CreateNameTx(CScript scriptPubKey, const CAmount& nValue, CWalletT
     std::vector<CRecipient> vecSend;
     vecSend.push_back((CRecipient){scriptPubKey, nValue, false});
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeInput, nSplitBlock, strFailReason, coinControl, true, ALL_COINS, false, wtxNameIn);
-    //return CreateTransactionDDNS(vecSend, wtxNameIn, nFeeInput, wtxNew, reservekey, nFeeRet, nSplitBlock, strFailReason, coinControl);
 }
 
 /**
