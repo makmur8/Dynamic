@@ -3504,7 +3504,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                     const CScript& scriptPubKey = txin.prevPubKey;
                     CScript& scriptSigRes = txNew.vin[nIn].scriptSig; 
                     if (sign) 
-                        if (nNameTxOut == 0) {
+                        if (wtxNameIn.IsNull()) {
                             signSuccess = ProduceSignature(TransactionSignatureCreator(this, &txNewConst, nIn, SIGHASH_ALL), scriptPubKey, scriptSigRes);
                         }
                         else {
