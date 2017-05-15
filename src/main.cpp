@@ -1139,53 +1139,49 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         *pfMissingInputs = false;
 
     if (!CheckTransaction(tx, state)){
-        LogPrintf("AcceptToMemoryPoolWorker(): CheckTransaction failed.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): CheckTransaction failed.\n");
         return false;
     }
     
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase()){
-        LogPrintf("AcceptToMemoryPoolWorker(): IsCoinBase failed.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): IsCoinBase failed.\n");
         return state.DoS(100, false, REJECT_INVALID, "coinbase");
     }
     // Added for DDNS
     bool isNameTx = tx.nVersion == NAMECOIN_TX_VERSION;
 
-    LogPrintf("AcceptToMemoryPoolWorker(): isNameTx = %d\n", isNameTx);
     // Don't relay version 2 transactions until CSV is active, and we can be
     // sure that such transactions will be mined (unless we're on
     // -testnet/-regtest).  Ignore DDNS transaction for this check
     const CChainParams& chainparams = Params();
     if (!isNameTx && fRequireStandard && tx.nVersion >= 2 && VersionBitsTipState(chainparams.GetConsensus(), Consensus::DEPLOYMENT_CSV) != THRESHOLD_ACTIVE) {
-        LogPrintf("AcceptToMemoryPoolWorker(): CSV is inactive.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): premature-version2-tx.\n");
         return state.DoS(0, false, REJECT_NONSTANDARD, "premature-version2-tx");
     }
-    LogPrintf("AcceptToMemoryPoolWorker(): gets past CSV is inactive \n");
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
     if (!isNameTx && fRequireStandard && !IsStandardTx(tx, reason)){
-        LogPrintf("AcceptToMemoryPoolWorker(): IsStandardTx failed.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): IsStandardTx failed %s.\n", reason);
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
     }
-    LogPrintf("AcceptToMemoryPoolWorker(): gets past IsStandardTx\n");
     // Only accept nLockTime-using transactions that can be mined in the next
     // block; we don't want our mempool filled up with transactions that can't
     // be mined yet.
     if (!CheckFinalTx(tx, STANDARD_LOCKTIME_VERIFY_FLAGS)){
-        LogPrintf("AcceptToMemoryPoolWorker(): CheckFinalTx failed.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): CheckFinalTx failed.\n");
         return state.DoS(0, false, REJECT_NONSTANDARD, "non-final");
     }
 
     // is it already in the memory pool?
     uint256 hash = tx.GetHash();
     if (pool.exists(hash)) {
-        LogPrintf("AcceptToMemoryPoolWorker(): REJECT_ALREADY_KNOWN failed.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): REJECT_ALREADY_KNOWN failed.\n");
         return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
     }
-    LogPrintf("AcceptToMemoryPoolWorker(): gets past REJECT_ALREADY_KNOWN \n");
     // If this is a Transaction Lock Request check to see if it's valid
     if(instantsend.HasTxLockRequest(hash) && !CTxLockRequest(tx).IsValid()){
-        LogPrintf("AcceptToMemoryPoolWorker(): CTxLockRequest invalid failed.\n");
+        //LogPrintf("AcceptToMemoryPoolWorker(): CTxLockRequest invalid failed.\n");
         return state.DoS(10, error("AcceptToMemoryPool : CTxLockRequest %s is invalid", hash.ToString()),
                             REJECT_INVALID, "bad-txlockrequest");
     }
@@ -1195,13 +1191,12 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     {
         uint256 hashLocked;
         if(instantsend.GetLockedOutPointTxHash(txin.prevout, hashLocked) && hash != hashLocked) {
-            LogPrintf("AcceptToMemoryPoolWorker(): Transaction conflicts failed.\n");
+            //LogPrintf("AcceptToMemoryPoolWorker(): Transaction conflicts failed.\n");
             return state.DoS(10, error("AcceptToMemoryPool : Transaction %s conflicts with completed Transaction Lock %s",
                                     hash.ToString(), hashLocked.ToString()),
                             REJECT_INVALID, "tx-txlock-conflict");
         }
     }
-    LogPrintf("AcceptToMemoryPoolWorker(): gets past CTransaction conflicts failed\n");
     // Check for conflicts with in-memory transactions
     std::set<uint256> setConflicts;
     {
@@ -1258,7 +1253,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         }
     }
     }
-    LogPrintf("AcceptToMemoryPoolWorker(): Before CCoinsView dummy;\n");
     {
         CCoinsView dummy;
         CCoinsViewCache view(&dummy);
@@ -1277,7 +1271,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                 vHashTxnToUncache.push_back(hash);
             return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-known");
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): After do we already have it check;\n");
         // do all inputs exist?
         // Note that this does not check for the presence of actual outputs (see the next check for that),
         // and only helps with filling in pfMissingInputs (to determine missing vs spent).
@@ -1290,7 +1283,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                 return false; // fMissingInputs and !state.IsInvalid() is used to detect this condition, don't set state.Invalid()
             }
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): After inputs exist check;\n");
         // are the actual inputs available?
         if (!view.HaveInputs(tx))
             return state.Invalid(false, REJECT_DUPLICATE, "bad-txns-inputs-spent");
@@ -1340,13 +1332,14 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                 break;
             }
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): After Keep track of transactions that spend a coinbase;\n");
+
         CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height(), pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOps, lp);
-        LogPrintf("AcceptToMemoryPoolWorker(): After CTxMemPoolEntry;\n");
+
         unsigned int nSize = entry.GetTxSize();
         // Added for DDNS
         // Don't accept it if it can't get into a block
         /*
+        //TODO Put this back.  Causing a segfault with dDNS transactions
         CAmount txMinFee = GetMinRelayFee(tx, nSize, true);
         if ((fLimitFree && nFees < txMinFee) || (isNameTx && !hooks->IsNameFeeEnough(tx, nFees))){
              LogPrintf("AcceptToMemoryPoolWorker(): failed at GetMinRelayFee\n");
@@ -1355,14 +1348,20 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                              REJECT_INSUFFICIENTFEE, "insufficient fee");
         }
         */
-        LogPrintf("AcceptToMemoryPoolWorker(): After GetMinRelayFee\n");
+        CAmount txMinFee = GetMinRelayFee(tx, nSize, true);
+        if ((fLimitFree && nFees < txMinFee)){
+            //LogPrintf("AcceptToMemoryPoolWorker(): failed at GetMinRelayFee\n");
+            return state.DoS(0, error("AcceptToMemoryPool : not enough fees %s, %d < %d",
+                                      hash.ToString(), nFees, txMinFee),
+                             REJECT_INSUFFICIENTFEE, "insufficient fee");
+        }
         // Check that the transaction doesn't have an excessive number of
         // sigops, making it impossible to mine. Since the coinbase transaction
         // itself can contain sigops MAX_STANDARD_TX_SIGOPS is less than
         // MAX_BLOCK_SIGOPS; we still consider this an invalid rather than
         // merely non-standard transaction.
         if ((nSigOps > MAX_STANDARD_TX_SIGOPS) || (nBytesPerSigOp && nSigOps > nSize / nBytesPerSigOp)){
-            LogPrintf("AcceptToMemoryPoolWorker(): nSigOps > MAX_STANDARD_TX_SIGOPS failed\n");
+            //LogPrintf("AcceptToMemoryPoolWorker(): nSigOps > MAX_STANDARD_TX_SIGOPS failed\n");
             return state.DoS(0, false, REJECT_NONSTANDARD, "bad-txns-too-many-sigops", false,
                 strprintf("%d", nSigOps));
         }
@@ -1374,7 +1373,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             // Require that free transactions have sufficient priority to be mined in the next block.
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "insufficient priority");
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): After mempoolRejectFee\n");
         // Continuously rate-limit free (really, very-low-fee) transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
         // be annoying or make others' transactions take longer to confirm.
@@ -1397,7 +1395,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             LogPrint("mempool", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount+nSize);
             dFreeCount += nSize;
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): After csFreeLimiter\n");
         // Added for DDNS
         if (!isNameTx && nFees > ::minRelayTxFee.GetFee(nSize) * 10000)
                         return error("AcceptToMemoryPool: : insane fees %s, %d > %d",
@@ -1419,7 +1416,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         if (!pool.CalculateMemPoolAncestors(entry, setAncestors, nLimitAncestors, nLimitAncestorSize, nLimitDescendants, nLimitDescendantSize, errString)) {
             return state.DoS(0, false, REJECT_NONSTANDARD, "too-long-mempool-chain", false, errString);
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): Before ancestorIt;\n");
         // A transaction that spends outputs that would be replaced by it is invalid. Now
         // that we have the set of all ancestors we can detect this
         // pathological case by making sure setConflicts and setAncestors don't
@@ -1429,13 +1425,13 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             const uint256 &hashAncestor = ancestorIt->GetTx().GetHash();
             if (setConflicts.count(hashAncestor))
             {
+                //LogPrintf("AcceptToMemoryPoolWorker(): spends conflicting transaction failed\n");
                 return state.DoS(10, error("AcceptToMemoryPool: %s spends conflicting transaction %s",
                                            hash.ToString(),
                                            hashAncestor.ToString()),
                                  REJECT_INVALID, "bad-txns-spends-conflicting-tx");
             }
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): After set of all ancestors;\n");
         // Check if it's economically rational to mine this transaction rather
         // than the ones it replaces.
         CAmount nConflictingFees = 0;
@@ -1573,7 +1569,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                         REJECT_INSUFFICIENTFEE, "insufficient fee");
             }
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): Before fDryRun;\n");
         // If we aren't going to actually accept it but just were verifying it, we are fine already
         if(fDryRun) return true;
 
@@ -1596,7 +1591,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             return error("%s: BUG! PLEASE REPORT THIS! ConnectInputs failed against MANDATORY but not STANDARD flags %s, %s",
                 __func__, hash.ToString(), FormatStateMessage(state));
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): Before allConflicting;\n");
         // Remove conflicting transactions from the mempool
         BOOST_FOREACH(const CTxMemPool::txiter it, allConflicting)
         {
@@ -1622,7 +1616,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
         if (fSpentIndex) {
             pool.addSpentIndex(entry, view);
         }
-        LogPrintf("AcceptToMemoryPoolWorker(): Before fOverrideMempoolLimit;\n");
         // trim mempool and check if tx was trimmed
         if (!fOverrideMempoolLimit) {
             LimitMempoolSize(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
@@ -1632,7 +1625,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     }
 
     if(!fDryRun) SyncWithWallets(tx, NULL);
-    LogPrintf("AcceptToMemoryPoolWorker(): Before end.\n");
+
     return true;
 }
 
