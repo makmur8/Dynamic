@@ -642,6 +642,8 @@ public:
         return (size() > 0 && *begin() == OP_RETURN);
     }
 
+    std::string ToString() const;
+    
     void clear()
     {
         // The default std::vector::clear() does not release memory.
