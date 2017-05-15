@@ -20,6 +20,7 @@ class CTxMemPool;
 static const unsigned int NAMEINDEX_CHAIN_SIZE = 1000;
 static const int RELEASE_HEIGHT = 1<<16;
 static const unsigned int NAME_REGISTRATION_DAILY_FEE = 1000000; // Current set to 0.3 DYN per month or 3.65 DYN per year.
+static const bool NAME_DEBUG = true; // TODO: set to false.
 
 class CNameIndex
 {

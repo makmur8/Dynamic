@@ -1251,6 +1251,12 @@ NameTxReturn name_operation(const int op, const CNameVal& name, CNameVal value, 
         if (op == OP_NAME_MULTISIG)
             minAmount = (CAmount)(MIN_TXOUT_AMOUNT/10);
 
+        if (NAME_DEBUG) {
+            LogPrintf("name_operation: nameScript = %s \n", nameScript.ToString());
+            LogPrintf("name_operation: wtx = %s \n", wtx.ToString());
+            LogPrintf("name_operation: wtxIn = %s \n", wtxIn.ToString());
+        }
+        
         SendName(nameScript, minAmount, wtx, wtxIn, nameFee);
     }
 

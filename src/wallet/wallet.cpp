@@ -13,6 +13,7 @@
 #include "chain.h"
 #include "coincontrol.h"
 #include "consensus/consensus.h"
+#include "dns/dns.h"
 #include "governance.h"
 #include "init.h"
 #include "instantsend.h"
@@ -3185,7 +3186,7 @@ bool CWallet::ConvertList(std::vector<CTxIn> vecTxIn, std::vector<CAmount>& vecA
 }
 
 bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign, AvailableCoinsType nCoinType, bool fUseInstantSend)
+                                int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl, bool sign, AvailableCoinsType nCoinType, bool fUseInstantSend, const CWalletTx& wtxNameIn)
 {
     CAmount nFeePay = fUseInstantSend ? CTxLockRequest().GetMinFee() : 0;
 
@@ -3193,6 +3194,9 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
     unsigned int nSubtractFeeFromAmount = 0;
     BOOST_FOREACH (const CRecipient& recipient, vecSend)
     {
+        if (NAME_DEBUG) {
+            LogPrintf("CWallet::CreateTransaction: scriptPubKey = %s \n", recipient.scriptPubKey.ToString());
+        }
         if (nValue < 0 || recipient.nAmount < 0)
         {
             strFailReason = _("Transaction amounts must be positive");
@@ -3209,9 +3213,27 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
         return false;
     }
 
+    
+    // Dynamic: define ddns tx variables
+    CAmount nNameTxInCredit = 0;
+    unsigned int nNameTxOut = 0;
+    if (!wtxNameIn.IsNull())
+    {
+        nNameTxOut = IndexOfNameOutput(wtxNameIn);
+        nNameTxInCredit = wtxNameIn.vout[nNameTxOut].nValue;
+    }
+
     wtxNew.fTimeReceivedIsTxTime = true;
     wtxNew.BindWallet(this);
     CMutableTransaction txNew;
+    txNew.nVersion = wtxNew.nVersion; // Sequence: important for name transactions
+
+    if (NAME_DEBUG) {
+        LogPrintf("CWallet::CreateTransaction: wtxNameIn = %s \n", wtxNameIn.ToString());
+        LogPrintf("CWallet::CreateTransaction: wtxNew = %s \n", wtxNew.ToString());
+        LogPrintf("CWallet::CreateTransaction: nNameTxOut = %d \n", nNameTxOut);
+        
+    }
 
     // Discourage fee sniping.
     //
@@ -3300,6 +3322,19 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                 std::set<std::pair<const CWalletTx*,unsigned int> > setCoins;
                 CAmount nValueIn = 0;
 
+                // Dynamic: in case of namecoin tx we have already supplied input.
+                // If we have enough money: skip coin selection, unless we have ordered it with coinControl.
+                if (!wtxNameIn.IsNull())
+                {
+                    if ( (nValueToSelect - nNameTxInCredit > 0 || (coinControl && coinControl->HasSelected()))
+                        && !SelectCoins(nValueToSelect - nNameTxInCredit, setCoins, nValueIn, coinControl, nCoinType, fUseInstantSend) )
+                    {
+                        strFailReason = _("Insufficient funds");
+                        return false;
+                    }
+                }
+                // otherwise proceed as we normaly would in Dynamic
+                else
                 if (!SelectCoins(nValueToSelect, setCoins, nValueIn, coinControl, nCoinType, fUseInstantSend))
                 {
                     if (nCoinType == ONLY_NOT1000IFDN) {
@@ -3324,6 +3359,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                     return false;
                 }
 
+                // Dynamic: ddns tx always at first position
+                if (!wtxNameIn.IsNull())
+                {
+                    setCoins.insert(setCoins.begin(), std::make_pair(&wtxNameIn, nNameTxOut));
+                    nValueIn += nNameTxInCredit;
+                }
 
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
@@ -3461,9 +3502,15 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                 {
                     bool signSuccess;
                     const CScript& scriptPubKey = txin.prevPubKey;
-                    CScript& scriptSigRes = txNew.vin[nIn].scriptSig;
-                    if (sign)
-                        signSuccess = ProduceSignature(TransactionSignatureCreator(this, &txNewConst, nIn, SIGHASH_ALL), scriptPubKey, scriptSigRes);
+                    CScript& scriptSigRes = txNew.vin[nIn].scriptSig; 
+                    if (sign) 
+                        if (nNameTxOut == 0) {
+                            signSuccess = ProduceSignature(TransactionSignatureCreator(this, &txNewConst, nIn, SIGHASH_ALL), scriptPubKey, scriptSigRes);
+                        }
+                        else {
+                            
+                            signSuccess = SignNameSignature(*this, txNewConst, txNew, nIn++);
+                        }
                     else
                         signSuccess = ProduceSignature(DummySignatureCreator(this), scriptPubKey, scriptSigRes);
 
@@ -3541,9 +3588,16 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
 bool CWallet::CreateNameTx(CScript scriptPubKey, const CAmount& nValue, CWalletTx wtxNameIn, CAmount nFeeInput,
                                 CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int nSplitBlock, std::string& strFailReason, const CCoinControl* coinControl)
 {
+    if(NAME_DEBUG) {
+        LogPrintf("CWallet::CreateNameTx: scriptPubKey = %s \n", scriptPubKey.ToString());
+        LogPrintf("CWallet::CreateNameTx: wtxNameIn = %s \n", wtxNameIn.ToString());
+        LogPrintf("CWallet::CreateNameTx: wtxIn = %s \n", wtxNew.ToString());
+    }
+    
     std::vector<CRecipient> vecSend;
     vecSend.push_back((CRecipient){scriptPubKey, nValue, false});
-    return CreateTransaction(vecSend, wtxNameIn, reservekey, nFeeInput, nSplitBlock, strFailReason, coinControl);
+    return CreateTransaction(vecSend, wtxNew, reservekey, nFeeInput, nSplitBlock, strFailReason, coinControl, true, ALL_COINS, false, wtxNameIn);
+    //return CreateTransactionDDNS(vecSend, wtxNameIn, nFeeInput, wtxNew, reservekey, nFeeRet, nSplitBlock, strFailReason, coinControl);
 }
 
 /**
@@ -4553,6 +4607,12 @@ void SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew)
 
 void SendName(CScript scriptPubKey, CAmount nValue, CWalletTx& wtxNew, const CWalletTx& wtxNameIn, CAmount nFeeInput)
 {
+    if(NAME_DEBUG) {
+        LogPrintf("SendName: nameScript -> scriptPubKey = %s \n", scriptPubKey.ToString());
+        LogPrintf("SendName: wtx -> wtxNew = %s \n", wtxNew.ToString());
+        LogPrintf("SendName: wtxIn -> wtxNameIn = %s \n", wtxNameIn.ToString());
+    }
+    
     SendMoneyCheck(nValue);
 
     // Create and send the transaction
