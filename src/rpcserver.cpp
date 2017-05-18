@@ -74,14 +74,16 @@ void RPCTypeCheck(const UniValue& params,
             break;
 
         const UniValue& v = params[i];
-        if (!((v.type() == t) || (fAllowNull && (v.isNull()))))
-        {
-            std::string err = strprintf("Expected type %s, got %s",
-                                   uvTypeName(t), uvTypeName(v.type()));
-            throw JSONRPCError(RPC_TYPE_ERROR, err);
+		if (!(fAllowNull && v.isNull())) {
+			RPCTypeCheckArgument(v, t);
         }
         i++;
     }
+}
+void RPCTypeCheckArgument(const UniValue& value, UniValue::VType typeExpected){
+	if (value.type() != typeExpected) {
+		throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Expected type %s, got %s", uvTypeName(typeExpected), uvTypeName(value.type())));
+	}
 }
 
 void RPCTypeCheckObj(const UniValue& o,
@@ -292,6 +294,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        true  },
     { "Blockchain",         "verifychain",            &verifychain,            true  },
     { "Blockchain",         "getspentinfo",           &getspentinfo,           false },
+	{ "Blockchain",         "bumpfee",           	  &bumpfee,           	   true },
 
     /* Mining */
     { "Mining",             "getblocktemplate",       &getblocktemplate,       true  },
@@ -301,7 +304,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Mining",             "getpowrewardstart",      &getpowrewardstart,      true  },
     { "Mining",             "prioritisetransaction",  &prioritisetransaction,  true  },
     { "Mining",             "submitblock",            &submitblock,            true  },
-
+	
     /* Coin generation */
     { "Generating",         "getgenerate",            &getgenerate,            true  },
     { "Generating",         "setgenerate",            &setgenerate,            true  },

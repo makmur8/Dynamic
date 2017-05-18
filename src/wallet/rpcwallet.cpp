@@ -2488,9 +2488,9 @@ UniValue listunspent(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
     
-    if (fHelp || params.size() > 3)
+    if (fHelp || params.size() > 4)
         throw std::runtime_error(
-            "listunspent ( minconf maxconf  [\"address\",...] )\n"
+            "listunspent ( minconf maxconf  [\"address\",...] [include_unsafe] ))\n"
             "\nReturns array of unspent transaction outputs\n"
             "with between minconf and maxconf (inclusive) confirmations.\n"
             "Optionally filter to only include txouts paid to specified addresses.\n"
@@ -2504,6 +2504,10 @@ UniValue listunspent(const UniValue& params, bool fHelp)
             "      \"address\"   (string) dynamic address\n"
             "      ,...\n"
             "    ]\n"
+            "4. include_unsafe (bool, optional, default=true) Include outputs that are not safe to spend\n"
+            "                  because they come from unconfirmed untrusted transactions or unconfirmed\n"
+            "                  replacement transactions (cases where we are less sure that a conflicting\n"
+            "                  transaction won't be mined).\n"
             "\nResult\n"
             "[                   (array of json object)\n"
             "  {\n"
@@ -2526,18 +2530,19 @@ UniValue listunspent(const UniValue& params, bool fHelp)
             + HelpExampleRpc("listunspent", "10, 9999999 \"[\\\"D5nRy9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D1MfcDTf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"")
         );
 
-    RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM)(UniValue::VNUM)(UniValue::VARR));
-
     int nMinDepth = 1;
-    if (params.size() > 0)
+    if (params.size() > 0 && !params[0].isNull()) {
+        RPCTypeCheckArgument(params[0], UniValue::VNUM);
         nMinDepth = params[0].get_int();
-
+	}
     int nMaxDepth = 9999999;
-    if (params.size() > 1)
+	if (params.size() > 1 && !params[1].isNull()) {
+        RPCTypeCheckArgument(request.params[1], UniValue::VNUM);
         nMaxDepth = params[1].get_int();
-
+	}
     std::set<CDynamicAddress> setAddress;
-    if (params.size() > 2) {
+    if (params.size() > 2 && !params[2].isNull()) {
+        RPCTypeCheckArgument(request.params[2], UniValue::VARR);
         UniValue inputs = params[2].get_array();
         for (unsigned int idx = 0; idx < inputs.size(); idx++) {
             const UniValue& input = inputs[idx];
@@ -2550,11 +2555,17 @@ UniValue listunspent(const UniValue& params, bool fHelp)
         }
     }
 
+    bool include_unsafe = true;
+    if (params.size() > 3 && !params[3].isNull()) {
+        RPCTypeCheckArgument(params[3], UniValue::VBOOL);
+        include_unsafe = params[3].get_bool();
+    }
+
     UniValue results(UniValue::VARR);
     std::vector<COutput> vecOutputs;
     assert(pwalletMain != NULL);
     LOCK2(cs_main, pwalletMain->cs_wallet);
-    pwalletMain->AvailableCoins(vecOutputs, false, NULL, true);
+    pwalletMain->AvailableCoins(vecOutputs, !include_unsafe, NULL, true);
     BOOST_FOREACH(const COutput& out, vecOutputs) {
         if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
             continue;
@@ -2667,11 +2678,11 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 
 UniValue bumpfee(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(request.fHelp)) {
+    if (!EnsureWalletIsAvailable(fHelp)) {
         return NullUniValue;
     }
 
-    if (request.fHelp || request.params.size() < 1 || request.params.size() > 2) {
+    if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
             "bumpfee \"txid\" ( options ) \n"
             "\nBumps the fee of an opt-in-RBF transaction T, replacing it with a new transaction B.\n"
@@ -2713,9 +2724,9 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
             HelpExampleCli("bumpfee", "<txid>"));
     }
 
-    RPCTypeCheck(request.params, boost::assign::list_of(UniValue::VSTR)(UniValue::VOBJ));
+    RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VOBJ));
     uint256 hash;
-    hash.SetHex(request.params[0].get_str());
+    hash.SetHex(params[0].get_str());
 
     // retrieve the original tx from the wallet
     LOCK2(cs_main, pwalletMain->cs_wallet);
@@ -2775,8 +2786,8 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
     int newConfirmTarget = nTxConfirmTarget;
     CAmount totalFee = 0;
     bool replaceable = true;
-    if (request.params.size() > 1) {
-        UniValue options = request.params[1];
+    if (params.size() > 1) {
+        UniValue options = params[1];
         RPCTypeCheckObj(options,
             {
                 {"confTarget", UniValueType(UniValue::VNUM)},
