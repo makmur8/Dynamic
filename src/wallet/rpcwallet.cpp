@@ -2678,10 +2678,6 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 
 UniValue bumpfee(const UniValue& params, bool fHelp)
 {
-    if (!EnsureWalletIsAvailable(fHelp)) {
-        return NullUniValue;
-    }
-
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
             "bumpfee \"txid\" ( options ) \n"
@@ -2694,8 +2690,8 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
             "By default, the new fee will be calculated automatically using estimatefee.\n"
             "The user can specify a confirmation target for estimatefee.\n"
             "Alternatively, the user can specify totalFee, or use RPC setpaytxfee to set a higher fee rate.\n"
-            "At a minimum, the new fee rate must be high enough to pay a new relay fee (relay fee amount returned\n"
-            "by getnetworkinfo RPC) and to enter the node's mempool.\n"
+            "At a minimum, the new fee rate must be high enough to pay an additional new relay fee (incrementalfee\n"
+            "returned by getnetworkinfo) to enter the node's mempool.\n"
             "\nArguments:\n"
             "1. txid                  (string, required) The txid to be bumped\n"
             "2. options               (object, optional)\n"
@@ -2781,6 +2777,10 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_MISC_ERROR, "Transaction does not have a change output");
     }
 
+    // signature sizes can vary by a byte, so add 1 for each input when calculating the new fee
+    int64_t txSize = GetVirtualTransactionSize(*(wtx.tx));
+    const int64_t maxNewTxSize = txSize + wtx.tx->vin.size();
+
     // optional parameters
     bool specifiedConfirmTarget = false;
     int newConfirmTarget = nTxConfirmTarget;
@@ -2806,10 +2806,11 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
             }
         } else if (options.exists("totalFee")) {
             totalFee = options["totalFee"].get_int64();
-            if (totalFee <= 0) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid totalFee (cannot be <= 0)");
-            } else if (totalFee > maxTxFee) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid totalFee (cannot be higher than maxTxFee)");
+            CAmount requiredFee = CWallet::GetRequiredFee(maxNewTxSize);
+            if (totalFee < requiredFee ) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   strprintf("Insufficient totalFee (cannot be less than required fee %s)",
+                                             FormatMoney(requiredFee)));
             }
         }
 
@@ -2818,10 +2819,6 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
         }
     }
 
-    // signature sizes can vary by a byte, so add 1 for each input when calculating the new fee
-    int64_t txSize = GetVirtualTransactionSize(*(wtx.tx));
-    const int64_t maxNewTxSize = txSize + wtx.tx->vin.size();
-
     // calculate the old fee and fee-rate
     CAmount nOldFee = wtx.GetDebit(ISMINE_SPENDABLE) - wtx.tx->GetValueOut();
     CFeeRate nOldFeeRate(nOldFee, txSize);
@@ -2829,30 +2826,37 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
     CFeeRate nNewFeeRate;
 
     if (totalFee > 0) {
-        CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + minRelayTxFee.GetFee(maxNewTxSize);
+        CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + ::incrementalRelayFee.GetFee(maxNewTxSize);
         if (totalFee < minTotalFee) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid totalFee, must be at least %s (oldFee %s + relayFee %s)", FormatMoney(minTotalFee), nOldFeeRate.GetFee(maxNewTxSize), minRelayTxFee.GetFee(maxNewTxSize)));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid totalFee, must be at least %s (oldFee %s + relayFee %s)", FormatMoney(minTotalFee), nOldFeeRate.GetFee(maxNewTxSize), ::incrementalRelayFee.GetFee(maxNewTxSize)));
         }
         nNewFee = totalFee;
         nNewFeeRate = CFeeRate(totalFee, maxNewTxSize);
     } else {
-        // use the user-defined payTxFee if possible, otherwise use smartfee / fallbackfee
-        if (!specifiedConfirmTarget && payTxFee.GetFeePerK() != 0) {
-            nNewFeeRate = payTxFee;
-        } else {
-            nNewFeeRate = mempool.estimateSmartFee(newConfirmTarget);
+        // if user specified a confirm target then don't consider any global payTxFee
+        if (specifiedConfirmTarget) {
+            nNewFee = CWallet::GetMinimumFee(maxNewTxSize, newConfirmTarget, mempool, CAmount(0));
         }
-        if (nNewFeeRate.GetFeePerK() == 0) {
-            nNewFeeRate = CWallet::fallbackFee;
-        }
-
-        // new fee rate must be at least old rate + minimum relay rate
-        if (nNewFeeRate.GetFeePerK() < nOldFeeRate.GetFeePerK() + ::minRelayTxFee.GetFeePerK()) {
-            nNewFeeRate = CFeeRate(nOldFeeRate.GetFeePerK() + ::minRelayTxFee.GetFeePerK());
+        // otherwise use the regular wallet logic to select payTxFee or default confirm target
+        else {
+            nNewFee = CWallet::GetMinimumFee(maxNewTxSize, newConfirmTarget, mempool);
         }
 
-        nNewFee = nNewFeeRate.GetFee(maxNewTxSize);
+        nNewFeeRate = CFeeRate(nNewFee, maxNewTxSize);
+
+        // new fee rate must be at least old rate + minimum incremental relay rate
+        if (nNewFeeRate.GetFeePerK() < nOldFeeRate.GetFeePerK() + ::incrementalRelayFee.GetFeePerK()) {
+            nNewFeeRate = CFeeRate(nOldFeeRate.GetFeePerK() + ::incrementalRelayFee.GetFeePerK());
+            nNewFee = nNewFeeRate.GetFee(maxNewTxSize);
+        }
     }
+
+    // Check that in all cases the new fee doesn't violate maxTxFee
+     if (nNewFee > maxTxFee) {
+         throw JSONRPCError(RPC_MISC_ERROR,
+                            strprintf("Specified or calculated fee %s is too high (cannot be higher than maxTxFee %s)",
+                                      FormatMoney(nNewFee), FormatMoney(maxTxFee)));
+     }
 
     // check that fee rate is higher than mempool's minimum fee
     // (no point in bumping fee if we know that the new tx won't be accepted to the mempool)
@@ -2876,7 +2880,7 @@ UniValue bumpfee(const UniValue& params, bool fHelp)
 
     // If the output would become dust, discard it (converting the dust to fee)
     poutput->nValue -= nDelta;
-    if (poutput->nValue <= poutput->GetDustThreshold(::minRelayTxFee)) {
+    if (poutput->nValue <= poutput->GetDustThreshold(::dustRelayFee)) {
         LogPrint("rpc", "Bumping fee and discarding dust output\n");
         nNewFee += poutput->nValue;
         tx.vout.erase(tx.vout.begin() + nOutput);
