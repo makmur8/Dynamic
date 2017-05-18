@@ -19,6 +19,8 @@ static const unsigned int DEFAULT_BLOCK_MAX_SIZE = 3145728; // 3MB (75% of MAX_B
 static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 0;
 /** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/
 static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 200000;
+/** Default for -blockmintxfee, which sets the minimum feerate for a transaction in blocks created by mining code **/
+static const unsigned int DEFAULT_BLOCK_MIN_TX_FEE = 1000;
 /** The maximum size for transactions we're willing to relay/mine */
 static const unsigned int MAX_STANDARD_TX_SIZE = 400000; // 4MB
 /** Maximum number of signature check operations in an IsStandard() P2SH script */

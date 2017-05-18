@@ -205,6 +205,7 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
     if(!pblocktemplate.get())
         return nullptr;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
+    CFeeRate blockMinFeeRate;
 
     // Create coinbase tx
     CMutableTransaction txNew;
@@ -212,6 +213,15 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+
+
+    if (IsArgSet("-blockmintxfee")) {
+       CAmount n = 0;
+       ParseMoney(GetArg("-blockmintxfee", ""), n);
+       blockMinFeeRate = CFeeRate(n);
+    } else {
+       blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
+    }
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -333,7 +343,7 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
                 waitPriMap.clear();
             }
             if (!priorityTx &&
-                (iter->GetModifiedFee() < ::minRelayTxFee.GetFee(nTxSize) && nBlockSize >= nBlockMinSize)) {
+                (iter->GetModifiedFee() < blockMinFeeRate.GetFee(nTxSize) && nBlockSize >= nBlockMinSize)) {
                 break;
             }
             if (nBlockSize + nTxSize >= nBlockMaxSize) {
