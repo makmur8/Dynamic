@@ -25,6 +25,7 @@ public:
 };
 static const CRPCConvertParam vRPCConvertParams[] =
 {
+    { "bumpfee", 1 },
     { "stop", 0 },
     { "setmocktime", 0 },
     { "getaddednodeinfo", 0 },
