@@ -13,7 +13,7 @@
 #include "walletmodel.h"
 
 #include "init.h"
-#include "main.h" // For minRelayTxFee
+#include "policy/policy.h" // For minRelayTxFee
 #include "protocol.h"
 #include "script/script.h"
 #include "script/standard.h"
@@ -268,7 +268,7 @@ bool isDust(const QString& address, const CAmount& amount)
     CTxDestination dest = CDynamicAddress(address.toStdString()).Get();
     CScript script = GetScriptForDestination(dest);
     CTxOut txOut(amount, script);
-    return txOut.IsDust(::minRelayTxFee);
+    return txOut.IsDust(dustRelayFee);
 }
 
 QString HtmlEscape(const QString& str, bool fMultiLine)
