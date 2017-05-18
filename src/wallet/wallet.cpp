@@ -1218,6 +1218,8 @@ isminetype CWallet::IsMine(const CTxIn &txin) const
     return ISMINE_NO;
 }
 
+// Note that this function doesn't distinguish between a 0-valued input,
+// and a not-"is mine" (according to the filter) input.
 CAmount CWallet::GetDebit(const CTxIn &txin, const isminefilter& filter) const
 {
     {
@@ -1347,6 +1349,27 @@ bool CWallet::IsDenominatedAmount(CAmount nInputAmount) const
 isminetype CWallet::IsMine(const CTxOut& txout) const
 {
     return ::IsMine(*this, txout.scriptPubKey);
+}
+
+bool CWallet::IsAllFromMe(const CTransaction& tx, const isminefilter& filter) const
+{
+    LOCK(cs_wallet);
+
+    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+    {
+        auto mi = mapWallet.find(txin.prevout.hash);
+        if (mi == mapWallet.end())
+            return false; // any unknown inputs can't be from us
+
+        const CWalletTx& prev = (*mi).second;
+
+        if (txin.prevout.n >= prev.tx->vout.size())
+            return false; // invalid input!
+
+        if (!(IsMine(prev.tx->vout[txin.prevout.n]) & filter))
+            return false;
+    }
+    return true;
 }
 
 CAmount CWallet::GetCredit(const CTxOut& txout, const isminefilter& filter) const
