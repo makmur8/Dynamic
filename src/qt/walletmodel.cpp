@@ -18,7 +18,7 @@
 #include "base58.h"
 #include "instantsend.h"
 #include "keystore.h"
-#include "main.h"
+#include "validation.h"
 #include "privatesend.h"
 #include "spork.h"
 #include "sync.h"

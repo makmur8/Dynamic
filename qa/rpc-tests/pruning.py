@@ -132,9 +132,9 @@ class PruneTest(DynamicTestFramework):
 
         # We've now switched to our previously mined-24 block fork on node 1, but thats not what we want
         # So invalidate that fork as well, until we're on the same chain as node 0/2 (but at an ancestor 288 blocks ago)
-        mainchainhash = self.nodes[0].getblockhash(invalidheight - 1)
+        validation.hainhash = self.nodes[0].getblockhash(invalidheight - 1)
         curhash = self.nodes[1].getblockhash(invalidheight - 1)
-        while curhash != mainchainhash:
+        while curhash != validation.hainhash:
             self.nodes[1].invalidateblock(curhash)
             curhash = self.nodes[1].getblockhash(invalidheight - 1)
 
@@ -182,10 +182,10 @@ class PruneTest(DynamicTestFramework):
         self.nodes[2].getblock(self.nodes[2].getblockhash(self.forkheight))
 
         first_reorg_height = self.nodes[2].getblockcount()
-        curchainhash = self.nodes[2].getblockhash(self.mainchainheight)
+        curchainhash = self.nodes[2].getblockhash(self.validation.hainheight)
         self.nodes[2].invalidateblock(curchainhash)
-        goalbestheight = self.mainchainheight
-        goalbesthash = self.mainchainhash2
+        goalbestheight = self.validation.hainheight
+        goalbesthash = self.validation.hainhash2
 
         # As of 0.10 the current block download logic is not able to reorg to the original chain created in
         # create_chain_with_stale_blocks because it doesn't know of any peer thats on that chain from which to
@@ -195,12 +195,12 @@ class PruneTest(DynamicTestFramework):
         # However it must mine enough blocks to have a more work chain than the reorg_test chain in order
         # to trigger node 2's block download logic.
         # At this point node 2 is within 288 blocks of the fork point so it will preserve its ability to reorg
-        if self.nodes[2].getblockcount() < self.mainchainheight:
-            blocks_to_mine = first_reorg_height + 1 - self.mainchainheight
+        if self.nodes[2].getblockcount() < self.validation.hainheight:
+            blocks_to_mine = first_reorg_height + 1 - self.validation.hainheight
             print "Rewind node 0 to prev main chain to mine longer chain to trigger redownload. Blocks needed:", blocks_to_mine
             self.nodes[0].invalidateblock(curchainhash)
-            assert(self.nodes[0].getblockcount() == self.mainchainheight)
-            assert(self.nodes[0].getbestblockhash() == self.mainchainhash2)
+            assert(self.nodes[0].getblockcount() == self.validation.hainheight)
+            assert(self.nodes[0].getbestblockhash() == self.validation.hainhash2)
             goalbesthash = self.nodes[0].generate(blocks_to_mine)[-1]
             goalbestheight = first_reorg_height + 1
 
@@ -279,8 +279,8 @@ class PruneTest(DynamicTestFramework):
         #                    +...+(1044)  &..                    $...$(1319)
 
         # Save some current chain state for later use
-        self.mainchainheight = self.nodes[2].getblockcount()   #1320
-        self.mainchainhash2 = self.nodes[2].getblockhash(self.mainchainheight)
+        self.validation.hainheight = self.nodes[2].getblockcount()   #1320
+        self.validation.hainhash2 = self.nodes[2].getblockhash(self.validation.hainheight)
 
         print "Check that we can survive a 288 block reorg still"
         (self.forkheight,self.forkhash) = self.reorg_test() #(1033, )

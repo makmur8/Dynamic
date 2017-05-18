@@ -6,7 +6,7 @@
 #include "spork.h"
 
 #include "chainparams.h"
-#include "main.h"
+#include "validation.h"
 #include "messagesigner.h"
 
 #include <boost/lexical_cast.hpp>

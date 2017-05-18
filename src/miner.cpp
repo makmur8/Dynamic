@@ -15,7 +15,7 @@
 #include "dynode-payments.h"
 #include "dynode-sync.h"
 #include "hash.h"
-#include "main.h"
+#include "validation.h"
 #include "consensus/merkle.h"
 #include "net.h"
 #include "policy/policy.h"

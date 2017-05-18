@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chainparams.h"
-#include "main.h"
+#include "validation.h"
 
 #include "test/test_dynamic.h"
 

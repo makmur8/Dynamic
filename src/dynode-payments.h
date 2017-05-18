@@ -9,7 +9,7 @@
 #include "core_io.h"
 #include "dynode.h"
 #include "key.h"
-#include "main.h"
+#include "validation.h"
 #include "util.h"
 #include "utilstrencodings.h"
 
@@ -30,7 +30,7 @@ extern CCriticalSection cs_mapDynodePayeeVotes;
 
 extern CDynodePayments dnpayments;
 
-/// TODO: all 4 functions do not belong here really, they should be refactored/moved somewhere (main.cpp ?)
+/// TODO: all 4 functions do not belong here really, they should be refactored/moved somewhere (validation.cpp ?)
 bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockReward, std::string &strErrorRet);
 bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount blockReward);
 void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, CTxOut& txoutDynodeRet, std::vector<CTxOut>& voutSuperblockRet);

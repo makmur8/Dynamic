@@ -7,7 +7,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
-#include "main.h"
+#include "validation.h"
 #include "dynode-payments.h"
 #include "miner.h"
 #include "pubkey.h"

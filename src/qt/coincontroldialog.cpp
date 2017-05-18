@@ -19,7 +19,7 @@
 #include "init.h"
 #include "instantsend.h"
 #include "policy/policy.h"
-#include "main.h" // For minRelayTxFee
+#include "validation.h" // For minRelayTxFee
 #include "privatesend.h"
 #include "txmempool.h"
 #include "wallet/wallet.h"

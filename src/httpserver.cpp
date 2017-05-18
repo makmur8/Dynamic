@@ -591,13 +591,13 @@ void HTTPRequest::WriteHeader(const std::string& hdr, const std::string& value)
 
 /** Closure sent to main thread to request a reply to be sent to
  * a HTTP request.
- * Replies must be sent in the main loop in the main http thread,
+ * Replies must be sent in the main loop in the validation.http thread,
  * this cannot be done from worker threads.
  */
 void HTTPRequest::WriteReply(int nStatus, const std::string& strReply)
 {
     assert(!replySent && req);
-    // Send event to main http thread to send reply message
+    // Send event to validation.http thread to send reply message
     struct evbuffer* evb = evhttp_request_get_output_buffer(req);
     assert(evb);
     evbuffer_add(evb, strReply.data(), strReply.size());

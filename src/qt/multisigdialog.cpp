@@ -19,7 +19,7 @@
 #include "dbwrapper.h"
 #include "dns/dns.h"
 #include "key.h"
-#include "main.h"
+#include "validation.h"
 #include "policy/policy.h"
 #include "rpcserver.h"
 #include "script/script.h"

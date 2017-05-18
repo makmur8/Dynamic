@@ -9,7 +9,7 @@
 #include "dynode-sync.h"
 #include "dynodeman.h"
 #include "key.h"
-#include "main.h"
+#include "validation.h"
 #include "messagesigner.h"
 #include "net.h"
 #include "protocol.h"
@@ -49,7 +49,7 @@ void CInstantSend::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataSt
     // Ignore any InstantSend messages until Dynode list is synced
     if(!dynodeSync.IsDynodeListSynced()) return;
 
-    // NOTE: NetMsgType::TXLOCKREQUEST is handled via ProcessMessage() in main.cpp
+    // NOTE: NetMsgType::TXLOCKREQUEST is handled via ProcessMessage() in validation.cpp
     if (strCommand == NetMsgType::TXLOCKVOTE) // InstantSend Transaction Lock Consensus Votes
     {
         if(pfrom->nVersion < MIN_INSTANTSEND_PROTO_VERSION) return;

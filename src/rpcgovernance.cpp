@@ -16,7 +16,7 @@
 #include "governance-classes.h"
 #include "governance-vote.h"
 #include "init.h"
-#include "main.h"
+#include "validation.h"
 #include "messagesigner.h"
 #include "rpcserver.h"
 #include "util.h"

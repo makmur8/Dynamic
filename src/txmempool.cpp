@@ -10,7 +10,7 @@
 #include "clientversion.h"
 #include "consensus/consensus.h"
 #include "policy/fees.h"
-#include "main.h"
+#include "validation.h"
 #include "streams.h"
 #include "timedata.h"
 #include "util.h"
@@ -371,7 +371,7 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n)
 bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, setEntries &setAncestors, bool fCurrentEstimate)
 {
     // Add to memory pool without checking anything.
-    // Used by main.cpp AcceptToMemoryPool(), which DOES do
+    // Used by validation.cpp AcceptToMemoryPool(), which DOES do
     // all the appropriate checks.
     LOCK(cs);
     indexed_transaction_set::iterator newit = mapTx.insert(entry).first;

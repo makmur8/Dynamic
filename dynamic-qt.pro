@@ -391,7 +391,7 @@ HEADERS += \
     src/key.h \
     src/keystore.h \
     src/limitedmap.h \
-    src/main.h \
+    src/validation.h \
     src/memusage.h \
     src/merkleblock.h \
     src/miner.h \
@@ -572,7 +572,7 @@ SOURCES += \
     src/keepass.cpp \
     src/key.cpp \
     src/keystore.cpp \
-    src/main.cpp \
+    src/validation.cpp \
     src/merkleblock.cpp \
     src/miner.cpp \
     src/net.cpp \

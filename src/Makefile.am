@@ -126,7 +126,7 @@ DYNAMIC_CORE_H = \
   keepass.h \
   keystore.h \
   limitedmap.h \
-  main.h \
+  validation.h \
   memusage.h \
   merkleblock.h \
   messagesigner.h \
@@ -220,7 +220,7 @@ libdynamic_server_a_SOURCES = \
   httprpc.cpp \
   httpserver.cpp \
   init.cpp \
-  main.cpp \
+  validation.cpp \
   merkleblock.cpp \
   messagesigner.cpp \
   miner.cpp \

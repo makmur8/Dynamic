@@ -11,7 +11,7 @@
 #include "dynode.h"
 #include "dynode-payments.h"
 #include "dynodeman.h"
-#include "main.h"
+#include "validation.h"
 #include "netfulfilledman.h"
 #include "spork.h"
 #include "util.h"

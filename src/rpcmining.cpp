@@ -15,7 +15,7 @@
 #include "dynode-sync.h"
 #endif
 #include "init.h"
-#include "main.h"
+#include "validation.h"
 #include "consensus/merkle.h"
 #include "miner.h"
 #include "net.h"

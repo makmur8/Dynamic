@@ -10,7 +10,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "coins.h"
-#include "main.h"
+#include "validation.h"
 #include "policy/policy.h"
 #include "rpcserver.h"
 #include "streams.h"

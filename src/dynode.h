@@ -7,7 +7,7 @@
 #define DYNAMIC_DYNODE_H
 
 #include "key.h"
-#include "main.h"
+#include "validation.h"
 #include "net.h"
 #include "timedata.h"
 #include "spork.h"
