@@ -107,6 +107,7 @@ int nWalletBackups = 10;
 const char * const DYNAMIC_CONF_FILENAME = "dynamic.conf";
 const char * const DYNAMIC_PID_FILENAME = "dynamicd.pid";
 
+ArgsManager gArgs;
 std::map<std::string, std::string> mapArgs;
 std::map<std::string, std::vector<std::string> > mapMultiArgs;
 bool fDebug = false;
@@ -391,8 +392,9 @@ static void InterpretNegativeSetting(std::string& strKey, std::string& strValue)
     }
 }
 
-void ParseParameters(int argc, const char* const argv[])
+void ArgsManager::ParseParameters(int argc, const char* const argv[])
 {
+    LOCK(cs_args);
     mapArgs.clear();
     mapMultiArgs.clear();
 
@@ -426,42 +428,68 @@ void ParseParameters(int argc, const char* const argv[])
     }
 }
 
-std::string GetArg(const std::string& strArg, const std::string& strDefault)
+std::vector<std::string> ArgsManager::GetArgs(const std::string& strArg)
 {
+    LOCK(cs_args);
+    return mapMultiArgs.at(strArg);
+}
+
+bool ArgsManager::IsArgSet(const std::string& strArg)
+{
+    LOCK(cs_args);
+    return mapArgs.count(strArg);
+}
+
+std::string ArgsManager::GetArg(const std::string& strArg, const std::string& strDefault)
+{
+    LOCK(cs_args);
     if (mapArgs.count(strArg))
         return mapArgs[strArg];
     return strDefault;
 }
 
-int64_t GetArg(const std::string& strArg, int64_t nDefault)
+int64_t ArgsManager::GetArg(const std::string& strArg, int64_t nDefault)
 {
+    LOCK(cs_args);
     if (mapArgs.count(strArg))
         return atoi64(mapArgs[strArg]);
     return nDefault;
 }
 
-bool GetBoolArg(const std::string& strArg, bool fDefault)
+bool ArgsManager::GetBoolArg(const std::string& strArg, bool fDefault)
 {
+    LOCK(cs_args);
     if (mapArgs.count(strArg))
         return InterpretBool(mapArgs[strArg]);
     return fDefault;
 }
 
-bool SoftSetArg(const std::string& strArg, const std::string& strValue)
+bool ArgsManager::SoftSetArg(const std::string& strArg, const std::string& strValue)
 {
+    LOCK(cs_args);
     if (mapArgs.count(strArg))
         return false;
-    mapArgs[strArg] = strValue;
+    ForceSetArg(strArg, strValue);
     return true;
 }
 
-bool SoftSetBoolArg(const std::string& strArg, bool fValue)
+bool ArgsManager::SoftSetBoolArg(const std::string& strArg, bool fValue)
 {
     if (fValue)
         return SoftSetArg(strArg, std::string("1"));
     else
         return SoftSetArg(strArg, std::string("0"));
 }
+
+void ArgsManager::ForceSetArg(const std::string& strArg, const std::string& strValue)
+{
+    LOCK(cs_args);
+    mapArgs[strArg] = strValue;
+    mapMultiArgs[strArg].push_back(strValue);
+}
+
+
+
 
 static const int screenWidth = 79;
 static const int optIndent = 2;

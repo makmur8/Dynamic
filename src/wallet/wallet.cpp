@@ -904,7 +904,7 @@ bool CWallet::MarkReplaced(const uint256& originalHash, const uint256& newHash)
     CWalletDB walletdb(strWalletFile, "r+");
 
     bool success = true;
-    if (!walletdb.WriteTx(wtx)) {
+    if (!wtx.WriteToDisk(&walletdb)) {
         LogPrintf("%s: Updating walletdb tx %s failed", __func__, wtx.GetHash().ToString());
         success = false;
     }
@@ -1399,10 +1399,10 @@ bool CWallet::IsAllFromMe(const CTransaction& tx, const isminefilter& filter) co
 
         const CWalletTx& prev = (*mi).second;
 
-        if (txin.prevout.n >= prev.tx->vout.size())
+        if (txin.prevout.n >= prev.vout.size())
             return false; // invalid input!
 
-        if (!(IsMine(prev.tx->vout[txin.prevout.n]) & filter))
+        if (!(IsMine(prev.vout[txin.prevout.n]) & filter))
             return false;
     }
     return true;
