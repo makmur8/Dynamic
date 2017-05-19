@@ -109,6 +109,7 @@ DYNAMIC_CORE_H = \
   dynodeman.h \
   dynodeconfig.h \
   flat-database.h \
+  fs.h \
   governance.h \
   governance-classes.h \
   governance-exceptions.h \
@@ -364,6 +365,7 @@ libdynamic_util_a_SOURCES = \
   compat/glibc_sanity.cpp \
   compat/glibcxx_sanity.cpp \
   compat/strnlen.cpp \
+  fs.cpp \
   random.cpp \
   rpcprotocol.cpp \
   support/cleanse.cpp \
