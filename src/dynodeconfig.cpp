@@ -21,7 +21,7 @@ bool CDynodeConfig::read(std::string& strErr) {
     fs::ifstream streamConfig(pathDynodeConfigFile);
 
     if (!streamConfig.good()) {
-        FILE* configFile = fopen(pathDynodeConfigFile.string().c_str(), "a");
+        FILE* configFile = fsbridge::fopen(pathDynodeConfigFile, "a");
         if (configFile != NULL) {
             std::string strHeader = "# Dynode config file\n"
                           "# Format: alias IP:port dynodeprivkey collateral_output_txid collateral_output_index\n"

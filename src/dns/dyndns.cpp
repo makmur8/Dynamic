@@ -138,7 +138,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
     char local_tmp[1 << 15]; // max 32Kb
     FILE *flocal;
     uint8_t local_qty = 0;
-    if(local_fname != NULL && (flocal = fopen(local_fname, "r")) != NULL) {
+    if(local_fname != NULL && (flocal = fsbridge::fopen(local_fname, "r")) != NULL) {
       char *rd = local_tmp;
       while(rd < local_tmp + (1 << 15) - 200 && fgets(rd, 200, flocal)) {
   if(*rd < '0' || *rd == ';')
@@ -423,7 +423,7 @@ void DynDns::HandlePacket() {
           AddTF(tf_tok);
       }
           } else { // This is file
-      FILE *tf = fopen(tf_fname, "r");
+      FILE *tf = fsbridge::fopen(tf_fname, "r");
       if(tf != NULL) {
         while(fgets(m_value, VAL_SIZE, tf))
           AddTF(m_value);

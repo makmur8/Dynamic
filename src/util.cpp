@@ -223,7 +223,7 @@ void OpenDebugLog()
     assert(fileout == NULL);
     assert(vMsgsBeforeOpenLog);
     fs::path pathDebug = GetDataDir() / "debug.log";
-    fileout = fopen(pathDebug.string().c_str(), "a");
+    fileout = fsbridge::fopen(pathDebug, "a");
     if (fileout) setbuf(fileout, NULL); // unbuffered
 
     // dump buffered messages from before we opened the log
@@ -400,7 +400,7 @@ int LogPrintStr(const std::string &str)
             if (fReopenDebugLog) {
                 fReopenDebugLog = false;
                 fs::path pathDebug = GetDataDir() / "debug.log";
-                if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL)
+                if (fsbridge::freopen(pathDebug, "a", fileout) != NULL)
                     setbuf(fileout, NULL); // unbuffered
             }
 
@@ -721,7 +721,7 @@ void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet,
 
     if (!streamConfig.good()){
         // Create dynamic.conf if it does not exist
-        FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
+        FILE* configFile = fsbridge::fopen(GetConfigFile(), "a");
         if (configFile != NULL) {
             // Write dynamic.conf file with random username and password.
             WriteConfigFile(configFile);
@@ -756,7 +756,7 @@ fs::path GetPidFile()
 
 void CreatePidFile(const fs::path &path, pid_t pid)
 {
-    FILE* file = fopen(path.string().c_str(), "w");
+    FILE* file = fsbridge::fopen(path, "w");
     if (file)
     {
         fprintf(file, "%d\n", pid);
@@ -893,7 +893,7 @@ void ShrinkDebugFile()
 {
     // Scroll debug.log if it's getting too big
     fs::path pathLog = GetDataDir() / "debug.log";
-    FILE* file = fopen(pathLog.string().c_str(), "r");
+    FILE* file = fsbridge::fopen(pathLog, "r");
     if (file && fs::file_size(pathLog) > 10 * 1000000)
     {
         // Restart the file with some of the end
@@ -902,7 +902,7 @@ void ShrinkDebugFile()
         int nBytes = fread(vch.data(), 1, vch.size(), file);
         fclose(file);
 
-        file = fopen(pathLog.string().c_str(), "w");
+        file = fsbridge::fopen(pathLog, "w");
         if (file)
         {
             fwrite(vch.data(), 1, nBytes, file);

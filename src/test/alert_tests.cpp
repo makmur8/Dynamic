@@ -37,7 +37,7 @@ bool SignAndSave(CAlert &alert)
 
     std::string strFilePath = "src/test/data/alertTests.raw";
     // open output file and associate it with CAutoFile
-    FILE *file = fopen(strFilePath.c_str(), "ab+");
+    FILE *file = fsbridge::fopen(strFilePath.c_str(), "ab+");
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
         return error("%s: Failed to open file %s", __func__, strFilePath);
