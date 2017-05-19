@@ -111,7 +111,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
             LogPrintf(ostr.str().c_str());
         }
         else {
-            LogPrint(BCLog::GOBJECT, ostr.str().c_str());
+            LogPrint(DYNLog::GOBJECT, ostr.str().c_str());
         }
         return false;
     }
@@ -125,7 +125,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
     if(eSignal == VOTE_SIGNAL_NONE) {
         std::ostringstream ostr;
         ostr << "CGovernanceObject::ProcessVote -- Vote signal: none" << "\n";
-        LogPrint(BCLog::GOBJECT, ostr.str().c_str());
+        LogPrint(DYNLog::GOBJECT, ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_WARNING);
         return false;
     }
@@ -146,7 +146,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
     if(vote.GetTimestamp() < voteInstance.nCreationTime) {
         std::ostringstream ostr;
         ostr << "CGovernanceObject::ProcessVote -- Obsolete vote" << "\n";
-        LogPrint(BCLog::GOBJECT, ostr.str().c_str());
+        LogPrint(DYNLog::GOBJECT, ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_NONE);
         return false;
     }
@@ -161,7 +161,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
                  << ", DN outpoint = " << vote.GetVinDynode().prevout.ToStringShort()
                  << ", governance object hash = " << GetHash().ToString()
                  << ", time delta = " << nTimeDelta << "\n";
-            LogPrint(BCLog::GOBJECT, ostr.str().c_str());
+            LogPrint(DYNLog::GOBJECT, ostr.str().c_str());
             exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_TEMPORARY_ERROR);
             nVoteTimeUpdate = nNow;
             return false;
@@ -261,7 +261,7 @@ bool CGovernanceObject::Sign(CKey& keyDynode, CPubKey& pubKeyDynode)
         return false;
     }
 
-    LogPrint(BCLog::GOBJECT, "CGovernanceObject::Sign -- pubkey id = %s, vin = %s\n",
+    LogPrint(DYNLog::GOBJECT, "CGovernanceObject::Sign -- pubkey id = %s, vin = %s\n",
              pubKeyDynode.GetID().ToString(), vinDynode.prevout.ToStringShort());
 
 

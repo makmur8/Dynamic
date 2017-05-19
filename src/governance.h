@@ -300,7 +300,7 @@ public:
     {
         LOCK(cs);
 
-        LogPrint(BCLog::GOBJECT, "Governance object manager was cleared\n");
+        LogPrint(DYNLog::GOBJECT, "Governance object manager was cleared\n");
         mapObjects.clear();
         mapSeenGovernanceObjects.clear();
         mapWatchdogObjects.clear();

@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_FS_H
-#define BITCOIN_FS_H
+#ifndef DYNAMIC_FS_H
+#define DYNAMIC_FS_H
 
 #include <stdio.h>
 #include <string>
@@ -21,4 +21,5 @@ namespace fsbridge {
     FILE *freopen(const fs::path& p, const char *mode, FILE *stream);
 };
 
-#endif
+#endif // DYNAMIC_FS_H
+

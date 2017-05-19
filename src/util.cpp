@@ -245,37 +245,37 @@ struct CLogCategoryDesc
 
 const CLogCategoryDesc LogCategories[] =
 {
-    {BCLog::NONE, "0"},
-    {BCLog::NET, "net"},
-    {BCLog::TOR, "tor"},
-    {BCLog::MEMPOOL, "mempool"},
-    {BCLog::HTTP, "http"},
-    {BCLog::BENCH, "bench"},
-    {BCLog::ZMQ, "zmq"},
-    {BCLog::DB, "db"},
-    {BCLog::RPC, "rpc"},
-    {BCLog::ESTIMATEFEE, "estimatefee"},
-    {BCLog::ADDRMAN, "addrman"},
-    {BCLog::SELECTCOINS, "selectcoins"},
-    {BCLog::REINDEX, "reindex"},
-    {BCLog::CMPCTBLOCK, "cmpctblock"},
-    {BCLog::RAND, "rand"},
-    {BCLog::PRUNE, "prune"},
-    {BCLog::PROXY, "proxy"},
-    {BCLog::MEMPOOLREJ, "mempoolrej"},
-    {BCLog::LIBEVENT, "libevent"},
-    {BCLog::COINDB, "coindb"},
-    {BCLog::QT, "qt"},
-    {BCLog::LEVELDB, "leveldb"},
-    {BCLog::ALL, "1"},
-    {BCLog::ALL, "all"},
+    {DYNLog::NONE, "0"},
+    {DYNLog::NET, "net"},
+    {DYNLog::TOR, "tor"},
+    {DYNLog::MEMPOOL, "mempool"},
+    {DYNLog::HTTP, "http"},
+    {DYNLog::BENCH, "bench"},
+    {DYNLog::ZMQ, "zmq"},
+    {DYNLog::DB, "db"},
+    {DYNLog::RPC, "rpc"},
+    {DYNLog::ESTIMATEFEE, "estimatefee"},
+    {DYNLog::ADDRMAN, "addrman"},
+    {DYNLog::SELECTCOINS, "selectcoins"},
+    {DYNLog::REINDEX, "reindex"},
+    {DYNLog::CMPCTBLOCK, "cmpctblock"},
+    {DYNLog::RAND, "rand"},
+    {DYNLog::PRUNE, "prune"},
+    {DYNLog::PROXY, "proxy"},
+    {DYNLog::MEMPOOLREJ, "mempoolrej"},
+    {DYNLog::LIBEVENT, "libevent"},
+    {DYNLog::COINDB, "coindb"},
+    {DYNLog::QT, "qt"},
+    {DYNLog::LEVELDB, "leveldb"},
+    {DYNLog::ALL, "1"},
+    {DYNLog::ALL, "all"},
 };
 
 bool GetLogCategory(uint32_t *f, const std::string *str)
 {
     if (f && str) {
         if (*str == "") {
-            *f = BCLog::ALL;
+            *f = DYNLog::ALL;
             return true;
         }
         for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
@@ -294,7 +294,7 @@ std::string ListLogCategories()
     int outcount = 0;
     for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
         // Omit the special cases.
-        if (LogCategories[i].flag != BCLog::NONE && LogCategories[i].flag != BCLog::ALL) {
+        if (LogCategories[i].flag != DYNLog::NONE && LogCategories[i].flag != DYNLog::ALL) {
             if (outcount != 0) ret += ", ";
             ret += LogCategories[i].category;
             outcount++;
@@ -308,7 +308,7 @@ std::vector<CLogCategoryActive> ListActiveLogCategories()
     std::vector<CLogCategoryActive> ret;
     for (unsigned int i = 0; i < ARRAYLEN(LogCategories); i++) {
         // Omit the special cases.
-        if (LogCategories[i].flag != BCLog::NONE && LogCategories[i].flag != BCLog::ALL) {
+        if (LogCategories[i].flag != DYNLog::NONE && LogCategories[i].flag != DYNLog::ALL) {
             CLogCategoryActive catActive;
             catActive.category = LogCategories[i].category;
             catActive.active = LogAcceptCategory(LogCategories[i].flag);

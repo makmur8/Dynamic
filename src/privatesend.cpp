@@ -62,7 +62,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         CTransaction txCollateral;
         vRecv >> nDenom >> txCollateral;
 
-        LogPrint(BCLog::PRIVATESEND, "PSACCEPT -- nDenom %d (%s)  txCollateral %s", nDenom, GetDenominationsToString(nDenom), txCollateral.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "PSACCEPT -- nDenom %d (%s)  txCollateral %s", nDenom, GetDenominationsToString(nDenom), txCollateral.ToString());
 
         CDynode* pdn = dnodeman.Find(activeDynode.vin);
         if(pdn == NULL) {
@@ -97,7 +97,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         if(!lockRecv) return;
 
         if(pfrom->nVersion < MIN_PRIVATESEND_PEER_PROTO_VERSION) {
-            LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- incompatible version! nVersion: %d\n", pfrom->nVersion);
+            LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- incompatible version! nVersion: %d\n", pfrom->nVersion);
             return;
         }
 
@@ -107,12 +107,12 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         // process every psq only once
         BOOST_FOREACH(CPrivatesendQueue q, vecPrivatesendQueue) {
             if(q == psq) {
-                // LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- %s seen\n", psq.ToString());
+                // LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- %s seen\n", psq.ToString());
                 return;
             }
         }
 
-        LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- %s new\n", psq.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- %s new\n", psq.ToString());
 
         if(psq.IsExpired() || psq.nTime > GetTime() + PRIVATESEND_QUEUE_TIMEOUT) return;
 
@@ -134,30 +134,30 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
             }
 
             if(nState == POOL_STATE_QUEUE) {
-                LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- PrivateSend queue (%s) is ready on Dynode %s\n", psq.ToString(), pdn->addr.ToString());
+                LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- PrivateSend queue (%s) is ready on Dynode %s\n", psq.ToString(), pdn->addr.ToString());
                 SubmitDenominate();
             }
         } else {
             BOOST_FOREACH(CPrivatesendQueue q, vecPrivatesendQueue) {
                 if(q.vin == psq.vin) {
                     // no way same DN can send another "not yet ready" psq this soon
-                    LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- Dynode %s is sending WAY too many psq messages\n", pdn->addr.ToString());
+                    LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- Dynode %s is sending WAY too many psq messages\n", pdn->addr.ToString());
                     return;
                 }
             }
 
             int nThreshold = pdn->nLastSsq + dnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION)/5;
-            LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- nLastSsq: %d  threshold: %d  nSsqCount: %d\n", pdn->nLastSsq, nThreshold, dnodeman.nSsqCount);
+            LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- nLastSsq: %d  threshold: %d  nSsqCount: %d\n", pdn->nLastSsq, nThreshold, dnodeman.nSsqCount);
             //don't allow a few nodes to dominate the queuing process
             if(pdn->nLastSsq != 0 && nThreshold > dnodeman.nSsqCount) {
-                LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- Dynode %s is sending too many psq messages\n", pdn->addr.ToString());
+                LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- Dynode %s is sending too many psq messages\n", pdn->addr.ToString());
                 return;
             }
             dnodeman.nSsqCount++;
             pdn->nLastSsq = dnodeman.nSsqCount;
             pdn->fAllowMixingTx = true;
 
-            LogPrint(BCLog::PRIVATESEND, "PSQUEUE -- new PrivateSend queue (%s) from Dynode %s\n", psq.ToString(), pdn->addr.ToString());
+            LogPrint(DYNLog::PRIVATESEND, "PSQUEUE -- new PrivateSend queue (%s) from Dynode %s\n", psq.ToString(), pdn->addr.ToString());
             if(pSubmittedToDynode && pSubmittedToDynode->vin.prevout == psq.vin.prevout) {
                 psq.fTried = true;
             }
@@ -189,7 +189,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         CPrivateSendEntry entry;
         vRecv >> entry;
 
-        LogPrint(BCLog::PRIVATESEND, "PSVIN -- txCollateral %s", entry.txCollateral.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "PSVIN -- txCollateral %s", entry.txCollateral.ToString());
 
         if(entry.vecTxPSIn.size() > PRIVATESEND_ENTRY_MAX_SIZE) {
             LogPrintf("PSVIN -- ERROR: too many inputs! %d/%d\n", entry.vecTxPSIn.size(), PRIVATESEND_ENTRY_MAX_SIZE);
@@ -236,7 +236,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
             BOOST_FOREACH(const CTxIn txin, entry.vecTxPSIn) {
                 tx.vin.push_back(txin);
 
-                LogPrint(BCLog::PRIVATESEND, "PSVIN -- txin=%s\n", txin.ToString());
+                LogPrint(DYNLog::PRIVATESEND, "PSVIN -- txin=%s\n", txin.ToString());
 
                 CTransaction txPrev;
                 uint256 hash;
@@ -306,28 +306,28 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         int nMsgMessageID;
         vRecv >> nMsgSessionID >> nMsgState >> nMsgEntriesCount >> nMsgStatusUpdate >> nMsgMessageID;
 
-        LogPrint(BCLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgSessionID %d  nMsgState: %d  nEntriesCount: %d  nMsgStatusUpdate: %d  nMsgMessageID %d\n",
+        LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgSessionID %d  nMsgState: %d  nEntriesCount: %d  nMsgStatusUpdate: %d  nMsgMessageID %d\n",
                 nMsgSessionID, nMsgState, nEntriesCount, nMsgStatusUpdate, nMsgMessageID);
 
         if(nMsgState < POOL_STATE_MIN || nMsgState > POOL_STATE_MAX) {
-            LogPrint(BCLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgState is out of bounds: %d\n", nMsgState);
+            LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgState is out of bounds: %d\n", nMsgState);
             return;
         }
 
         if(nMsgStatusUpdate < STATUS_REJECTED || nMsgStatusUpdate > STATUS_ACCEPTED) {
-            LogPrint(BCLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgStatusUpdate is out of bounds: %d\n", nMsgStatusUpdate);
+            LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgStatusUpdate is out of bounds: %d\n", nMsgStatusUpdate);
             return;
         }
 
         if(nMsgMessageID < MSG_POOL_MIN || nMsgMessageID > MSG_POOL_MAX) {
-            LogPrint(BCLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgMessageID is out of bounds: %d\n", nMsgMessageID);
+            LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgMessageID is out of bounds: %d\n", nMsgMessageID);
             return;
         }
 
-        LogPrint(BCLog::PRIVATESEND, "PSSTATUSUPDATE -- GetMessageByID: %s\n", GetMessageByID(PoolMessage(nMsgMessageID)));
+        LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- GetMessageByID: %s\n", GetMessageByID(PoolMessage(nMsgMessageID)));
 
         if(!CheckPoolStateUpdate(PoolState(nMsgState), nMsgEntriesCount, PoolStatusUpdate(nMsgStatusUpdate), PoolMessage(nMsgMessageID), nMsgSessionID)) {
-            LogPrint(BCLog::PRIVATESEND, "PSSTATUSUPDATE -- CheckPoolStateUpdate failed\n");
+            LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- CheckPoolStateUpdate failed\n");
         }
 
     } else if(strCommand == NetMsgType::PSSIGNFINALTX) {
@@ -345,7 +345,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         std::vector<CTxIn> vecTxIn;
         vRecv >> vecTxIn;
 
-        LogPrint(BCLog::PRIVATESEND, "PSSIGNFINALTX -- vecTxIn.size() %s\n", vecTxIn.size());
+        LogPrint(DYNLog::PRIVATESEND, "PSSIGNFINALTX -- vecTxIn.size() %s\n", vecTxIn.size());
 
         int nTxInIndex = 0;
         int nTxInsCount = (int)vecTxIn.size();
@@ -353,11 +353,11 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         BOOST_FOREACH(const CTxIn txin, vecTxIn) {
             nTxInIndex++;
             if(!AddScriptSig(txin)) {
-                LogPrint(BCLog::PRIVATESEND, "PSSIGNFINALTX -- AddScriptSig() failed at %d/%d, session: %d\n", nTxInIndex, nTxInsCount, nSessionID);
+                LogPrint(DYNLog::PRIVATESEND, "PSSIGNFINALTX -- AddScriptSig() failed at %d/%d, session: %d\n", nTxInIndex, nTxInsCount, nSessionID);
                 RelayStatus(STATUS_REJECTED);
                 return;
             }
-            LogPrint(BCLog::PRIVATESEND, "PSSIGNFINALTX -- AddScriptSig() %d/%d success\n", nTxInIndex, nTxInsCount);
+            LogPrint(DYNLog::PRIVATESEND, "PSSIGNFINALTX -- AddScriptSig() %d/%d success\n", nTxInIndex, nTxInsCount);
         }
         // all is good
         CheckPool();
@@ -385,11 +385,11 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         vRecv >> nMsgSessionID >> txNew;
 
         if(nSessionID != nMsgSessionID) {
-            LogPrint(BCLog::PRIVATESEND, "PSFINALTX -- message doesn't match current PrivateSend session: nSessionID: %d  nMsgSessionID: %d\n", nSessionID, nMsgSessionID);
+            LogPrint(DYNLog::PRIVATESEND, "PSFINALTX -- message doesn't match current PrivateSend session: nSessionID: %d  nMsgSessionID: %d\n", nSessionID, nMsgSessionID);
             return;
         }
 
-        LogPrint(BCLog::PRIVATESEND, "PSFINALTX -- txNew %s", txNew.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "PSFINALTX -- txNew %s", txNew.ToString());
 
         //check to see if input is spent already? (and probably not confirmed)
         SignFinalTransaction(txNew, pfrom);
@@ -408,7 +408,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
 
         if(!pSubmittedToDynode) return;
         if((CNetAddr)pSubmittedToDynode->addr != (CNetAddr)pfrom->addr) {
-            LogPrint(BCLog::PRIVATESEND, "PSCOMPLETE -- message doesn't match current Dynode: pSubmittedToDynode=%s  addr=%s\n", pSubmittedToDynode->addr.ToString(), pfrom->addr.ToString());
+            LogPrint(DYNLog::PRIVATESEND, "PSCOMPLETE -- message doesn't match current Dynode: pSubmittedToDynode=%s  addr=%s\n", pSubmittedToDynode->addr.ToString(), pfrom->addr.ToString());
             return;
         }
 
@@ -417,16 +417,16 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         vRecv >> nMsgSessionID >> nMsgMessageID;
 
         if(nMsgMessageID < MSG_POOL_MIN || nMsgMessageID > MSG_POOL_MAX) {
-            LogPrint(BCLog::PRIVATESEND, "PSCOMPLETE -- nMsgMessageID is out of bounds: %d\n", nMsgMessageID);
+            LogPrint(DYNLog::PRIVATESEND, "PSCOMPLETE -- nMsgMessageID is out of bounds: %d\n", nMsgMessageID);
             return;
         }
 
         if(nSessionID != nMsgSessionID) {
-            LogPrint(BCLog::PRIVATESEND, "PSCOMPLETE -- message doesn't match current PrivateSend session: nSessionID: %d  nMsgSessionID: %d\n", privateSendPool.nSessionID, nMsgSessionID);
+            LogPrint(DYNLog::PRIVATESEND, "PSCOMPLETE -- message doesn't match current PrivateSend session: nSessionID: %d  nMsgSessionID: %d\n", privateSendPool.nSessionID, nMsgSessionID);
             return;
         }
 
-        LogPrint(BCLog::PRIVATESEND, "PSCOMPLETE -- nMsgSessionID %d  nMsgMessageID %d (%s)\n", nMsgSessionID, nMsgMessageID, GetMessageByID(PoolMessage(nMsgMessageID)));
+        LogPrint(DYNLog::PRIVATESEND, "PSCOMPLETE -- nMsgSessionID %d  nMsgMessageID %d (%s)\n", nMsgSessionID, nMsgMessageID, GetMessageByID(PoolMessage(nMsgMessageID)));
 
         CompletedTransaction(PoolMessage(nMsgMessageID));
     }
@@ -563,18 +563,18 @@ std::string CPrivatesendPool::GetStatus()
 void CPrivatesendPool::CheckPool()
 {
     if(fDyNode) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- entries count %lu\n", GetEntriesCount());
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- entries count %lu\n", GetEntriesCount());
 
         // If entries are full, create finalized transaction
         if(nState == POOL_STATE_ACCEPTING_ENTRIES && GetEntriesCount() >= GetMaxPoolTransactions()) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- FINALIZE TRANSACTIONS\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- FINALIZE TRANSACTIONS\n");
             CreateFinalTransaction();
             return;
         }
 
         // If we have all of the signatures, try to compile the transaction
         if(nState == POOL_STATE_SIGNING && IsSignaturesComplete()) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- SIGNING\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- SIGNING\n");
             CommitFinalTransaction();
             return;
         }
@@ -582,7 +582,7 @@ void CPrivatesendPool::CheckPool()
 
     // reset if we're here for 10 seconds
     if((nState == POOL_STATE_ERROR || nState == POOL_STATE_SUCCESS) && GetTimeMillis() - nTimeLastSuccessfulStep >= 10000) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- timeout, RESETTING\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckPool -- timeout, RESETTING\n");
         UnlockCoins();
         SetNull();
     }
@@ -590,7 +590,7 @@ void CPrivatesendPool::CheckPool()
 
 void CPrivatesendPool::CreateFinalTransaction()
 {
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CreateFinalTransaction -- FINALIZE TRANSACTIONS\n");
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CreateFinalTransaction -- FINALIZE TRANSACTIONS\n");
 
     CMutableTransaction txNew;
 
@@ -608,7 +608,7 @@ void CPrivatesendPool::CreateFinalTransaction()
     sort(txNew.vout.begin(), txNew.vout.end());
 
     finalMutableTransaction = txNew;
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CreateFinalTransaction -- finalMutableTransaction=%s", txNew.ToString());
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CreateFinalTransaction -- finalMutableTransaction=%s", txNew.ToString());
 
     // request signatures from clients
     RelayFinalTransaction(finalMutableTransaction);
@@ -622,7 +622,7 @@ void CPrivatesendPool::CommitFinalTransaction()
     CTransaction finalTransaction = CTransaction(finalMutableTransaction);
     uint256 hashTx = finalTransaction.GetHash();
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CommitFinalTransaction -- finalTransaction=%s", finalTransaction.ToString());
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CommitFinalTransaction -- finalTransaction=%s", finalTransaction.ToString());
 
     {
         // See if the transaction is valid
@@ -660,7 +660,7 @@ void CPrivatesendPool::CommitFinalTransaction()
     ChargeRandomFees();
 
     // Reset
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CommitFinalTransaction -- COMPLETED -- RESETTING\n");
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CommitFinalTransaction -- COMPLETED -- RESETTING\n");
     SetNull();
 }
 
@@ -789,7 +789,7 @@ void CPrivatesendPool::CheckTimeout()
        std::vector<CPrivatesendQueue>::iterator it = vecPrivatesendQueue.begin();
        while(it != vecPrivatesendQueue.end()){
            if((*it).IsExpired()){
-               LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
+               LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
                it = vecPrivatesendQueue.erase(it);
            } else ++it;
            c++;
@@ -802,11 +802,11 @@ void CPrivatesendPool::CheckTimeout()
     if(!fDyNode) {
         switch(nState) {
             case POOL_STATE_ERROR:
-                LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool error -- Running CheckPool\n");
+                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool error -- Running CheckPool\n");
                 CheckPool();
                 break;
             case POOL_STATE_SUCCESS:
-                LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool success -- Running CheckPool\n");
+                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool success -- Running CheckPool\n");
                 CheckPool();
                 break;
             default:
@@ -819,7 +819,7 @@ void CPrivatesendPool::CheckTimeout()
     bool fTimeout = GetTimeMillis() - nTimeLastSuccessfulStep >= nTimeout*1000 + nLagTime;
 
     if(nState != POOL_STATE_IDLE && fTimeout) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- %s timed out (%ds) -- restting\n",
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- %s timed out (%ds) -- restting\n",
                 (nState == POOL_STATE_SIGNING) ? "Signing" : "Session", nTimeout);
         ChargeFees();
         UnlockCoins();
@@ -842,7 +842,7 @@ void CPrivatesendPool::CheckForCompleteQueue()
         SetState(POOL_STATE_ACCEPTING_ENTRIES);
 
         CPrivatesendQueue psq(nSessionDenom, activeDynode.vin, GetTime(), true);
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CheckForCompleteQueue -- queue is ready, signing and relaying (%s)\n", psq.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckForCompleteQueue -- queue is ready, signing and relaying (%s)\n", psq.ToString());
         psq.Sign();
         psq.Relay();
     }
@@ -877,17 +877,17 @@ bool CPrivatesendPool::IsInputScriptSigValid(const CTxIn& txin)
 
     if(nTxInIndex >= 0) { //might have to do this one input at a time?
         txNew.vin[nTxInIndex].scriptSig = txin.scriptSig;
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- verifying scriptSig %s\n", ScriptToAsmStr(txin.scriptSig).substr(0,24));
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- verifying scriptSig %s\n", ScriptToAsmStr(txin.scriptSig).substr(0,24));
         if(!VerifyScript(txNew.vin[nTxInIndex].scriptSig, sigPubKey, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, MutableTransactionSignatureChecker(&txNew, nTxInIndex))) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- VerifyScript() failed on input %d\n", nTxInIndex);
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- VerifyScript() failed on input %d\n", nTxInIndex);
             return false;
         }
     } else {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- Failed to find matching input in pool, %s\n", txin.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- Failed to find matching input in pool, %s\n", txin.ToString());
         return false;
     }
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- Successfully validated input and scriptSig\n");
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsInputScriptSigValid -- Successfully validated input and scriptSig\n");
     return true;
 }
 
@@ -922,23 +922,23 @@ bool CPrivatesendPool::IsCollateralValid(const CTransaction& txCollateral)
     }
 
     if(fMissingTx) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- Unknown inputs in collateral transaction, txCollateral=%s", txCollateral.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- Unknown inputs in collateral transaction, txCollateral=%s", txCollateral.ToString());
         return false;
     }
 
     //collateral transactions are required to pay out PRIVATESEND_COLLATERAL as a fee to the miners
     if(nValueIn - nValueOut < PRIVATESEND_COLLATERAL) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- did not include enough fees in transaction: fees: %d, txCollateral=%s", nValueOut - nValueIn, txCollateral.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- did not include enough fees in transaction: fees: %d, txCollateral=%s", nValueOut - nValueIn, txCollateral.ToString());
         return false;
     }
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- %s", txCollateral.ToString());
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- %s", txCollateral.ToString());
 
     {
         LOCK(cs_main);
         CValidationState validationState;
         if(!AcceptToMemoryPool(mempool, validationState, txCollateral, false, NULL, false, true, true)) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- didn't pass AcceptToMemoryPool()\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsCollateralValid -- didn't pass AcceptToMemoryPool()\n");
             return false;
         }
     }
@@ -956,30 +956,30 @@ bool CPrivatesendPool::AddEntry(const CPrivateSendEntry& entryNew, PoolMessage& 
 
     BOOST_FOREACH(CTxIn txin, entryNew.vecTxPSIn) {
         if(txin.prevout.IsNull()) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- input not valid!\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- input not valid!\n");
             nMessageIDRet = ERR_INVALID_INPUT;
             return false;
         }
     }
 
     if(!IsCollateralValid(entryNew.txCollateral)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- collateral not valid!\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- collateral not valid!\n");
         nMessageIDRet = ERR_INVALID_COLLATERAL;
         return false;
     }
 
     if(GetEntriesCount() >= GetMaxPoolTransactions()) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- entries is full!\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- entries is full!\n");
         nMessageIDRet = ERR_ENTRIES_FULL;
         return false;
     }
 
     BOOST_FOREACH(CTxIn txin, entryNew.vecTxPSIn) {
-        LogPrint(BCLog::PRIVATESEND, "looking for txin -- %s\n", txin.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "looking for txin -- %s\n", txin.ToString());
         BOOST_FOREACH(const CPrivateSendEntry& entry, vecEntries) {
             BOOST_FOREACH(const CTxPSIn& txpsin, entry.vecTxPSIn) {
                 if(txpsin.prevout == txin.prevout) {
-                    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- found in txin\n");
+                    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- found in txin\n");
                     nMessageIDRet = ERR_ALREADY_HAVE;
                     return false;
                 }
@@ -989,7 +989,7 @@ bool CPrivatesendPool::AddEntry(const CPrivateSendEntry& entryNew, PoolMessage& 
 
     vecEntries.push_back(entryNew);
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- adding entry\n");
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddEntry -- adding entry\n");
     nMessageIDRet = MSG_ENTRIES_ADDED;
     nTimeLastSuccessfulStep = GetTimeMillis();
 
@@ -998,34 +998,34 @@ bool CPrivatesendPool::AddEntry(const CPrivateSendEntry& entryNew, PoolMessage& 
 
 bool CPrivatesendPool::AddScriptSig(const CTxIn& txinNew)
 {
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- scriptSig=%s\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- scriptSig=%s\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
 
     BOOST_FOREACH(const CPrivateSendEntry& entry, vecEntries) {
         BOOST_FOREACH(const CTxPSIn& txpsin, entry.vecTxPSIn) {
             if(txpsin.scriptSig == txinNew.scriptSig) {
-                LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- already exists\n");
+                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- already exists\n");
                 return false;
             }
         }
     }
 
     if(!IsInputScriptSigValid(txinNew)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- Invalid scriptSig\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- Invalid scriptSig\n");
         return false;
     }
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- scriptSig=%s new\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- scriptSig=%s new\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
 
     BOOST_FOREACH(CTxIn& txin, finalMutableTransaction.vin) {
         if(txinNew.prevout == txin.prevout && txin.nSequence == txinNew.nSequence) {
             txin.scriptSig = txinNew.scriptSig;
             txin.prevPubKey = txinNew.prevPubKey;
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- adding to finalMutableTransaction, scriptSig=%s\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- adding to finalMutableTransaction, scriptSig=%s\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
         }
     }
     for(int i = 0; i < GetEntriesCount(); i++) {
         if(vecEntries[i].AddScriptSig(txinNew)) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- adding to entries, scriptSig=%s\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::AddScriptSig -- adding to entries, scriptSig=%s\n", ScriptToAsmStr(txinNew.scriptSig).substr(0,24));
             return true;
         }
     }
@@ -1094,12 +1094,12 @@ bool CPrivatesendPool::SendDenominate(const std::vector<CTxIn>& vecTxIn, const s
         CMutableTransaction tx;
 
         BOOST_FOREACH(const CTxIn& txin, vecTxIn) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SendDenominate -- txin=%s\n", txin.ToString());
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SendDenominate -- txin=%s\n", txin.ToString());
             tx.vin.push_back(txin);
         }
 
         BOOST_FOREACH(const CTxOut& txout, vecTxOut) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SendDenominate -- txout=%s\n", txout.ToString());
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SendDenominate -- txout=%s\n", txout.ToString());
             tx.vout.push_back(txout);
         }
 
@@ -1225,14 +1225,14 @@ bool CPrivatesendPool::SignFinalTransaction(const CTransaction& finalTransaction
 
                 const CKeyStore& keystore = *pwalletMain;
 
-                LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SignFinalTransaction -- Signing my input %i\n", nMyInputIndex);
+                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SignFinalTransaction -- Signing my input %i\n", nMyInputIndex);
                 if(!SignSignature(keystore, prevPubKey, finalMutableTransaction, nMyInputIndex, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY))) { // changes scriptSig
-                    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SignFinalTransaction -- Unable to sign my own transaction!\n");
+                    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SignFinalTransaction -- Unable to sign my own transaction!\n");
                     // not sure what to do here, it will timeout...?
                 }
 
                 sigs.push_back(finalMutableTransaction.vin[nMyInputIndex]);
-                LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SignFinalTransaction -- nMyInputIndex: %d, sigs.size(): %d, scriptSig=%s\n", nMyInputIndex, (int)sigs.size(), ScriptToAsmStr(finalMutableTransaction.vin[nMyInputIndex].scriptSig));
+                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SignFinalTransaction -- nMyInputIndex: %d, sigs.size(): %d, scriptSig=%s\n", nMyInputIndex, (int)sigs.size(), ScriptToAsmStr(finalMutableTransaction.vin[nMyInputIndex].scriptSig));
             }
         }
     }
@@ -1261,7 +1261,7 @@ void CPrivatesendPool::NewBlock()
     //we we're processing lots of blocks, we'll just leave
     if(GetTime() - nTimeNewBlockReceived < 10) return;
     nTimeNewBlockReceived = GetTime();
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::NewBlock\n");
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::NewBlock\n");
 
     CheckTimeout();
 }
@@ -1298,7 +1298,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
 
     switch(nWalletBackups) {
         case 0:
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Automatic backups disabled, no mixing available.\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Automatic backups disabled, no mixing available.\n");
             strAutoDenomResult = _("Automatic backups disabled") + ", " + _("no mixing available.");
             fEnablePrivateSend = false; // stop mixing
             pwalletMain->nKeysLeftSinceAutoBackup = 0; // no backup, no "keys since last backup"
@@ -1307,32 +1307,32 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
             // Automatic backup failed, nothing else we can do until user fixes the issue manually.
             // There is no way to bring user attention in daemon mode so we just update status and
             // keep spaming if debug is on.
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- ERROR! Failed to create automatic backup.\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- ERROR! Failed to create automatic backup.\n");
             strAutoDenomResult = _("ERROR! Failed to create automatic backup") + ", " + _("see debug.log for details.");
             return false;
         case -2:
             // We were able to create automatic backup but keypool was not replenished because wallet is locked.
             // There is no way to bring user attention in daemon mode so we just update status and
             // keep spaming if debug is on.
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- WARNING! Failed to create replenish keypool, please unlock your wallet to do so.\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- WARNING! Failed to create replenish keypool, please unlock your wallet to do so.\n");
             strAutoDenomResult = _("WARNING! Failed to replenish keypool, please unlock your wallet to do so.") + ", " + _("see debug.log for details.");
             return false;
     }
 
     if(pwalletMain->nKeysLeftSinceAutoBackup < PRIVATESEND_KEYS_THRESHOLD_STOP) {
         // We should never get here via mixing itself but probably smth else is still actively using keypool
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Very low number of keys left: %d, no mixing available.\n", pwalletMain->nKeysLeftSinceAutoBackup);
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Very low number of keys left: %d, no mixing available.\n", pwalletMain->nKeysLeftSinceAutoBackup);
         strAutoDenomResult = strprintf(_("Very low number of keys left: %d") + ", " + _("no mixing available."), pwalletMain->nKeysLeftSinceAutoBackup);
         // It's getting really dangerous, stop mixing
         fEnablePrivateSend = false;
         return false;
     } else if(pwalletMain->nKeysLeftSinceAutoBackup < PRIVATESEND_KEYS_THRESHOLD_WARNING) {
         // Low number of keys left but it's still more or less safe to continue
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Very low number of keys left: %d\n", pwalletMain->nKeysLeftSinceAutoBackup);
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Very low number of keys left: %d\n", pwalletMain->nKeysLeftSinceAutoBackup);
         strAutoDenomResult = strprintf(_("Very low number of keys left: %d"), pwalletMain->nKeysLeftSinceAutoBackup);
 
         if(fCreateAutoBackups) {
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Trying to create new backup.\n");
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Trying to create new backup.\n");
             std::string warningString;
             std::string errorString;
 
@@ -1354,7 +1354,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
         }
     }
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Keys left since latest backup: %d\n", pwalletMain->nKeysLeftSinceAutoBackup);
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Keys left since latest backup: %d\n", pwalletMain->nKeysLeftSinceAutoBackup);
 
     if(GetEntriesCount() > 0) {
         strAutoDenomResult = _("Mixing in progress...");
@@ -1379,7 +1379,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     }
 
     if(dnodeman.size() == 0) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- No Dynodes detected\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- No Dynodes detected\n");
         strAutoDenomResult = _("No Dynodes detected.");
         return false;
     }
@@ -1409,7 +1409,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     CAmount nBalanceDenominatedUnconf = pwalletMain->GetDenominatedBalance(true);
     CAmount nBalanceDenominated = nBalanceDenominatedConf + nBalanceDenominatedUnconf;
 
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- nValueMin: %f, nBalanceNeedsAnonymized: %f, nBalanceAnonimizableNonDenom: %f, nBalanceDenominatedConf: %f, nBalanceDenominatedUnconf: %f, nBalanceDenominated: %f\n",
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- nValueMin: %f, nBalanceNeedsAnonymized: %f, nBalanceAnonimizableNonDenom: %f, nBalanceDenominatedConf: %f, nBalanceDenominatedUnconf: %f, nBalanceDenominated: %f\n",
             (float)nValueMin/COIN,
             (float)nBalanceNeedsAnonymized/COIN,
             (float)nBalanceAnonimizableNonDenom/COIN,
@@ -1468,11 +1468,11 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     // If we've used 90% of the Dynode list then drop the oldest first ~30%
     int nThreshold_high = nDnCountEnabled * 0.9;
     int nThreshold_low = nThreshold_high * 0.7;
-    LogPrint(BCLog::PRIVATESEND, "Checking vecDynodesUsed: size: %d, threshold: %d\n", (int)vecDynodesUsed.size(), nThreshold_high);
+    LogPrint(DYNLog::PRIVATESEND, "Checking vecDynodesUsed: size: %d, threshold: %d\n", (int)vecDynodesUsed.size(), nThreshold_high);
 
     if((int)vecDynodesUsed.size() > nThreshold_high) {
         vecDynodesUsed.erase(vecDynodesUsed.begin(), vecDynodesUsed.begin() + vecDynodesUsed.size() - nThreshold_low);
-        LogPrint(BCLog::PRIVATESEND, "  vecDynodesUsed: new size: %d, threshold: %d\n", (int)vecDynodesUsed.size(), nThreshold_high);
+        LogPrint(DYNLog::PRIVATESEND, "  vecDynodesUsed: new size: %d, threshold: %d\n", (int)vecDynodesUsed.size(), nThreshold_high);
     }
 
     bool fUseQueue = GetRandInt(100) > 33;
@@ -1505,7 +1505,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
             // in order for psq to get into vecPrivatesendQueue, so we should be safe to mix already,
             // no need for additional verification here
 
-            LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- found valid queue: %s\n", psq.ToString());
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- found valid queue: %s\n", psq.ToString());
 
             CAmount nValueInTmp = 0;
             std::vector<CTxIn> vecTxInTmp;
@@ -1652,7 +1652,7 @@ bool CPrivatesendPool::SubmitDenominate()
             LogPrintf("CPrivatesendPool::SubmitDenominate -- Running PrivateSend denominate for %d rounds, success\n", i);
             return SendDenominate(vecTxInRet, vecTxOutRet);
         }
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SubmitDenominate -- Running PrivateSend denominate for %d rounds, error: %s\n", i, strError);
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SubmitDenominate -- Running PrivateSend denominate for %d rounds, error: %s\n", i, strError);
     }
 
     // We failed? That's strange but let's just make final attempt and try to mix everything
@@ -1794,7 +1794,7 @@ bool CPrivatesendPool::MakeCollateralAmounts()
 {
     std::vector<CompactTallyItem> vecTally;
     if(!pwalletMain->SelectCoinsGrouppedByAddresses(vecTally, false)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::MakeCollateralAmounts -- SelectCoinsGrouppedByAddresses can't find any inputs!\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::MakeCollateralAmounts -- SelectCoinsGrouppedByAddresses can't find any inputs!\n");
         return false;
     }
 
@@ -1873,7 +1873,7 @@ bool CPrivatesendPool::CreateDenominated()
 {
     std::vector<CompactTallyItem> vecTally;
     if(!pwalletMain->SelectCoinsGrouppedByAddresses(vecTally)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CreateDenominated -- SelectCoinsGrouppedByAddresses can't find any inputs!\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CreateDenominated -- SelectCoinsGrouppedByAddresses can't find any inputs!\n");
         return false;
     }
 
@@ -2028,14 +2028,14 @@ bool CPrivatesendPool::IsAcceptableDenomAndCollateral(int nDenom, CTransaction t
     // is denom even smth legit?
     std::vector<int> vecBits;
     if(!GetDenominationsBits(nDenom, vecBits)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsAcceptableDenomAndCollateral -- denom not valid!\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsAcceptableDenomAndCollateral -- denom not valid!\n");
         nMessageIDRet = ERR_DENOM;
         return false;
     }
 
     // check collateral
     if(!fUnitTest && !IsCollateralValid(txCollateral)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::IsAcceptableDenomAndCollateral -- collateral not valid!\n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::IsAcceptableDenomAndCollateral -- collateral not valid!\n");
         nMessageIDRet = ERR_INVALID_COLLATERAL;
         return false;
     }
@@ -2069,7 +2069,7 @@ bool CPrivatesendPool::CreateNewSession(int nDenom, CTransaction txCollateral, P
     if(!fUnitTest) {
         //broadcast that I'm accepting entries, only if it's the first entry through
         CPrivatesendQueue psq(nDenom, activeDynode.vin, GetTime(), false);
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::CreateNewSession -- signing and relaying new queue: %s\n", psq.ToString());
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CreateNewSession -- signing and relaying new queue: %s\n", psq.ToString());
         psq.Sign();
         psq.Relay();
         vecPrivatesendQueue.push_back(psq);
@@ -2390,7 +2390,7 @@ void CPrivatesendPool::RelayCompletedTransaction(PoolMessage nMessageID)
 void CPrivatesendPool::SetState(PoolState nStateNew)
 {
     if(fDyNode && (nStateNew == POOL_STATE_ERROR || nStateNew == POOL_STATE_SUCCESS)) {
-        LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::SetState -- Can't set state to ERROR or SUCCESS as a Dynode. \n");
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::SetState -- Can't set state to ERROR or SUCCESS as a Dynode. \n");
         return;
     }
 
@@ -2401,7 +2401,7 @@ void CPrivatesendPool::SetState(PoolState nStateNew)
 void CPrivatesendPool::UpdatedBlockTip(const CBlockIndex *pindex)
 {
     pCurrentBlockIndex = pindex;
-    LogPrint(BCLog::PRIVATESEND, "CPrivatesendPool::UpdatedBlockTip -- pCurrentBlockIndex->nHeight: %d\n", pCurrentBlockIndex->nHeight);
+    LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::UpdatedBlockTip -- pCurrentBlockIndex->nHeight: %d\n", pCurrentBlockIndex->nHeight);
 
     if(!fLiteMode && dynodeSync.IsDynodeListSynced()) {
         NewBlock();

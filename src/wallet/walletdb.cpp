@@ -884,7 +884,7 @@ void ThreadFlushWalletDB(const std::string& strFile)
                     std::map<std::string, int>::iterator _mi = bitdb.mapFileUseCount.find(strFile);
                     if (_mi != bitdb.mapFileUseCount.end())
                     {
-                        LogPrint(BCLog::DB, "Flushing wallet.dat\n");
+                        LogPrint(DYNLog::DB, "Flushing wallet.dat\n");
                         nLastFlushed = nWalletDBUpdated;
                         int64_t nStart = GetTimeMillis();
 
@@ -893,7 +893,7 @@ void ThreadFlushWalletDB(const std::string& strFile)
                         bitdb.CheckpointLSN(strFile);
 
                         bitdb.mapFileUseCount.erase(_mi++);
-                        LogPrint(BCLog::DB, "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
+                        LogPrint(DYNLog::DB, "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
                     }
                 }
             }

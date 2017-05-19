@@ -20,9 +20,9 @@ CActiveDynode activeDynode;
 
 void CActiveDynode::ManageState()
 {
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageState -- Start\n");
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageState -- Start\n");
     if(!fDyNode) {
-        LogPrint(BCLog::DYNODE, "CActiveDynode::ManageState -- Not a Dynode, returning\n");
+        LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageState -- Not a Dynode, returning\n");
         return;
     }
 
@@ -36,7 +36,7 @@ void CActiveDynode::ManageState()
         nState = ACTIVE_DYNODE_INITIAL;
     }
 
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageState -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageState -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
 
     if(eType == DYNODE_UNKNOWN) {
         ManageStateInitial();
@@ -101,7 +101,7 @@ std::string CActiveDynode::GetTypeString() const
 bool CActiveDynode::SendDynodePing()
 {
     if(!fPingerEnabled) {
-        LogPrint(BCLog::DYNODE, "CActiveDynode::SendDynodePing -- %s: Dynode ping service is disabled, skipping...\n", GetStateString());
+        LogPrint(DYNLog::DYNODE, "CActiveDynode::SendDynodePing -- %s: Dynode ping service is disabled, skipping...\n", GetStateString());
         return false;
     }
 
@@ -134,7 +134,7 @@ bool CActiveDynode::SendDynodePing()
 
 void CActiveDynode::ManageStateInitial()
 {
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
     // Check that our local network configuration is correct
     if (!fListen) {
         // listen option is probably overwritten by smth else, no good
@@ -144,7 +144,7 @@ void CActiveDynode::ManageStateInitial()
         return;
     }
 
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
     // Check that our local network configuration is correct
     BOOST_FOREACH(CNode* pnode, vNodes) {
     if (pnode->addr.IsIPv6()) {
@@ -242,12 +242,12 @@ void CActiveDynode::ManageStateInitial()
         eType = DYNODE_LOCAL;
     }
 
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageStateInitial -- End status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateInitial -- End status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
 }
 
 void CActiveDynode::ManageStateRemote()
 {
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyDynode.GetID() = %s\n", 
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyDynode.GetID() = %s\n", 
              GetStatus(), fPingerEnabled, GetTypeString(), pubKeyDynode.GetID().ToString());
 
     dnodeman.CheckDynode(pubKeyDynode, true);
@@ -288,7 +288,7 @@ void CActiveDynode::ManageStateRemote()
 
 void CActiveDynode::ManageStateLocal()
 {
-    LogPrint(BCLog::DYNODE, "CActiveDynode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
     if(nState == ACTIVE_DYNODE_STARTED) {
         return;
     }

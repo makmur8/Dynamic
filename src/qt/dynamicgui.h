@@ -108,8 +108,8 @@ private:
     ClientModel *clientModel;
     WalletFrame *walletFrame;
 
-    UnitDisplayStatusBarControl *unitDisplayControl;
     QLabel *labelWalletHDStatusIcon;
+    UnitDisplayStatusBarControl *unitDisplayControl;
     QPushButton *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;

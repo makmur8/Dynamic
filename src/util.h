@@ -101,7 +101,7 @@ struct CLogCategoryActive
     bool active;
 };
 
-namespace BCLog {
+namespace DYNLog {
     enum LogFlags : uint32_t {
         NONE        = 0,
         NET         = (1 <<  0),
@@ -158,7 +158,7 @@ bool GetLogCategory(uint32_t *f, const std::string *str);
 /** Send a string to the log output */
 int LogPrintStr(const std::string &str);
 
-#define LogPrintf(...) LogPrint(BCLog::NONE, __VA_ARGS__)
+#define LogPrintf(...) LogPrint(DYNLog::NONE, __VA_ARGS__)
 
 /**
  * When we switch to C++11, this can be switched to variadic templates instead
