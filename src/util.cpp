@@ -953,10 +953,6 @@ fs::path GetSpecialFolderPath(int nFolder, bool fCreate)
 #endif
 
 fs::path GetTempPath() {
-#if BOOST_FILESYSTEM_VERSION == 3
-    return fs::temp_directory_path();
-#else
-    // TODO: remove when we don't support filesystem v2 anymore
     fs::path path;
 #ifdef WIN32
     char pszPath[MAX_PATH] = "";
@@ -971,7 +967,6 @@ fs::path GetTempPath() {
         return fs::path("");
     }
     return path;
-#endif
 }
 
 void runCommand(const std::string& strCommand)
