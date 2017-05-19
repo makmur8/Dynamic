@@ -34,7 +34,7 @@
 --- old/qtbase/src/plugins/platforms/xcb/xcb-plugin.pro
 +++ new/qtbase/src/plugins/platforms/xcb/xcb-plugin.pro
 @@ -6,6 +6,13 @@
-     qxcbvalidation.cpp
+     qxcbmain.cpp
  OTHER_FILES += xcb.json README
  
 +contains(QT_CONFIG, xcb-qt) {
