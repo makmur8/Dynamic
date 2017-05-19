@@ -158,7 +158,7 @@ bool GetLogCategory(uint32_t *f, const std::string *str);
 /** Send a string to the log output */
 int LogPrintStr(const std::string &str);
 
-#define LogPrintf(...) LogPrint(NULL, __VA_ARGS__)
+#define LogPrintf(...) LogPrint(BCLog::NONE, __VA_ARGS__)
 
 /**
  * When we switch to C++11, this can be switched to variadic templates instead
