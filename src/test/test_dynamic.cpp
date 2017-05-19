@@ -59,7 +59,7 @@ TestingSetup::TestingSetup(const std::string& chainName) : BasicTestingSetup(cha
 #endif
         ClearDatadirCache();
         pathTemp = GetTempPath() / strprintf("test_dynamic_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
-        boost::filesystem::create_directories(pathTemp);
+        fs::create_directories(pathTemp);
         mapArgs["-datadir"] = pathTemp.string();
         pblocktree = new CBlockTreeDB(1 << 20, true);
         pcoinsdbview = new CCoinsViewDB(1 << 23, true);
@@ -100,7 +100,7 @@ TestingSetup::~TestingSetup()
         bitdb.Flush(true);
         bitdb.Reset();
 #endif
-        boost::filesystem::remove_all(pathTemp);
+        fs::remove_all(pathTemp);
 }
 
 TestChain100Setup::TestChain100Setup() : TestingSetup(CBaseChainParams::REGTEST)

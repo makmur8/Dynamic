@@ -917,9 +917,9 @@ bool BackupWallet(const CWallet& wallet, const std::string& strDest)
                 bitdb.mapFileUseCount.erase(wallet.strWalletFile);
 
                 // Copy wallet.dat
-                boost::filesystem::path pathSrc = GetDataDir() / wallet.strWalletFile;
-                boost::filesystem::path pathDest(strDest);
-                if (boost::filesystem::is_directory(pathDest))
+                fs::path pathSrc = GetDataDir() / wallet.strWalletFile;
+                fs::path pathDest(strDest);
+                if (fs::is_directory(pathDest))
                     pathDest /= wallet.strWalletFile;
 
                 try {
@@ -945,7 +945,7 @@ bool BackupWallet(const CWallet& wallet, const std::string& strDest)
 // either supply "wallet" (if already loaded) or "strWalletFile" (if wallet wasn't loaded yet)
 bool AutoBackupWallet (CWallet* wallet, std::string strWalletFile, std::string& strBackupWarning, std::string& strBackupError)
 {
-    namespace fs = boost::filesystem;
+    namespace fs = fs;
 
     strBackupWarning = strBackupError = "";
 

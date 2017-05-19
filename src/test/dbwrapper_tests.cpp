@@ -12,7 +12,7 @@
 #include <boost/test/unit_test.hpp>
                     
 using namespace boost::assign; // bring 'operator+=()' into scope
-using namespace boost::filesystem;
+using namespace fs;
          
 // Test if a string consists entirely of null characters
 bool is_null_key(const std::vector<unsigned char>& key) {

@@ -221,7 +221,7 @@ bool CNameDB::ReadName(const CNameVal& name, CNameRecord& rec)
     {
         // delete nameindex and kill the application. nameindex should be recreated on next start
         boost::system::error_code err;
-        boost::filesystem::remove(GetDataDir() / this->strFile, err);
+        fs::remove(GetDataDir() / this->strFile, err);
         LogPrintf("Nameindex is corrupt! It will be recreated on next start.");
         assert(rec.nLastActiveChainIndex < s);
     }

@@ -26,7 +26,7 @@ struct BasicTestingSetup {
  */
 struct TestingSetup: public BasicTestingSetup {
     CCoinsViewDB *pcoinsdbview;
-    boost::filesystem::path pathTemp;
+    fs::path pathTemp;
     boost::thread_group threadGroup;
 
     TestingSetup(const std::string& chainName = CBaseChainParams::MAIN);

@@ -17,8 +17,8 @@ void CDynodeConfig::add(std::string alias, std::string ip, std::string privKey, 
 
 bool CDynodeConfig::read(std::string& strErr) {
     int linenumber = 1;
-    boost::filesystem::path pathDynodeConfigFile = GetDynodeConfigFile();
-    boost::filesystem::ifstream streamConfig(pathDynodeConfigFile);
+    fs::path pathDynodeConfigFile = GetDynodeConfigFile();
+    fs::ifstream streamConfig(pathDynodeConfigFile);
 
     if (!streamConfig.good()) {
         FILE* configFile = fopen(pathDynodeConfigFile.string().c_str(), "a");

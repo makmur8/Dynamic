@@ -125,7 +125,7 @@ struct ReadAlerts : public TestingSetup
     }
     ~ReadAlerts() { }
 
-    static std::vector<std::string> read_lines(boost::filesystem::path filepath)
+    static std::vector<std::string> read_lines(fs::path filepath)
     {
         std::vector<std::string> result;
 
@@ -204,8 +204,8 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    boost::filesystem::path temp = GetTempPath() /
-        boost::filesystem::unique_path("alertnotify-%%%%.txt");
+    fs::path temp = GetTempPath() /
+        fs::unique_path("alertnotify-%%%%.txt");
 
     mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
 
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     BOOST_CHECK_EQUAL(r[2], "'Alert 2, cancels 1' ");
     BOOST_CHECK_EQUAL(r[3], "'Evil Alert; /bin/ls; echo ' ");
 #endif
-    boost::filesystem::remove(temp);
+    fs::remove(temp);
 
     SetMockTime(0);
 }
