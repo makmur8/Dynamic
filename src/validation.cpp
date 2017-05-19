@@ -6998,9 +6998,11 @@ bool SendMessages(CNode* pto)
         //
         // Message: getdata (non-blocks)
         //
-        int64_t nFirst = -1;
         if(!pto->mapAskFor.empty()) {
-            nFirst = (*pto->mapAskFor.begin()).first;
+			int64_t nFirst = -1;
+			{
+				nFirst = (*pto->mapAskFor.begin()).first;
+			}
         }
         // debug=1, seems to produce mostly this message
         //LogPrint(BCLog::NET, "SendMessages (mapAskFor) -- before loop: nNow = %d, nFirst = %d\n", nNow, nFirst);
