@@ -51,18 +51,18 @@ bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockRewar
         if(nBlockHeight >= consensusParams.nBudgetPaymentsStartBlock &&
             nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
             if(dynodeSync.IsSynced() && !sporkManager.IsSporkActive(SPORK_13_OLD_SUPERBLOCK_FLAG)) {
-                LogPrint("gobject", "IsBlockValueValid -- Client synced but budget spork is disabled, checking block value against block reward\n");
+                LogPrint(BCLog::GOBJECT, "IsBlockValueValid -- Client synced but budget spork is disabled, checking block value against block reward\n");
                 if(!isBlockRewardValueMet) {
                     strErrorRet = strprintf("coinbase pays too much at height %d (actual=%d vs limit=%d), exceeded block reward, budgets are disabled",
                                             nBlockHeight, block.vtx[0].GetValueOut(), blockReward);
                 }
                 return isBlockRewardValueMet;
             }
-            LogPrint("gobject", "IsBlockValueValid -- WARNING: Skipping budget block value checks, accepting block\n");
+            LogPrint(BCLog::GOBJECT, "IsBlockValueValid -- WARNING: Skipping budget block value checks, accepting block\n");
             // TODO: reprocess blocks to make sure they are legit?
             return true;
         }
-        // LogPrint("gobject", "IsBlockValueValid -- Block is not in budget cycle window, checking block value against block reward\n");
+        // LogPrint(BCLog::GOBJECT, "IsBlockValueValid -- Block is not in budget cycle window, checking block value against block reward\n");
         if(!isBlockRewardValueMet) {
             strErrorRet = strprintf("coinbase pays too much at height %d (actual=%d vs limit=%d), exceeded block reward, block is not in budget cycle window",
                                     nBlockHeight, block.vtx[0].GetValueOut(), blockReward);
@@ -75,7 +75,7 @@ bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockRewar
     CAmount nSuperblockMaxValue =  blockReward + CSuperblock::GetPaymentsLimit(nBlockHeight);
     bool isSuperblockMaxValueMet = (block.vtx[0].GetValueOut() <= nSuperblockMaxValue);
 
-    LogPrint("gobject", "block.vtx[0].GetValueOut() %lld <= nSuperblockMaxValue %lld\n", block.vtx[0].GetValueOut(), nSuperblockMaxValue);
+    LogPrint(BCLog::GOBJECT, "block.vtx[0].GetValueOut() %lld <= nSuperblockMaxValue %lld\n", block.vtx[0].GetValueOut(), nSuperblockMaxValue);
 
     if(!dynodeSync.IsSynced()) {
         // not enough data but at least it must NOT exceed superblock max value
@@ -107,7 +107,7 @@ bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockRewar
 
         if(CSuperblockManager::IsSuperblockTriggered(nBlockHeight)) {
             if(CSuperblockManager::IsValid(block.vtx[0], nBlockHeight, blockReward)) {
-                LogPrint("gobject", "IsBlockValueValid -- Valid superblock at height %d: %s", nBlockHeight, block.vtx[0].ToString());
+                LogPrint(BCLog::GOBJECT, "IsBlockValueValid -- Valid superblock at height %d: %s", nBlockHeight, block.vtx[0].ToString());
                 // all checks are done in CSuperblock::IsValid, nothing to do here
                 return true;
             }
@@ -118,14 +118,14 @@ bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockRewar
             strErrorRet = strprintf("invalid superblock detected at height %d", nBlockHeight);
             return false;
         }
-        LogPrint("gobject", "IsBlockValueValid -- No triggered superblock detected at height %d\n", nBlockHeight);
+        LogPrint(BCLog::GOBJECT, "IsBlockValueValid -- No triggered superblock detected at height %d\n", nBlockHeight);
         if(!isBlockRewardValueMet) {
             strErrorRet = strprintf("coinbase pays too much at height %d (actual=%d vs limit=%d), exceeded block reward, no triggered superblock detected",
                                     nBlockHeight, block.vtx[0].GetValueOut(), blockReward);
         }
     } else {
         // should NOT allow superblocks at all, when superblocks are disabled
-        LogPrint("gobject", "IsBlockValueValid -- Superblocks are disabled, no superblocks allowed\n");
+        LogPrint(BCLog::GOBJECT, "IsBlockValueValid -- Superblocks are disabled, no superblocks allowed\n");
         if(!isBlockRewardValueMet) {
             strErrorRet = strprintf("coinbase pays too much at height %d (actual=%d vs limit=%d), exceeded block reward, superblocks are disabled",
                                     nBlockHeight, block.vtx[0].GetValueOut(), blockReward);
@@ -151,7 +151,7 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
 
     if(nBlockHeight < consensusParams.nSuperblockStartBlock) {
         if(dnpayments.IsTransactionValid(txNew, nBlockHeight)) {
-            LogPrint("dnpayments", "IsBlockPayeeValid -- Valid Dynode payment at height %d: %s", nBlockHeight, txNew.ToString());
+            LogPrint(BCLog::DNPAYMENTS, "IsBlockPayeeValid -- Valid Dynode payment at height %d: %s", nBlockHeight, txNew.ToString());
             return true;
         }
 
@@ -160,11 +160,11 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
             nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
             if(!sporkManager.IsSporkActive(SPORK_13_OLD_SUPERBLOCK_FLAG)) {
                 // no budget blocks should be accepted here, if SPORK_13_OLD_SUPERBLOCK_FLAG is disabled
-                LogPrint("gobject", "IsBlockPayeeValid -- ERROR: Client synced but budget spork is disabled and Dynode payment is invalid\n");
+                LogPrint(BCLog::GOBJECT, "IsBlockPayeeValid -- ERROR: Client synced but budget spork is disabled and Dynode payment is invalid\n");
                 return false;
             }
             // NOTE: this should never happen in real, SPORK_13_OLD_SUPERBLOCK_FLAG MUST be disabled when 12.1 starts to go live
-            LogPrint("gobject", "IsBlockPayeeValid -- WARNING: Probably valid budget block, have no data, accepting\n");
+            LogPrint(BCLog::GOBJECT, "IsBlockPayeeValid -- WARNING: Probably valid budget block, have no data, accepting\n");
             // TODO: reprocess blocks to make sure they are legit?
             return true;
         }
@@ -184,7 +184,7 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
     if(!sporkManager.IsSporkActive(SPORK_9_SUPERBLOCKS_ENABLED)) {
         if(CSuperblockManager::IsSuperblockTriggered(nBlockHeight)) {
             if(CSuperblockManager::IsValid(txNew, nBlockHeight, blockReward)) {
-                LogPrint("gobject", "IsBlockPayeeValid -- Valid superblock at height %d: %s", nBlockHeight, txNew.ToString());
+                LogPrint(BCLog::GOBJECT, "IsBlockPayeeValid -- Valid superblock at height %d: %s", nBlockHeight, txNew.ToString());
                 return true;
             }
 
@@ -193,15 +193,15 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
             return false;
         }
         // continue validation, should pay DN
-        LogPrint("gobject", "IsBlockPayeeValid -- No triggered superblock detected at height %d\n", nBlockHeight);
+        LogPrint(BCLog::GOBJECT, "IsBlockPayeeValid -- No triggered superblock detected at height %d\n", nBlockHeight);
     } else {
         // should NOT allow superblocks at all, when superblocks are disabled
-        LogPrint("gobject", "IsBlockPayeeValid -- Superblocks are disabled, no superblocks allowed\n");
+        LogPrint(BCLog::GOBJECT, "IsBlockPayeeValid -- Superblocks are disabled, no superblocks allowed\n");
     }
 
     // IF THIS ISN'T A SUPERBLOCK OR SUPERBLOCK IS INVALID, IT SHOULD PAY A DYNODE DIRECTLY
     if(dnpayments.IsTransactionValid(txNew, nBlockHeight)) {
-        LogPrint("dnpayments", "IsBlockPayeeValid -- Valid Dynode payment at height %d: %s", nBlockHeight, txNew.ToString());
+        LogPrint(BCLog::DNPAYMENTS, "IsBlockPayeeValid -- Valid Dynode payment at height %d: %s", nBlockHeight, txNew.ToString());
         return true;
     }
 
@@ -220,7 +220,7 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
     // (height should be validated inside)
     if(sporkManager.IsSporkActive(SPORK_9_SUPERBLOCKS_ENABLED) &&
         CSuperblockManager::IsSuperblockTriggered(nBlockHeight)) {
-            LogPrint("gobject", "FillBlockPayments -- triggered superblock creation at height %d\n", nBlockHeight);
+            LogPrint(BCLog::GOBJECT, "FillBlockPayments -- triggered superblock creation at height %d\n", nBlockHeight);
             CSuperblockManager::CreateSuperblock(txNew, nBlockHeight, voutSuperblockRet);
             return;
     }
@@ -228,7 +228,7 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
     if (chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {
         // FILL BLOCK PAYEE WITH DYNODE PAYMENT OTHERWISE
         dnpayments.FillBlockPayee(txNew, nBlockHeight);
-        LogPrint("dnpayments", "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutDynodeRet %s txNew %s",
+        LogPrint(BCLog::DNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutDynodeRet %s txNew %s",
                                 nBlockHeight, blockReward, txoutDynodeRet.ToString(), txNew.ToString());
     }
 }
@@ -384,7 +384,7 @@ void CDynodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
         {
             LOCK(cs_mapDynodePaymentVotes);
             if(mapDynodePaymentVotes.count(nHash)) {
-                LogPrint("dnpayments", "DYNODEPAYMENTVOTE -- hash=%s, nHeight=%d seen\n", nHash.ToString(), pCurrentBlockIndex->nHeight);
+                LogPrint(BCLog::DNPAYMENTS, "DYNODEPAYMENTVOTE -- hash=%s, nHeight=%d seen\n", nHash.ToString(), pCurrentBlockIndex->nHeight);
                 return;
             }
 
@@ -397,13 +397,13 @@ void CDynodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
 
         int nFirstBlock = pCurrentBlockIndex->nHeight - GetStorageLimit();
         if(vote.nBlockHeight < nFirstBlock || vote.nBlockHeight > pCurrentBlockIndex->nHeight+20) {
-            LogPrint("dnpayments", "DYNODEPAYMENTVOTE -- vote out of range: nFirstBlock=%d, nBlockHeight=%d, nHeight=%d\n", nFirstBlock, vote.nBlockHeight, pCurrentBlockIndex->nHeight);
+            LogPrint(BCLog::DNPAYMENTS, "DYNODEPAYMENTVOTE -- vote out of range: nFirstBlock=%d, nBlockHeight=%d, nHeight=%d\n", nFirstBlock, vote.nBlockHeight, pCurrentBlockIndex->nHeight);
             return;
         }
 
         std::string strError = "";
         if(!vote.IsValid(pfrom, pCurrentBlockIndex->nHeight, strError)) {
-            LogPrint("dnpayments", "DYNODEPAYMENTVOTE -- invalid message, error: %s\n", strError);
+            LogPrint(BCLog::DNPAYMENTS, "DYNODEPAYMENTVOTE -- invalid message, error: %s\n", strError);
             return;
         }
 
@@ -427,7 +427,7 @@ void CDynodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
                 Misbehaving(pfrom->GetId(), nDos);
             } else {
                 // only warn about anything non-critical (i.e. nDos == 0) in debug mode
-                LogPrint("dnpayments", "DYNODEPAYMENTVOTE -- WARNING: invalid signature\n");
+                LogPrint(BCLog::DNPAYMENTS, "DYNODEPAYMENTVOTE -- WARNING: invalid signature\n");
             }
             // Either our info or vote info could be outdated.
             // In case our info is outdated, ask for an update,
@@ -442,7 +442,7 @@ void CDynodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
         ExtractDestination(vote.payee, address1);
         CDynamicAddress address2(address1);
 
-        LogPrint("dnpayments", "DYNODEPAYMENTVOTE -- vote: address=%s, nBlockHeight=%d, nHeight=%d, prevout=%s\n", address2.ToString(), vote.nBlockHeight, pCurrentBlockIndex->nHeight, vote.vinDynode.prevout.ToStringShort());
+        LogPrint(BCLog::DNPAYMENTS, "DYNODEPAYMENTVOTE -- vote: address=%s, nBlockHeight=%d, nHeight=%d, prevout=%s\n", address2.ToString(), vote.nBlockHeight, pCurrentBlockIndex->nHeight, vote.vinDynode.prevout.ToStringShort());
 
         if(AddPaymentVote(vote)){
             vote.Relay();
@@ -549,7 +549,7 @@ bool CDynodeBlockPayees::GetBestPayee(CScript& payeeRet)
     LOCK(cs_vecPayees);
 
     if(!vecPayees.size()) {
-        LogPrint("dnpayments", "CDynodeBlockPayees::GetBestPayee -- ERROR: couldn't find any payee\n");
+        LogPrint(BCLog::DNPAYMENTS, "CDynodeBlockPayees::GetBestPayee -- ERROR: couldn't find any payee\n");
         return false;
     }
 
@@ -574,7 +574,7 @@ bool CDynodeBlockPayees::HasPayeeWithVotes(CScript payeeIn, int nVotesReq)
         }
     }
 
-    LogPrint("dnpayments", "CDynodeBlockPayees::HasPayeeWithVotes -- ERROR: couldn't find any payee with %d+ votes\n", nVotesReq);
+    LogPrint(BCLog::DNPAYMENTS, "CDynodeBlockPayees::HasPayeeWithVotes -- ERROR: couldn't find any payee with %d+ votes\n", nVotesReq);
     return false;
 }
 
@@ -602,7 +602,7 @@ bool CDynodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
         if (payee.GetVoteCount() >= DNPAYMENTS_SIGNATURES_REQUIRED) {
             BOOST_FOREACH(CTxOut txout, txNew.vout) {
                 if (payee.GetPayee() == txout.scriptPubKey && nDynodePayment == txout.nValue) {
-                    LogPrint("dnpayments", "CDynodeBlockPayees::IsTransactionValid -- Found required payment\n");
+                    LogPrint(BCLog::DNPAYMENTS, "CDynodeBlockPayees::IsTransactionValid -- Found required payment\n");
                     return true;
                 }
             }
@@ -680,7 +680,7 @@ void CDynodePayments::CheckAndRemove()
         CDynodePaymentVote vote = (*it).second;
 
         if(pCurrentBlockIndex->nHeight - vote.nBlockHeight > nLimit) {
-            LogPrint("dnpayments", "CDynodePayments::CheckAndRemove -- Removing old Dynode payment: nBlockHeight=%d\n", vote.nBlockHeight);
+            LogPrint(BCLog::DNPAYMENTS, "CDynodePayments::CheckAndRemove -- Removing old Dynode payment: nBlockHeight=%d\n", vote.nBlockHeight);
             mapDynodePaymentVotes.erase(it++);
             mapDynodeBlocks.erase(vote.nBlockHeight);
         } else {
@@ -755,12 +755,12 @@ bool CDynodePayments::ProcessBlock(int nBlockHeight)
     int nRank = dnodeman.GetDynodeRank(activeDynode.vin, nBlockHeight - 101, GetMinDynodePaymentsProto(), false);
 
     if (nRank == -1) {
-        LogPrint("dnpayments", "CDynodePayments::ProcessBlock -- Unknown Dynode\n");
+        LogPrint(BCLog::DNPAYMENTS, "CDynodePayments::ProcessBlock -- Unknown Dynode\n");
         return false;
     }
 
     if (nRank > DNPAYMENTS_SIGNATURES_TOTAL) {
-        LogPrint("dnpayments", "CDynodePayments::ProcessBlock -- Dynode not in the top %d (%d)\n", DNPAYMENTS_SIGNATURES_TOTAL, nRank);
+        LogPrint(BCLog::DNPAYMENTS, "CDynodePayments::ProcessBlock -- Dynode not in the top %d (%d)\n", DNPAYMENTS_SIGNATURES_TOTAL, nRank);
         return false;
     }
 
@@ -980,7 +980,7 @@ int CDynodePayments::GetStorageLimit()
 void CDynodePayments::UpdatedBlockTip(const CBlockIndex *pindex)
 {
     pCurrentBlockIndex = pindex;
-    LogPrint("dnpayments", "CDynodePayments::UpdatedBlockTip -- pCurrentBlockIndex->nHeight=%d\n", pCurrentBlockIndex->nHeight);
+    LogPrint(BCLog::DNPAYMENTS, "CDynodePayments::UpdatedBlockTip -- pCurrentBlockIndex->nHeight=%d\n", pCurrentBlockIndex->nHeight);
 
     ProcessBlock(pindex->nHeight + 10);
 }

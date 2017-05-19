@@ -14,8 +14,7 @@
 #include <map>
 #include <stdint.h>
 #include <string>
-
-#include <boost/filesystem.hpp>
+#include "fs.h"
 
 //! HTTP status codes
 enum HTTPStatusCode

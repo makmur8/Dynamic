@@ -1288,7 +1288,7 @@ int CWallet::GetRealInputPrivateSendRounds(CTxIn txin, int nRounds) const
         std::map<uint256, CMutableTransaction>::const_iterator mdwi = mDenomWtxes.find(hash);
         if (mdwi == mDenomWtxes.end()) {
             // not known yet, let's add it
-            LogPrint("privatesend", "GetRealInputPrivateSendRounds INSERTING %s\n", hash.ToString());
+            LogPrint(BCLog::PRIVATESEND, "GetRealInputPrivateSendRounds INSERTING %s\n", hash.ToString());
             mDenomWtxes[hash] = CMutableTransaction(*wtx);
         } else if(mDenomWtxes[hash].vout[nout].nRounds != -10) {
             // found and it's not an initial value, just return it
@@ -1299,20 +1299,20 @@ int CWallet::GetRealInputPrivateSendRounds(CTxIn txin, int nRounds) const
         // bounds check
         if (nout >= wtx->vout.size()) {
             // should never actually hit this
-            LogPrint("privatesend", "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, -4);
+            LogPrint(BCLog::PRIVATESEND, "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, -4);
             return -4;
         }
 
         if (IsCollateralAmount(wtx->vout[nout].nValue)) {
             mDenomWtxes[hash].vout[nout].nRounds = -3;
-            LogPrint("privatesend", "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+            LogPrint(BCLog::PRIVATESEND, "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
             return mDenomWtxes[hash].vout[nout].nRounds;
         }
 
         //make sure the final output is non-denominate
         if (!IsDenominatedAmount(wtx->vout[nout].nValue)) { //NOT DENOM
             mDenomWtxes[hash].vout[nout].nRounds = -2;
-            LogPrint("privatesend", "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+            LogPrint(BCLog::PRIVATESEND, "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
             return mDenomWtxes[hash].vout[nout].nRounds;
         }
 
@@ -1324,7 +1324,7 @@ int CWallet::GetRealInputPrivateSendRounds(CTxIn txin, int nRounds) const
         // this one is denominated but there is another non-denominated output found in the same tx
         if (!fAllDenoms) {
             mDenomWtxes[hash].vout[nout].nRounds = 0;
-            LogPrint("privatesend", "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+            LogPrint(BCLog::PRIVATESEND, "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
             return mDenomWtxes[hash].vout[nout].nRounds;
         }
 
@@ -1344,7 +1344,7 @@ int CWallet::GetRealInputPrivateSendRounds(CTxIn txin, int nRounds) const
         mDenomWtxes[hash].vout[nout].nRounds = fDenomFound
                 ? (nShortest >= 15 ? 16 : nShortest + 1) // good, we a +1 to the shortest one but only 16 rounds max allowed
                 : 0;            // too bad, we are the fist one in that chain
-        LogPrint("privatesend", "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+        LogPrint(BCLog::PRIVATESEND, "GetRealInputPrivateSendRounds UPDATED   %s %3d %3d\n", hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
         return mDenomWtxes[hash].vout[nout].nRounds;
     }
 
@@ -2608,7 +2608,7 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
     // try to find nondenom first to prevent unneeded spending of mixed coins
     for (unsigned int tryDenom = 0; tryDenom < 2; tryDenom++)
     {
-        LogPrint("selectcoins", "tryDenom: %d\n", tryDenom);
+        LogPrint(BCLog::SELECTCOINS, "tryDenom: %d\n", tryDenom);
         vValue.clear();
         nTotalLower = 0;
         BOOST_FOREACH(const COutput &output, vCoins)
@@ -2618,7 +2618,7 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
 
             const CWalletTx *pcoin = output.tx;
 
-//            if (fDebug) LogPrint("selectcoins", "value %s confirms %d\n", FormatMoney(pcoin->vout[output.i].nValue), output.nDepth);
+//            if (fDebug) LogPrint(BCLog::SELECTCOINS, "value %s confirms %d\n", FormatMoney(pcoin->vout[output.i].nValue), output.nDepth);
             if (output.nDepth < (pcoin->IsFromMe(ISMINE_ALL) ? nConfMine : nConfTheirs))
                 continue;
 
@@ -2704,7 +2704,7 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
                 s += FormatMoney(vValue[i].first) + " ";
             }
         }
-        LogPrint("selectcoins", "%s - total %s\n", s, FormatMoney(nBest));
+        LogPrint(BCLog::SELECTCOINS, "%s - total %s\n", s, FormatMoney(nBest));
     }
 
     return true;
@@ -2951,12 +2951,12 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
     if(fAnonymizable) {
         if(fSkipDenominated && fAnonymizableTallyCachedNonDenom) {
             vecTallyRet = vecAnonymizableTallyCachedNonDenom;
-            LogPrint("selectcoins", "SelectCoinsGrouppedByAddresses - using cache for non-denom inputs\n");
+            LogPrint(BCLog::SELECTCOINS, "SelectCoinsGrouppedByAddresses - using cache for non-denom inputs\n");
             return vecTallyRet.size() > 0;
         }
         if(!fSkipDenominated && fAnonymizableTallyCached) {
             vecTallyRet = vecAnonymizableTallyCached;
-            LogPrint("selectcoins", "SelectCoinsGrouppedByAddresses - using cache for all inputs\n");
+            LogPrint(BCLog::SELECTCOINS, "SelectCoinsGrouppedByAddresses - using cache for all inputs\n");
             return vecTallyRet.size() > 0;
         }
     }
@@ -3023,7 +3023,7 @@ bool CWallet::SelectCoinsGrouppedByAddresses(std::vector<CompactTallyItem>& vecT
     std::string strMessage = "SelectCoinsGrouppedByAddresses - vecTallyRet:\n";
     BOOST_FOREACH(CompactTallyItem& item, vecTallyRet)
         strMessage += strprintf("  %s %f\n", item.address.ToString().c_str(), float(item.nAmount)/COIN);
-    LogPrint("selectcoins", "%s", strMessage);
+    LogPrint(BCLog::SELECTCOINS, "%s", strMessage);
 
     return vecTallyRet.size() > 0;
 }

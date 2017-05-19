@@ -526,11 +526,11 @@ public:
         {
             LOCK(cs_inventory);
             if (inv.type == MSG_TX && filterInventoryKnown.contains(inv.hash)) {
-                LogPrint("net", "PushInventory --  filtered inv: %s peer=%d\n", inv.ToString(), id);
+                LogPrint(BCLog::NET, "PushInventory --  filtered inv: %s peer=%d\n", inv.ToString(), id);
                 return;
 
             }
-            LogPrint("net", "PushInventory --  inv: %s peer=%d\n", inv.ToString(), id);
+            LogPrint(BCLog::NET, "PushInventory --  inv: %s peer=%d\n", inv.ToString(), id);
             vInventoryToSend.push_back(inv);
         }
     }

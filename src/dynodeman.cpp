@@ -128,7 +128,7 @@ bool CDynodeMan::Add(CDynode &dn)
 
     CDynode *pdn = Find(dn.vin);
     if (pdn == NULL) {
-        LogPrint("Dynode", "CDynodeMan::Add -- Adding new Dynode: addr=%s, %i now\n", dn.addr.ToString(), size() + 1);
+        LogPrint(BCLog::DYNODE, "CDynodeMan::Add -- Adding new Dynode: addr=%s, %i now\n", dn.addr.ToString(), size() + 1);
         dn.nTimeLastWatchdogVote = dn.sigTime;
         vDynodes.push_back(dn);
         indexDynodes.AddDynodeVIN(dn.vin);
@@ -170,7 +170,7 @@ void CDynodeMan::Check()
 {
     LOCK(cs);
 
-    LogPrint("Dynode", "CDynodeMan::Check -- nLastWatchdogVoteTime=%d, IsWatchdogActive()=%d\n", nLastWatchdogVoteTime, IsWatchdogActive());
+    LogPrint(BCLog::DYNODE, "CDynodeMan::Check -- nLastWatchdogVoteTime=%d, IsWatchdogActive()=%d\n", nLastWatchdogVoteTime, IsWatchdogActive());
 
     BOOST_FOREACH(CDynode& dn, vDynodes) {
         dn.Check();
@@ -200,7 +200,7 @@ void CDynodeMan::CheckAndRemove()
             uint256 hash = dnb.GetHash();
             // If collateral was spent ...
             if ((*it).IsOutpointSpent()) {
-                LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- Removing Dynode: %s  addr=%s  %i now\n", (*it).GetStateString(), (*it).addr.ToString(), size() - 1);
+                LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- Removing Dynode: %s  addr=%s  %i now\n", (*it).GetStateString(), (*it).addr.ToString(), size() - 1);
                 // erase all of the broadcasts we've seen from this txin, ...
                 mapSeenDynodeBroadcast.erase(hash);
                 mWeAskedForDynodeListEntry.erase((*it).vin.prevout);
@@ -234,7 +234,7 @@ void CDynodeMan::CheckAndRemove()
                         fAskedForDnbRecovery = true;
                     }
                     if(fAskedForDnbRecovery) {
-                        LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- Recovery initiated, Dynode=%s\n", it->vin.prevout.ToStringShort());
+                        LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- Recovery initiated, Dynode=%s\n", it->vin.prevout.ToStringShort());
                         nAskForDnbRecovery--;
                     }
                     // wait for dnb recovery replies for DNB_RECOVERY_WAIT_SECONDS seconds
@@ -244,20 +244,20 @@ void CDynodeMan::CheckAndRemove()
             }
         }
         // proces replies for DYNODE_NEW_START_REQUIRED Dynodes
-        LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- mDnbRecoveryGoodReplies size=%d\n", (int)mDnbRecoveryGoodReplies.size());
+        LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- mDnbRecoveryGoodReplies size=%d\n", (int)mDnbRecoveryGoodReplies.size());
         std::map<uint256, std::vector<CDynodeBroadcast> >::iterator itDnbReplies = mDnbRecoveryGoodReplies.begin();
         while(itDnbReplies != mDnbRecoveryGoodReplies.end()){
             if(mDnbRecoveryRequests[itDnbReplies->first].first < GetTime()) {
                 // all nodes we asked should have replied now
                 if(itDnbReplies->second.size() >= DNB_RECOVERY_QUORUM_REQUIRED) {
                     // majority of nodes we asked agrees that this DN doesn't require new dnb, reprocess one of new dnbs
-                    LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- reprocessing dnb, Dynode=%s\n", itDnbReplies->second[0].vin.prevout.ToStringShort());
+                    LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- reprocessing dnb, Dynode=%s\n", itDnbReplies->second[0].vin.prevout.ToStringShort());
                     // mapSeenDynodeBroadcast.erase(itDnbReplies->first);
                     int nDos;
                     itDnbReplies->second[0].fRecovery = true;
                     CheckDnbAndUpdateDynodeList(NULL, itDnbReplies->second[0], nDos);
                 }
-                LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- removing dnb recovery reply, Dynode=%s, size=%d\n", itDnbReplies->second[0].vin.prevout.ToStringShort(), (int)itDnbReplies->second.size());
+                LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- removing dnb recovery reply, Dynode=%s, size=%d\n", itDnbReplies->second[0].vin.prevout.ToStringShort(), (int)itDnbReplies->second.size());
                 mDnbRecoveryGoodReplies.erase(itDnbReplies++);
             } else {
                 ++itDnbReplies;
@@ -332,7 +332,7 @@ void CDynodeMan::CheckAndRemove()
         std::map<uint256, CDynodePing>::iterator it4 = mapSeenDynodePing.begin();
         while(it4 != mapSeenDynodePing.end()){
             if((*it4).second.IsExpired()) {
-                LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- Removing expired Dynode ping: hash=%s\n", (*it4).second.GetHash().ToString());
+                LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- Removing expired Dynode ping: hash=%s\n", (*it4).second.GetHash().ToString());
                 mapSeenDynodePing.erase(it4++);
             } else {
                 ++it4;
@@ -343,7 +343,7 @@ void CDynodeMan::CheckAndRemove()
         std::map<uint256, CDynodeVerification>::iterator itv2 = mapSeenDynodeVerification.begin();
         while(itv2 != mapSeenDynodeVerification.end()){
             if((*itv2).second.nBlockHeight < pCurrentBlockIndex->nHeight - MAX_POSE_BLOCKS){
-                LogPrint("Dynode", "CDynodeMan::CheckAndRemove -- Removing expired Dynode verification: hash=%s\n", (*itv2).first.ToString());
+                LogPrint(BCLog::DYNODE, "CDynodeMan::CheckAndRemove -- Removing expired Dynode verification: hash=%s\n", (*itv2).first.ToString());
                 mapSeenDynodeVerification.erase(itv2++);
             } else {
                 ++itv2;
@@ -440,7 +440,7 @@ void CDynodeMan::SsegUpdate(CNode* pnode)
     int64_t askAgain = GetTime() + SSEG_UPDATE_SECONDS;
     mWeAskedForDynodeList[pnode->addr] = askAgain;
 
-    LogPrint("Dynode", "CDynodeMan::SsegUpdate -- asked %s for the list\n", pnode->addr.ToString());
+    LogPrint(BCLog::DYNODE, "CDynodeMan::SsegUpdate -- asked %s for the list\n", pnode->addr.ToString());
 }
 
 CDynode* CDynodeMan::Find(const CScript &payee)
@@ -646,11 +646,11 @@ CDynode* CDynodeMan::FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, 
         }
         if(fExclude) continue;
         // found the one not in vecToExclude
-        LogPrint("Dynode", "CDynodeMan::FindRandomNotInVec -- found, Dynode=%s\n", pdn->vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "CDynodeMan::FindRandomNotInVec -- found, Dynode=%s\n", pdn->vin.prevout.ToStringShort());
         return pdn;
     }
 
-    LogPrint("Dynode", "CDynodeMan::FindRandomNotInVec -- failed\n");
+    LogPrint(BCLog::DYNODE, "CDynodeMan::FindRandomNotInVec -- failed\n");
     return NULL;
 }
 
@@ -812,7 +812,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
 
         pfrom->setAskFor.erase(dnb.GetHash());
 
-        LogPrint("Dynode", "DNANNOUNCE -- Dynode announce, Dynode=%s\n", dnb.vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "DNANNOUNCE -- Dynode announce, Dynode=%s\n", dnb.vin.prevout.ToStringShort());
 
         int nDos = 0;
 
@@ -834,7 +834,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
 
         pfrom->setAskFor.erase(nHash);
 
-        LogPrint("Dynode", "DNPING -- Dynode ping, Dynode=%s\n", dnp.vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "DNPING -- Dynode ping, Dynode=%s\n", dnp.vin.prevout.ToStringShort());
 
         // Need LOCK2 here to ensure consistent locking order because the CheckAndUpdate call below locks cs_main
         LOCK2(cs_main, cs);
@@ -842,7 +842,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
         if(mapSeenDynodePing.count(nHash)) return; //seen
         mapSeenDynodePing.insert(std::make_pair(nHash, dnp));
 
-        LogPrint("Dynode", "DNPING -- Dynode ping, Dynode=%s new\n", dnp.vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "DNPING -- Dynode ping, Dynode=%s new\n", dnp.vin.prevout.ToStringShort());
 
         // see if we have this Dynode
         CDynode* pdn = dnodeman.Find(dnp.vin);
@@ -874,7 +874,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
         CTxIn vin;
         vRecv >> vin;
 
-        LogPrint("Dynode", "SSEG -- Dynode list, Dynode=%s\n", vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "SSEG -- Dynode list, Dynode=%s\n", vin.prevout.ToStringShort());
 
         LOCK(cs);
 
@@ -905,7 +905,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
             if (dn.addr.IsRFC1918() || dn.addr.IsLocal()) continue; // do not send local network Dynode
             if (dn.IsUpdateRequired()) continue; // do not send outdated Dynodes
 
-            LogPrint("Dynode", "SSEG -- Sending Dynode entry: Dynode=%s  addr=%s\n", dn.vin.prevout.ToStringShort(), dn.addr.ToString());
+            LogPrint(BCLog::DYNODE, "SSEG -- Sending Dynode entry: Dynode=%s  addr=%s\n", dn.vin.prevout.ToStringShort(), dn.addr.ToString());
             CDynodeBroadcast dnb = CDynodeBroadcast(dn);
             uint256 hash = dnb.GetHash();
             pfrom->PushInventory(CInv(MSG_DYNODE_ANNOUNCE, hash));
@@ -928,7 +928,7 @@ void CDynodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStre
             return;
         }
         // smth weird happen - someone asked us for vin we have no idea about?
-        LogPrint("Dynode", "SSEG -- No invs sent to peer %d\n", pfrom->id);
+        LogPrint(BCLog::DYNODE, "SSEG -- No invs sent to peer %d\n", pfrom->id);
 
     } else if (strCommand == NetMsgType::DNVERIFY) { // Dynode Verify
 
@@ -973,13 +973,13 @@ void CDynodeMan::DoFullVerificationStep()
     std::vector<std::pair<int, CDynode> >::iterator it = vecDynodeRanks.begin();
     while(it != vecDynodeRanks.end()) {
         if(it->first > MAX_POSE_RANK) {
-            LogPrint("Dynode", "CDynodeMan::DoFullVerificationStep -- Must be in top %d to send verify request\n",
+            LogPrint(BCLog::DYNODE, "CDynodeMan::DoFullVerificationStep -- Must be in top %d to send verify request\n",
                         (int)MAX_POSE_RANK);
             return;
         }
         if(it->second.vin == activeDynode.vin) {
             nMyRank = it->first;
-            LogPrint("Dynode", "CDynodeMan::DoFullVerificationStep -- Found self at rank %d/%d, verifying up to %d Dynodes\n",
+            LogPrint(BCLog::DYNODE, "CDynodeMan::DoFullVerificationStep -- Found self at rank %d/%d, verifying up to %d Dynodes\n",
                         nMyRank, nRanksTotal, (int)MAX_POSE_CONNECTIONS);
             break;
         }
@@ -1004,7 +1004,7 @@ void CDynodeMan::DoFullVerificationStep()
     it = vecDynodeRanks.begin() + nOffset;
     while(it != vecDynodeRanks.end()) {
         if(it->second.IsPoSeVerified() || it->second.IsPoSeBanned()) {
-            LogPrint("Dynode", "CDynodeMan::DoFullVerificationStep -- Already %s%s%s Dynode %s address %s, skipping...\n",
+            LogPrint(BCLog::DYNODE, "CDynodeMan::DoFullVerificationStep -- Already %s%s%s Dynode %s address %s, skipping...\n",
                         it->second.IsPoSeVerified() ? "verified" : "",
                         it->second.IsPoSeVerified() && it->second.IsPoSeBanned() ? " and " : "",
                         it->second.IsPoSeBanned() ? "banned" : "",
@@ -1014,7 +1014,7 @@ void CDynodeMan::DoFullVerificationStep()
             it += MAX_POSE_CONNECTIONS;
             continue;
         }
-        LogPrint("Dynode", "CDynodeMan::DoFullVerificationStep -- Verifying Dynode %s rank %d/%d address %s\n",
+        LogPrint(BCLog::DYNODE, "CDynodeMan::DoFullVerificationStep -- Verifying Dynode %s rank %d/%d address %s\n",
                     it->second.vin.prevout.ToStringShort(), it->first, nRanksTotal, it->second.addr.ToString());
         if(SendVerifyRequest((CAddress)it->second.addr, vSortedByAddr)) {
             nCount++;
@@ -1025,7 +1025,7 @@ void CDynodeMan::DoFullVerificationStep()
         it += MAX_POSE_CONNECTIONS;
     }
 
-    LogPrint("Dynode", "CDynodeMan::DoFullVerificationStep -- Sent verification requests to %d Dynodes\n", nCount);
+    LogPrint(BCLog::DYNODE, "CDynodeMan::DoFullVerificationStep -- Sent verification requests to %d Dynodes\n", nCount);
 }
 
 // This function tries to find Dynodes with the same addr,
@@ -1090,7 +1090,7 @@ bool CDynodeMan::SendVerifyRequest(const CAddress& addr, const std::vector<CDyno
 {
     if(netfulfilledman.HasFulfilledRequest(addr, strprintf("%s", NetMsgType::DNVERIFY)+"-request")) {
         // we already asked for verification, not a good idea to do this too often, skip it
-        LogPrint("Dynode", "CDynodeMan::SendVerifyRequest -- too many requests, skipping... addr=%s\n", addr.ToString());
+        LogPrint(BCLog::DYNODE, "CDynodeMan::SendVerifyRequest -- too many requests, skipping... addr=%s\n", addr.ToString());
         return false;
     }
 
@@ -1260,7 +1260,7 @@ void CDynodeMan::ProcessVerifyReply(CNode* pnode, CDynodeVerification& dnv)
         // increase ban score for everyone else
         BOOST_FOREACH(CDynode* pdn, vpDynodesToBan) {
             pdn->IncreasePoSeBanScore();
-            LogPrint("Dynode", "CDynodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
+            LogPrint(BCLog::DYNODE, "CDynodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
                         prealDynode->vin.prevout.ToStringShort(), pnode->addr.ToString(), pdn->nPoSeBanScore);
         }
         LogPrintf("CDynodeMan::ProcessVerifyBroadcast -- PoSe score increased for %d fake Dynodes, addr %s\n",
@@ -1280,13 +1280,13 @@ void CDynodeMan::ProcessVerifyBroadcast(CNode* pnode, const CDynodeVerification&
 
     // we don't care about history
     if(dnv.nBlockHeight < pCurrentBlockIndex->nHeight - MAX_POSE_BLOCKS) {
-        LogPrint("Dynode", "DynodeMan::ProcessVerifyBroadcast -- Outdated: current block %d, verification block %d, peer=%d\n",
+        LogPrint(BCLog::DYNODE, "DynodeMan::ProcessVerifyBroadcast -- Outdated: current block %d, verification block %d, peer=%d\n",
                     pCurrentBlockIndex->nHeight, dnv.nBlockHeight, pnode->id);
         return;
     }
 
     if(dnv.vin1.prevout == dnv.vin2.prevout) {
-        LogPrint("Dynode", "DynodeMan::ProcessVerifyBroadcast -- ERROR: same vins %s, peer=%d\n",
+        LogPrint(BCLog::DYNODE, "DynodeMan::ProcessVerifyBroadcast -- ERROR: same vins %s, peer=%d\n",
                     dnv.vin1.prevout.ToStringShort(), pnode->id);
         // that was NOT a good idea to cheat and verify itself,
         // ban the node we received such message from
@@ -1303,7 +1303,7 @@ void CDynodeMan::ProcessVerifyBroadcast(CNode* pnode, const CDynodeVerification&
 
     int nRank = GetDynodeRank(dnv.vin2, dnv.nBlockHeight, MIN_POSE_PROTO_VERSION);
     if(nRank < MAX_POSE_RANK) {
-        LogPrint("Dynode", "DynodeMan::ProcessVerifyBroadcast -- Dynode is not in top %d, current rank %d, peer=%d\n",
+        LogPrint(BCLog::DYNODE, "DynodeMan::ProcessVerifyBroadcast -- Dynode is not in top %d, current rank %d, peer=%d\n",
                     (int)MAX_POSE_RANK, nRank, pnode->id);
         return;
     }
@@ -1356,7 +1356,7 @@ void CDynodeMan::ProcessVerifyBroadcast(CNode* pnode, const CDynodeVerification&
             if(dn.addr != dnv.addr || dn.vin.prevout == dnv.vin1.prevout) continue;
             dn.IncreasePoSeBanScore();
             nCount++;
-            LogPrint("Dynode", "CDynodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
+            LogPrint(BCLog::DYNODE, "CDynodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
                         dn.vin.prevout.ToStringShort(), dn.addr.ToString(), dn.nPoSeBanScore);
         }
         LogPrintf("CDynodeMan::ProcessVerifyBroadcast -- PoSe score incresed for %d fake Dynodes, addr %s\n",
@@ -1407,22 +1407,22 @@ bool CDynodeMan::CheckDnbAndUpdateDynodeList(CNode* pfrom, CDynodeBroadcast dnb,
     LOCK2(cs_main, cs);
 
     nDos = 0;
-    LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s\n", dnb.vin.prevout.ToStringShort());
+    LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s\n", dnb.vin.prevout.ToStringShort());
 
     uint256 hash = dnb.GetHash();
     if(mapSeenDynodeBroadcast.count(hash) && !dnb.fRecovery) { //seen      
-        LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s seen\n", dnb.vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s seen\n", dnb.vin.prevout.ToStringShort());
         // less then 2 pings left before this DN goes into non-recoverable state, bump sync timeout
         if(GetTime() - mapSeenDynodeBroadcast[hash].first > DYNODE_NEW_START_REQUIRED_SECONDS - DYNODE_MIN_DNP_SECONDS * 2) {
-            LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s seen update\n", dnb.vin.prevout.ToStringShort());
+            LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s seen update\n", dnb.vin.prevout.ToStringShort());
             mapSeenDynodeBroadcast[hash].first = GetTime();
             dynodeSync.AddedDynodeList();
         }
         // did we ask this node for it?
         if(pfrom && IsDnbRecoveryRequested(hash) && GetTime() < mDnbRecoveryRequests[hash].first) {
-            LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- dnb=%s seen request\n", hash.ToString());
+            LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- dnb=%s seen request\n", hash.ToString());
             if(mDnbRecoveryRequests[hash].second.count(pfrom->addr)) {
-                LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- dnb=%s seen request, addr=%s\n", hash.ToString(), pfrom->addr.ToString());
+                LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- dnb=%s seen request, addr=%s\n", hash.ToString(), pfrom->addr.ToString());
                 // do not allow node to send same dnb multiple times in recovery mode
                 mDnbRecoveryRequests[hash].second.erase(pfrom->addr);
                 // does it have newer lastPing?
@@ -1430,10 +1430,10 @@ bool CDynodeMan::CheckDnbAndUpdateDynodeList(CNode* pfrom, CDynodeBroadcast dnb,
                     // simulate Check
                     CDynode dnTemp = CDynode(dnb);
                     dnTemp.Check();
-                    LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- dnb=%s seen request, addr=%s, better lastPing: %d min ago, projected dn state: %s\n", hash.ToString(), pfrom->addr.ToString(), (GetTime() - dnb.lastPing.sigTime)/60, dnTemp.GetStateString());
+                    LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- dnb=%s seen request, addr=%s, better lastPing: %d min ago, projected dn state: %s\n", hash.ToString(), pfrom->addr.ToString(), (GetTime() - dnb.lastPing.sigTime)/60, dnTemp.GetStateString());
                     if(dnTemp.IsValidStateForAutoStart(dnTemp.nActiveState)) {
                         // this node thinks it's a good one
-                        LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s seen good\n", dnb.vin.prevout.ToStringShort());
+                        LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s seen good\n", dnb.vin.prevout.ToStringShort());
                         mDnbRecoveryGoodReplies[hash].push_back(dnb);
                     }
                 }
@@ -1443,10 +1443,10 @@ bool CDynodeMan::CheckDnbAndUpdateDynodeList(CNode* pfrom, CDynodeBroadcast dnb,
     }
     mapSeenDynodeBroadcast.insert(std::make_pair(hash, std::make_pair(GetTime(), dnb)));
 
-    LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s new\n", dnb.vin.prevout.ToStringShort());
+    LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- Dynode=%s new\n", dnb.vin.prevout.ToStringShort());
 
     if(!dnb.SimpleCheck(nDos)) {
-        LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- SimpleCheck() failed, Dynode=%s\n", dnb.vin.prevout.ToStringShort());
+        LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- SimpleCheck() failed, Dynode=%s\n", dnb.vin.prevout.ToStringShort());
         return false;
     }
 
@@ -1455,7 +1455,7 @@ bool CDynodeMan::CheckDnbAndUpdateDynodeList(CNode* pfrom, CDynodeBroadcast dnb,
     if(pdn) {
         CDynodeBroadcast dnbOld = mapSeenDynodeBroadcast[CDynodeBroadcast(*pdn).GetHash()].second;
         if(!dnb.Update(pdn, nDos)) {
-            LogPrint("Dynode", "CDynodeMan::CheckDnbAndUpdateDynodeList -- Update() failed, Dynode=%s\n", dnb.vin.prevout.ToStringShort());
+            LogPrint(BCLog::DYNODE, "CDynodeMan::CheckDnbAndUpdateDynodeList -- Update() failed, Dynode=%s\n", dnb.vin.prevout.ToStringShort());
             return false;
         }
         if(hash != dnbOld.GetHash()) {
@@ -1644,7 +1644,7 @@ void CDynodeMan::SetDynodeLastPing(const CTxIn& vin, const CDynodePing& dnp)
 void CDynodeMan::UpdatedBlockTip(const CBlockIndex *pindex)
 {
     pCurrentBlockIndex = pindex;
-    LogPrint("Dynode", "CDynodeMan::UpdatedBlockTip -- pCurrentBlockIndex->nHeight=%d\n", pCurrentBlockIndex->nHeight);
+    LogPrint(BCLog::DYNODE, "CDynodeMan::UpdatedBlockTip -- pCurrentBlockIndex->nHeight=%d\n", pCurrentBlockIndex->nHeight);
 
     CheckSameAddr();
 

@@ -257,27 +257,27 @@ bool CGovernanceVote::Sign(CKey& keyDynode, CPubKey& pubKeyDynode)
 bool CGovernanceVote::IsValid(bool fSignatureCheck) const
 {
     if(nTime > GetTime() + (60*60)) {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", GetHash().ToString(), nTime, GetTime() + (60*60));
+        LogPrint(BCLog::GOBJECT, "CGovernanceVote::IsValid -- vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", GetHash().ToString(), nTime, GetTime() + (60*60));
         return false;
     }
 
     // support up to 50 actions (implemented in sentinel)
     if(nVoteSignal > MAX_SUPPORTED_VOTE_SIGNAL)
     {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- Client attempted to vote on invalid signal(%d) - %s\n", nVoteSignal, GetHash().ToString());
+        LogPrint(BCLog::GOBJECT, "CGovernanceVote::IsValid -- Client attempted to vote on invalid signal(%d) - %s\n", nVoteSignal, GetHash().ToString());
         return false;
     }
 
     // 0=none, 1=yes, 2=no, 3=abstain. Beyond that reject votes
     if(nVoteOutcome > 3)
     {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- Client attempted to vote on invalid outcome(%d) - %s\n", nVoteSignal, GetHash().ToString());
+        LogPrint(BCLog::GOBJECT, "CGovernanceVote::IsValid -- Client attempted to vote on invalid outcome(%d) - %s\n", nVoteSignal, GetHash().ToString());
         return false;
     }
 
     dynode_info_t infoSn = dnodeman.GetDynodeInfo(vinDynode);
     if(!infoSn.fInfoValid) {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- Unknown Dynode - %s\n", vinDynode.prevout.ToStringShort());
+        LogPrint(BCLog::GOBJECT, "CGovernanceVote::IsValid -- Unknown Dynode - %s\n", vinDynode.prevout.ToStringShort());
         return false;
     }
 

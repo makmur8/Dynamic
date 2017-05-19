@@ -21,6 +21,7 @@
 #include "tinyformat.h"
 #include "utiltime.h"
 #include "sync.h"
+#include "fs.h"
 
 #include <atomic>
 #include <exception>
@@ -31,7 +32,6 @@
 
 #include <boost/signals2/signal.hpp>
 #include <boost/thread/exceptions.hpp>
-#include <boost/filesystem/path.hpp>
 
 // Debugging macros
 
@@ -80,6 +80,8 @@ extern CTranslationInterface translationInterface;
 extern const char * const DYNAMIC_CONF_FILENAME;
 extern const char * const DYNAMIC_PID_FILENAME;
 
+extern std::atomic<uint32_t> logCategories;
+
 /**
  * Translation function: Call Translate signal on UI interface, which returns a boost::optional result.
  * If no translation slot is registered, nothing is returned, and simply return the input.
@@ -93,8 +95,66 @@ inline std::string _(const char* psz)
 void SetupEnvironment();
 bool SetupNetworking();
 
+struct CLogCategoryActive
+{
+    std::string category;
+    bool active;
+};
+
+namespace BCLog {
+    enum LogFlags : uint32_t {
+        NONE        = 0,
+        NET         = (1 <<  0),
+        TOR         = (1 <<  1),
+        MEMPOOL     = (1 <<  2),
+        HTTP        = (1 <<  3),
+        BENCH       = (1 <<  4),
+        ZMQ         = (1 <<  5),
+        DB          = (1 <<  6),
+        RPC         = (1 <<  7),
+        ESTIMATEFEE = (1 <<  8),
+        ADDRMAN     = (1 <<  9),
+        SELECTCOINS = (1 << 10),
+        REINDEX     = (1 << 11),
+        CMPCTBLOCK  = (1 << 12),
+        RAND        = (1 << 13),
+        PRUNE       = (1 << 14),
+        PROXY       = (1 << 15),
+        MEMPOOLREJ  = (1 << 16),
+        LIBEVENT    = (1 << 17),
+        COINDB      = (1 << 18),
+        QT          = (1 << 19),
+        LEVELDB     = (1 << 20),
+        ALERT       = (1 << 21),
+        // Dynamic-specific log flags
+        PRIVATESEND = (1 << 22),
+        INSTANTSEND = (1 << 23),
+        DYNODE     	= (1 << 24),
+        SPORK	    = (1 << 25),
+        KEEPASS     = (1 << 26),
+        DNPAYMENTS  = (1 << 27),
+        GOBJECT     = (1 << 28),
+		BLOCKGEN    = (1 << 29),
+        VERIFY		= (1 << 30),
+        
+        ALL         = ~(uint32_t)0,
+    };
+}
 /** Return true if log accepts specified category */
-bool LogAcceptCategory(const char* category);
+static inline bool LogAcceptCategory(uint32_t category)
+{
+    return (logCategories.load(std::memory_order_relaxed) & category) != 0;
+}
+
+/** Returns a string with the log categories. */
+std::string ListLogCategories();
+
+/** Returns a vector of the active log categories. */
+std::vector<CLogCategoryActive> ListActiveLogCategories();
+
+/** Return true if str parses as a log category and set the flags in f */
+bool GetLogCategory(uint32_t *f, const std::string *str);
+
 /** Send a string to the log output */
 int LogPrintStr(const std::string &str);
 
@@ -107,7 +167,7 @@ int LogPrintStr(const std::string &str);
 #define MAKE_ERROR_AND_LOG_FUNC(n)                                        \
     /**   Print to debug.log if -debug=category switch is given OR category is NULL. */ \
     template<TINYFORMAT_ARGTYPES(n)>                                          \
-    static inline int LogPrint(const char* category, const char* format, TINYFORMAT_VARARGS(n))  \
+    static inline int LogPrint(uint32_t category, const char* format, TINYFORMAT_VARARGS(n))  \
     {                                                                         \
         if(!LogAcceptCategory(category)) return 0;                            \
         return LogPrintStr(tfm::format(format, TINYFORMAT_PASSARGS(n))); \
@@ -126,7 +186,7 @@ TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_LOG_FUNC)
  * Zero-arg versions of logging and error, these are not covered by
  * TINYFORMAT_FOREACH_ARGNUM
  */
-static inline int LogPrint(const char* category, const char* format)
+static inline int LogPrint(uint32_t category, const char* format)
 {
     if(!LogAcceptCategory(category)) return 0;
     return LogPrintStr(format);
