@@ -9,7 +9,6 @@
 #define DYNAMIC_SERIALIZE_H
 
 #include "compat/endian.h"
-#include "prevector.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -24,7 +23,10 @@
 #include <utility>
 #include <vector>
 
+class CScript;
+
 static const unsigned int MAX_SIZE = 0x02000000;
+
 
 /**
  * Used to bypass the rule against non-const reference to temporary
@@ -46,7 +48,36 @@ inline T* NCONST_PTR(const T* val)
     return const_cast<T*>(val);
 }
 
-/*
+/** 
+ * Get begin pointer of vector (non-const version).
+ * @note These functions avoid the undefined case of indexing into an empty
+ * vector, as well as that of indexing after the end of the vector.
+ */
+template <class T, class TAl>
+inline T* begin_ptr(std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : &v[0];
+}
+/** Get begin pointer of vector (const version) */
+template <class T, class TAl>
+inline const T* begin_ptr(const std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : &v[0];
+}
+/** Get end pointer of vector (non-const version) */
+template <class T, class TAl>
+inline T* end_ptr(std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : (&v[0] + v.size());
+}
+/** Get end pointer of vector (const version) */
+template <class T, class TAl>
+inline const T* end_ptr(const std::vector<T,TAl>& v)
+{
+    return v.empty() ? NULL : (&v[0] + v.size());
+}
+
+/**
  * Lowest-level serialization and conversion.
  * @note Sizes of these types are verified in the tests
  */
@@ -128,7 +159,6 @@ inline float ser_uint32_to_float(uint32_t y)
     tmp.y = y;
     return tmp.x;
 }
-
 
 /////////////////////////////////////////////////////////////////
 //
@@ -376,11 +406,7 @@ public:
         pend = (char*)(v.data() + v.size());
     }
     template <unsigned int N, typename T, typename S, typename D>
-    explicit CFlatData(prevector<N, T, S, D> &v)
-    {
-        pbegin = (char*)v.data();
-        pend = (char*)(v.data() + v.size());
-    }
+
     char* begin() { return pbegin; }
     const char* begin() const { return pbegin; }
     char* end() { return pend; }
@@ -476,18 +502,11 @@ template<typename Stream, typename C> void Serialize(Stream& os, const std::basi
 template<typename Stream, typename C> void Unserialize(Stream& is, std::basic_string<C>& str, int, int=0);
 
 /**
- * prevector
- * prevectors of unsigned char are a special case and are intended to be serialized as a single opaque blob.
+ * others derived from vector
  */
-template<unsigned int N, typename T> unsigned int GetSerializeSize_impl(const prevector<N, T>& v, int nType, int nVersion, const unsigned char&);
-template<unsigned int N, typename T, typename V> unsigned int GetSerializeSize_impl(const prevector<N, T>& v, int nType, int nVersion, const V&);
-template<unsigned int N, typename T> inline unsigned int GetSerializeSize(const prevector<N, T>& v, int nType, int nVersion);
-template<typename Stream, unsigned int N, typename T> void Serialize_impl(Stream& os, const prevector<N, T>& v, int nType, int nVersion, const unsigned char&);
-template<typename Stream, unsigned int N, typename T, typename V> void Serialize_impl(Stream& os, const prevector<N, T>& v, int nType, int nVersion, const V&);
-template<typename Stream, unsigned int N, typename T> inline void Serialize(Stream& os, const prevector<N, T>& v, int nType, int nVersion);
-template<typename Stream, unsigned int N, typename T> void Unserialize_impl(Stream& is, prevector<N, T>& v, int nType, int nVersion, const unsigned char&);
-template<typename Stream, unsigned int N, typename T, typename V> void Unserialize_impl(Stream& is, prevector<N, T>& v, int nType, int nVersion, const V&);
-template<typename Stream, unsigned int N, typename T> inline void Unserialize(Stream& is, prevector<N, T>& v, int nType, int nVersion);
+extern inline unsigned int GetSerializeSize(const CScript& v, int nType, int nVersion);
+template<typename Stream> void Serialize(Stream& os, const CScript& v, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, CScript& v, int nType, int nVersion);
 
 /**
  * vector
@@ -582,97 +601,25 @@ void Unserialize(Stream& is, std::basic_string<C>& str, int, int)
         is.read((char*)&str[0], nSize * sizeof(str[0]));
 }
 
-
-
 /**
- * prevector
+ * others derived from vector
  */
-template<unsigned int N, typename T>
-unsigned int GetSerializeSize_impl(const prevector<N, T>& v, int nType, int nVersion, const unsigned char&)
+inline unsigned int GetSerializeSize(const CScript& v, int nType, int nVersion)
 {
-    return (GetSizeOfCompactSize(v.size()) + v.size() * sizeof(T));
+    return GetSerializeSize((const std::vector<unsigned char>&)v, nType, nVersion);
 }
 
-template<unsigned int N, typename T, typename V>
-unsigned int GetSerializeSize_impl(const prevector<N, T>& v, int nType, int nVersion, const V&)
+template<typename Stream>
+void Serialize(Stream& os, const CScript& v, int nType, int nVersion)
 {
-    unsigned int nSize = GetSizeOfCompactSize(v.size());
-    for (typename prevector<N, T>::const_iterator vi = v.begin(); vi != v.end(); ++vi)
-        nSize += GetSerializeSize((*vi), nType, nVersion);
-    return nSize;
+    Serialize(os, (const std::vector<unsigned char>&)v, nType, nVersion);
 }
 
-template<unsigned int N, typename T>
-inline unsigned int GetSerializeSize(const prevector<N, T>& v, int nType, int nVersion)
+template<typename Stream>
+void Unserialize(Stream& is, CScript& v, int nType, int nVersion)
 {
-    return GetSerializeSize_impl(v, nType, nVersion, T());
+    Unserialize(is, (std::vector<unsigned char>&)v, nType, nVersion);
 }
-
-
-template<typename Stream, unsigned int N, typename T>
-void Serialize_impl(Stream& os, const prevector<N, T>& v, int nType, int nVersion, const unsigned char&)
-{
-    WriteCompactSize(os, v.size());
-    if (!v.empty())
-        os.write((char*)&v[0], v.size() * sizeof(T));
-}
-
-template<typename Stream, unsigned int N, typename T, typename V>
-void Serialize_impl(Stream& os, const prevector<N, T>& v, int nType, int nVersion, const V&)
-{
-    WriteCompactSize(os, v.size());
-    for (typename prevector<N, T>::const_iterator vi = v.begin(); vi != v.end(); ++vi)
-        ::Serialize(os, (*vi), nType, nVersion);
-}
-
-template<typename Stream, unsigned int N, typename T>
-inline void Serialize(Stream& os, const prevector<N, T>& v, int nType, int nVersion)
-{
-    Serialize_impl(os, v, nType, nVersion, T());
-}
-
-
-template<typename Stream, unsigned int N, typename T>
-void Unserialize_impl(Stream& is, prevector<N, T>& v, int nType, int nVersion, const unsigned char&)
-{
-    // Limit size per read so bogus size value won't cause out of memory
-    v.clear();
-    unsigned int nSize = ReadCompactSize(is);
-    unsigned int i = 0;
-    while (i < nSize)
-    {
-        unsigned int blk = std::min(nSize - i, (unsigned int)(1 + 4999999 / sizeof(T)));
-        v.resize(i + blk);
-        is.read((char*)&v[i], blk * sizeof(T));
-        i += blk;
-    }
-}
-
-template<typename Stream, unsigned int N, typename T, typename V>
-void Unserialize_impl(Stream& is, prevector<N, T>& v, int nType, int nVersion, const V&)
-{
-    v.clear();
-    unsigned int nSize = ReadCompactSize(is);
-    unsigned int i = 0;
-    unsigned int nMid = 0;
-    while (nMid < nSize)
-    {
-        nMid += 5000000 / sizeof(T);
-        if (nMid > nSize)
-            nMid = nSize;
-        v.resize(nMid);
-        for (; i < nMid; i++)
-            Unserialize(is, v[i], nType, nVersion);
-    }
-}
-
-template<typename Stream, unsigned int N, typename T>
-inline void Unserialize(Stream& is, prevector<N, T>& v, int nType, int nVersion)
-{
-    Unserialize_impl(is, v, nType, nVersion, T());
-}
-
-
 
 /**
  * vector

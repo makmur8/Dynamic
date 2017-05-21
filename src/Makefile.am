@@ -140,7 +140,6 @@ DYNAMIC_CORE_H = \
   policy/policy.h \
   policy/rbf.h \
   pow.h \
-  prevector.h \
   primitives/block.h \
   primitives/transaction.h \
   privatesend.h \
