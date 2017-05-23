@@ -60,7 +60,7 @@ TestingSetup::TestingSetup(const std::string& chainName) : BasicTestingSetup(cha
     ClearDatadirCache();
     pathTemp = GetTempPath() / strprintf("test_dynamic_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
     fs::create_directories(pathTemp);
-    mapArgs["-datadir"] = pathTemp.string();
+    ForceSetArg("-datadir", pathTemp.string());
     pblocktree = new CBlockTreeDB(1 << 20, true);
     pcoinsdbview = new CCoinsViewDB(1 << 23, true);
     pcoinsTip = new CCoinsViewCache(pcoinsdbview);

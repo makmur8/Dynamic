@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     fs::path temp = GetTempPath() /
                     fs::unique_path("alertnotify-%%%%.txt");
 
-    mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
+    ForceSetArg("-alertnotify", std::string("echo %s >> ") + temp.string());
 
     BOOST_FOREACH(CAlert alert, alerts)
     alert.ProcessAlert(alertKey, false);
