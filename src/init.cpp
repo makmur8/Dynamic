@@ -493,8 +493,10 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageGroup(_("ZeroMQ notification options:"));
     strUsage += HelpMessageOpt("-zmqpubhashblock=<address>", _("Enable publish hash block in <address>"));
     strUsage += HelpMessageOpt("-zmqpubhashtx=<address>", _("Enable publish hash transaction in <address>"));
+    strUsage += HelpMessageOpt("-zmqpubhashtxlock=<address>", _("Enable publish hash transaction (locked via InstantSend) in <address>"));
     strUsage += HelpMessageOpt("-zmqpubrawblock=<address>", _("Enable publish raw block in <address>"));
     strUsage += HelpMessageOpt("-zmqpubrawtx=<address>", _("Enable publish raw transaction in <address>"));
+	strUsage += HelpMessageOpt("-zmqpubrawtxlock=<address>", _("Enable publish raw transaction (locked via InstantSend) in <address>"));
 #endif
 
     strUsage += HelpMessageGroup(_("Debugging/Testing options:"));
@@ -824,6 +826,12 @@ void InitParameterInteraction()
             LogPrintf("%s: parameter interaction: -whitebind set -> setting -listen=1\n", __func__);
     }
 
+	if (GetBoolArg("-dynode", false)) {
+        // Dynodes must accept connections from outside
+        if (SoftSetBoolArg("-listen", true))
+            LogPrintf("%s: parameter interaction: -dynode=1 -> setting -listen=1\n", __func__);
+    }
+
     if (gArgs.IsArgSet("-connect")) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SoftSetBoolArg("-dnsseed", false))
@@ -861,11 +869,28 @@ void InitParameterInteraction()
             LogPrintf("%s: parameter interaction: -externalip set -> setting -discover=0\n", __func__);
     }
 
+    if (GetBoolArg("-salvagewallet", false)) {
+        // Rewrite just private keys: rescan to find transactions
+        if (SoftSetBoolArg("-rescan", true))
+            LogPrintf("%s: parameter interaction: -salvagewallet=1 -> setting -rescan=1\n", __func__);
+    }
+
+    // -zapwallettx implies a rescan
+    if (GetBoolArg("-zapwallettxes", false)) {
+        if (SoftSetBoolArg("-rescan", true))
+           LogPrintf("%s: parameter interaction: -zapwallettxes=<mode> -> setting -rescan=1\n", __func__);
+    }
+
     // disable whitelistrelay in blocksonly mode
     if (GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY)) {
         if (SoftSetBoolArg("-whitelistrelay", false))
             LogPrintf("%s: parameter interaction: -blocksonly=1 -> setting -whitelistrelay=0\n", __func__);
     }
+
+#ifdef ENABLE_WALLET
+	if (SoftSetBoolArg("-walletbroadcast", false))
+		LogPrintf("%s: parameter interaction: -blocksonly=1 -> setting -walletbroadcast=0\n", __func__);
+#endif
 
     // Forcing relay from whitelisted hosts implies we will accept relays from them in the first place.
     if (GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) {
