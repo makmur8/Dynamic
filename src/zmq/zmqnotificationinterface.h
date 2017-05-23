@@ -1,4 +1,4 @@
-// Copyright (c) 2015 The Bitcoin Core developers
+// Copyright (c) 2015-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,9 +6,9 @@
 #define DYNAMIC_ZMQ_ZMQNOTIFICATIONINTERFACE_H
 
 #include "validationinterface.h"
-
 #include <string>
 #include <map>
+#include <list>
 
 class CBlockIndex;
 class CZMQAbstractNotifier;
@@ -18,16 +18,17 @@ class CZMQNotificationInterface : public CValidationInterface
 public:
     virtual ~CZMQNotificationInterface();
 
-    static CZMQNotificationInterface* CreateWithArguments(const std::map<std::string, std::string> &args);
+    static CZMQNotificationInterface* Create();
 
 protected:
     bool Initialize();
     void Shutdown();
 
     // CValidationInterface
-    void SyncTransaction(const CTransaction &tx, const CBlock *pblock);
-    void UpdatedBlockTip(const CBlockIndex *pindex);
-    void NotifyTransactionLock(const CTransaction &tx);
+    void TransactionAddedToMempool(const CTransactionRef& tx) override;
+    void BlockConnected(const std::shared_ptr<const CBlock>& pblock, const CBlockIndex* pindexConnected, const std::vector<CTransactionRef>& vtxConflicted) override;
+    void BlockDisconnected(const std::shared_ptr<const CBlock>& pblock) override;
+    void UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) override;
 
 private:
     CZMQNotificationInterface();
@@ -36,4 +37,4 @@ private:
     std::list<CZMQAbstractNotifier*> notifiers;
 };
 
-#endif // DYNAMIC_ZMQ_ZMQNOTIFICATIONINTERFACE_H
+#endif // BITCOIN_ZMQ_ZMQNOTIFICATIONINTERFACE_H
