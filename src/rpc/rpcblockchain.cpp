@@ -12,7 +12,7 @@
 #include "coins.h"
 #include "validation.h"
 #include "policy/policy.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "streams.h"
 #include "sync.h"
 #include "primitives/transaction.h"

@@ -12,7 +12,7 @@
 #include "netbase.h"
 #include "protocol.h"
 #include "policy/policy.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "sync.h"
 #include "timedata.h"
 #include "ui_interface.h"

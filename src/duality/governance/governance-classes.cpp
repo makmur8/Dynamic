@@ -82,7 +82,7 @@ CAmount ParsePaymentAmount(const std::string& strAmount)
         throw std::runtime_error(ostr.str());
     }
 
-    // Note this code is taken from AmountFromValue in rpcserver.cpp
+    // Note this code is taken from AmountFromValue in rpc/rpcserver.cpp
     // which is used for parsing the amounts in createrawtransaction.
     if (!ParseFixedPoint(strAmount, 8, &nAmount)) {
         nAmount = 0;

@@ -21,7 +21,7 @@
 #include "net.h"
 #include "consensus/params.h"
 #include "pow.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "duality/spork.h"
 #include "txmempool.h"
 #include "util.h"

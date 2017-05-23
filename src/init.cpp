@@ -37,7 +37,7 @@
 #include "policy/policy.h"
 #include "duality/privatesend/privatesend.h"
 #include "duality/privatesend/psnotificationinterface.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "compat/sanity.h"
 #include "script/standard.h"
 #include "script/sigcache.h"

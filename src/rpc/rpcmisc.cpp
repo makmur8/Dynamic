@@ -14,7 +14,7 @@
 #include "validation.h"
 #include "net.h"
 #include "netbase.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "duality/spork.h"
 #include "timedata.h"
 #include "txmempool.h"

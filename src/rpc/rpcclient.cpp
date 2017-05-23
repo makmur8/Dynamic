@@ -5,9 +5,9 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "rpcclient.h"
+#include "rpc/rpcclient.h"
 
-#include "rpcprotocol.h"
+#include "rpc/rpcprotocol.h"
 #include "util.h"
 
 #include <univalue.h>

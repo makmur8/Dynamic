@@ -23,7 +23,7 @@
 #include "net.h"
 #include "policy/policy.h"
 #include "duality/privatesend/privatesend.h"
-#include "rpcprotocol.h"
+#include "rpc/rpcprotocol.h"
 #include "script/script.h"
 #include "script/sign.h"
 #include "timedata.h"

@@ -10,7 +10,7 @@
 #include "chainparams.h"
 #include "validation.h"
 #include "httpserver.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "streams.h"
 #include "sync.h"
 #include "primitives/transaction.h"

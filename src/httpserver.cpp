@@ -11,7 +11,7 @@
 #include "compat.h"
 #include "util.h"
 #include "netbase.h"
-#include "rpcprotocol.h" // For HTTP status codes
+#include "rpc/rpcprotocol.h" // For HTTP status codes
 #include "sync.h"
 #include "ui_interface.h"
 

@@ -9,7 +9,7 @@
 #include "chain.h"
 #include "init.h"
 #include "validation.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "sync.h"

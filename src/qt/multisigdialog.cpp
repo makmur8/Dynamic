@@ -21,7 +21,7 @@
 #include "key.h"
 #include "validation.h"
 #include "policy/policy.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "script/sign.h"

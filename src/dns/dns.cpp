@@ -8,7 +8,7 @@
 
 #include "script/interpreter.h"
 #include "policy/policy.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "script/script.h"
 #include "script/sign.h"
 #include "txmempool.h"

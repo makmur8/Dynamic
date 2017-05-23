@@ -11,7 +11,7 @@
 #include "init.h"
 #include "validation.h"
 #include "duality/privatesend/privatesend.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "util.h"
 #include "utilmoneystr.h"
 

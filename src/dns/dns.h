@@ -13,7 +13,7 @@
 #include "hooks.h"
 #include "keystore.h"
 #include "validation.h"
-#include "rpcprotocol.h"
+#include "rpc/rpcprotocol.h"
 
 class CTxMemPool;
 

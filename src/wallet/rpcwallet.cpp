@@ -16,7 +16,7 @@
 #include "netbase.h"
 #include "policy/policy.h"
 #include "policy/rbf.h"
-#include "rpcserver.h"
+#include "rpc/rpcserver.h"
 #include "script/sign.h"
 #include "timedata.h"
 #include "util.h"
@@ -1097,7 +1097,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-// Defined in rpcmisc.cpp
+// Defined in rpc/rpcmisc.cpp
 extern CScript _createmultisig_redeemScript(const UniValue& params);
 
 UniValue addmultisigaddress(const UniValue& params, bool fHelp)

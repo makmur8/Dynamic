@@ -12,7 +12,7 @@
 #include "wallet/crypter.h"
 #include "protocol.h"
 #include "random.h"
-#include "rpcprotocol.h"
+#include "rpc/rpcprotocol.h"
 
 // Necessary to prevent compile errors due to forward declaration of
 //CScript in serialize.h (included from crypter.h)
