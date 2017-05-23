@@ -8,14 +8,14 @@
 #include "base58.h"
 #include "clientversion.h"
 #ifdef ENABLE_WALLET
-#include "dynode-sync.h"
+#include "duality/dynode/dynode-sync.h"
 #endif
 #include "init.h"
 #include "validation.h"
 #include "net.h"
 #include "netbase.h"
 #include "rpcserver.h"
-#include "spork.h"
+#include "duality/spork.h"
 #include "timedata.h"
 #include "txmempool.h"
 #include "util.h"

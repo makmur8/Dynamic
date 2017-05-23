@@ -12,7 +12,7 @@
 #include "consensus/consensus.h"
 #include "core_io.h"
 #ifdef ENABLE_WALLET
-#include "dynode-sync.h"
+#include "duality/dynode/dynode-sync.h"
 #endif
 #include "init.h"
 #include "validation.h"
@@ -22,7 +22,7 @@
 #include "consensus/params.h"
 #include "pow.h"
 #include "rpcserver.h"
-#include "spork.h"
+#include "duality/spork.h"
 #include "txmempool.h"
 #include "util.h"
 #include "utilstrencodings.h"

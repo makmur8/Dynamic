@@ -3,14 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activedynode.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "dynodeconfig.h"
-#include "dynodeman.h"
+#include "duality/dynode/activedynode.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeconfig.h"
+#include "duality/dynode/dynodeman.h"
 #include "init.h"
 #include "validation.h"
-#include "privatesend.h"
+#include "duality/privatesend/privatesend.h"
 #include "rpcserver.h"
 #include "util.h"
 #include "utilmoneystr.h"

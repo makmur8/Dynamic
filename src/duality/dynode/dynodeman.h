@@ -6,7 +6,7 @@
 #ifndef DYNAMIC_DYNODEMAN_H
 #define DYNAMIC_DYNODEMAN_H
 
-#include "dynode.h"
+#include "duality/dynode/dynode.h"
 #include "sync.h"
 
 class CDynodeMan;

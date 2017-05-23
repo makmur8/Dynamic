@@ -17,10 +17,10 @@
 
 #include "coincontrol.h"
 #include "init.h"
-#include "instantsend.h"
+#include "duality/instantsend/instantsend.h"
 #include "policy/policy.h"
 #include "validation.h" // For minRelayTxFee
-#include "privatesend.h"
+#include "duality/privatesend/privatesend.h"
 #include "txmempool.h"
 #include "wallet/wallet.h"
 

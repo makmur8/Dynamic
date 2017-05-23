@@ -3,14 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "governance.h"
+#include "duality/governance/governance.h"
 
-#include "dynode.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
-#include "governance-classes.h"
-#include "governance-object.h"
-#include "governance-vote.h"
+#include "duality/dynode/dynode.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/governance/governance-classes.h"
+#include "duality/governance/governance-object.h"
+#include "duality/governance/governance-vote.h"
 #include "validation.h"
 #include "messagesigner.h"
 #include "netfulfilledman.h"

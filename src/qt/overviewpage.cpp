@@ -20,10 +20,10 @@
 #include "utilitydialog.h"
 #include "walletmodel.h"
 
-#include "dynode-sync.h"
+#include "duality/dynode/dynode-sync.h"
 #include "init.h"
-#include "instantsend.h"
-#include "privatesend.h"
+#include "duality/instantsend/instantsend.h"
+#include "duality/privatesend/privatesend.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>

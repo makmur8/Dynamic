@@ -3,13 +3,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dynode.h"
+#include "duality/dynode/dynode.h"
 
-#include "activedynode.h"
-#include "governance.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
+#include "duality/dynode/activedynode.h"
+#include "duality/governance/governance.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeman.h"
 #include "init.h"
 #include "messagesigner.h"
 #include "util.h"

@@ -3,9 +3,9 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "governance-vote.h"
+#include "duality/governance/governance-vote.h"
 
-#include "dynodeman.h"
+#include "duality/dynode/dynodeman.h"
 #include "messagesigner.h"
 #include "util.h"
 

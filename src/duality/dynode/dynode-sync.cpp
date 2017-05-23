@@ -3,17 +3,17 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dynode-sync.h"
+#include "duality/dynode/dynode-sync.h"
 
-#include "activedynode.h"
+#include "duality/dynode/activedynode.h"
 #include "checkpoints.h"
-#include "governance.h"
-#include "dynode.h"
-#include "dynode-payments.h"
-#include "dynodeman.h"
+#include "duality/governance/governance.h"
+#include "duality/dynode/dynode.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynodeman.h"
 #include "validation.h"
 #include "netfulfilledman.h"
-#include "spork.h"
+#include "duality/spork.h"
 #include "util.h"
 
 class CDynodeSync;

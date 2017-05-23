@@ -3,14 +3,14 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "psnotificationinterface.h"
+#include "duality/privatesend/psnotificationinterface.h"
 
-#include "dynodeman.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "governance.h"
-#include "instantsend.h"
-#include "privatesend.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/governance/governance.h"
+#include "duality/instantsend/instantsend.h"
+#include "duality/privatesend/privatesend.h"
 
 CPSNotificationInterface::CPSNotificationInterface()
 {

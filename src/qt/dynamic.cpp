@@ -19,7 +19,7 @@
 #include "optionsmodel.h"
 #include "platformstyle.h"
 #include "splashscreen.h"
-#include "dynodeconfig.h"
+#include "duality/dynode/dynodeconfig.h"
 #include "utilitydialog.h"
 #include "winshutdownmonitor.h"
 #ifdef ENABLE_WALLET

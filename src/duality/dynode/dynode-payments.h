@@ -7,7 +7,7 @@
 #define DYNAMIC_DYNODE_PAYMENTS_H
 
 #include "core_io.h"
-#include "dynode.h"
+#include "duality/dynode/dynode.h"
 #include "key.h"
 #include "validation.h"
 #include "util.h"

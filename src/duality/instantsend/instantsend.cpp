@@ -3,11 +3,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "instantsend.h"
+#include "duality/instantsend/instantsend.h"
 
-#include "activedynode.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
+#include "duality/dynode/activedynode.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeman.h"
 #include "key.h"
 #include "validation.h"
 #include "messagesigner.h"
@@ -15,7 +15,7 @@
 #include "protocol.h"
 #include "sync.h"
 #include "txmempool.h"
-#include "spork.h"
+#include "duality/spork.h"
 #include "util.h"
 #include "consensus/validation.h"
 

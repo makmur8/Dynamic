@@ -3,16 +3,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dynode-payments.h"
+#include "duality/dynode/dynode-payments.h"
 
-#include "activedynode.h"
+#include "duality/dynode/activedynode.h"
 #include "policy/fees.h"
-#include "governance-classes.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
+#include "duality/governance/governance-classes.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeman.h"
 #include "messagesigner.h"
 #include "netfulfilledman.h"
-#include "spork.h"
+#include "duality/spork.h"
 #include "util.h"
 
 #include <boost/lexical_cast.hpp>

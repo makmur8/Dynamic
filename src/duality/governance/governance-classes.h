@@ -12,7 +12,7 @@
 
 #include "base58.h"
 #include "chainparams.h"
-#include "governance.h"
+#include "duality/governance/governance.h"
 #include "key.h"
 #include "script/standard.h"
 #include "util.h"

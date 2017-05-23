@@ -10,7 +10,7 @@
 #include "coins.h"
 #include "core_io.h"
 #include "init.h"
-#include "instantsend.h"
+#include "duality/instantsend/instantsend.h"
 #include "keystore.h"
 #include "validation.h"
 #include "merkleblock.h"

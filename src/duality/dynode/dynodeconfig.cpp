@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dynodeconfig.h"
+#include "duality/dynode/dynodeconfig.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>

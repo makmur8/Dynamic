@@ -7,14 +7,14 @@
 
 //#define ENABLE_DYNAMIC_DEBUG
 
-#include "activedynode.h"
-#include "dynode.h"
-#include "dynode-sync.h"
-#include "dynodeconfig.h"
-#include "dynodeman.h"
-#include "governance.h"
-#include "governance-classes.h"
-#include "governance-vote.h"
+#include "duality/dynode/activedynode.h"
+#include "duality/dynode/dynode.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeconfig.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/governance/governance.h"
+#include "duality/governance/governance-classes.h"
+#include "duality/governance/governance-vote.h"
 #include "init.h"
 #include "validation.h"
 #include "messagesigner.h"

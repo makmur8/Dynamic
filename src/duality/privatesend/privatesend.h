@@ -6,7 +6,7 @@
 #ifndef DYNAMIC_PRIVATESEND_H
 #define DYNAMIC_PRIVATESEND_H
 
-#include "dynode.h"
+#include "duality/dynode/dynode.h"
 #include "wallet/wallet.h"
 
 class CPrivatesendBroadcastTx;

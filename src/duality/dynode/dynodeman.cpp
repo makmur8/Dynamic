@@ -3,16 +3,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dynodeman.h"
+#include "duality/dynode/dynodeman.h"
 
-#include "activedynode.h"
+#include "duality/dynode/activedynode.h"
 #include "addrman.h"
-#include "governance.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
+#include "duality/governance/governance.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynode-sync.h"
 #include "messagesigner.h"
 #include "netfulfilledman.h"
-#include "privatesend.h"
+#include "duality/privatesend/privatesend.h"
 #include "util.h"
 
 /** Dynode manager */

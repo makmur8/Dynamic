@@ -2,13 +2,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "governance-object.h"
+#include "duality/governance/governance-object.h"
 
 #include "core_io.h"
-#include "dynodeman.h"
-#include "governance.h"
-#include "governance-classes.h"
-#include "governance-vote.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/governance/governance.h"
+#include "duality/governance/governance-classes.h"
+#include "duality/governance/governance-vote.h"
 #include "messagesigner.h"
 #include "util.h"
 

@@ -8,8 +8,8 @@
 
 #include "validation.h"
 
-#include "activedynode.h"
-#include "dynodeman.h"
+#include "duality/dynode/activedynode.h"
+#include "duality/dynode/dynodeman.h"
 
 class CPrivateSendRelay
 {

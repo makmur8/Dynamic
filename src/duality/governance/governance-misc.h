@@ -8,7 +8,7 @@
 #ifndef DYNAMIC_GOVERNANCE_MISC_H
 #define DYNAMIC_GOVERNANCE_MISC_H
 
-#include "governance.h"
+#include "duality/governance/governance.h"
 #include "init.h"
 #include "validation.h"
 

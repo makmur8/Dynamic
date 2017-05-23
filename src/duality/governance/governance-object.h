@@ -9,9 +9,9 @@
 //#define ENABLE_DYNAMIC_DEBUG
 
 #include "cachemultimap.h"
-#include "governance-exceptions.h"
-#include "governance-vote.h"
-#include "governance-votedb.h"
+#include "duality/governance/governance-exceptions.h"
+#include "duality/governance/governance-vote.h"
+#include "duality/governance/governance-votedb.h"
 #include "key.h"
 #include "net.h"
 #include "sync.h"

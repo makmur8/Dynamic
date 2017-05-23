@@ -7,7 +7,7 @@
 
 //#define ENABLE_DYNAMIC_DEBUG
 
-#include "governance-classes.h"
+#include "duality/governance/governance-classes.h"
 
 #include "core_io.h"
 #include "init.h"

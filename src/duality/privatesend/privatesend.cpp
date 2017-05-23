@@ -3,16 +3,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "privatesend.h"
+#include "duality/privatesend/privatesend.h"
 
-#include "activedynode.h"
+#include "duality/dynode/activedynode.h"
 #include "coincontrol.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
-#include "governance.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/governance/governance.h"
 #include "init.h"
-#include "instantsend.h"
+#include "duality/instantsend/instantsend.h"
 #include "messagesigner.h"
 #include "script/sign.h"
 #include "txmempool.h"

@@ -10,7 +10,7 @@
 #include "validation.h"
 #include "net.h"
 #include "timedata.h"
-#include "spork.h"
+#include "duality/spork.h"
 
 class CDynode;
 class CDynodeBroadcast;

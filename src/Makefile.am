@@ -65,7 +65,7 @@ endif
 .PHONY: FORCE check-symbols check-security
 # dynamic #
 DYNAMIC_CORE_H = \
-  activedynode.h \
+  duality/dynode/activedynode.h \
   addressindex.h \
   spentindex.h \
   addrman.h \
@@ -103,26 +103,26 @@ DYNAMIC_CORE_H = \
   dns/dns.h \
   dns/dyndns.h \
   dns/hooks.h \
-  dynode.h \
-  dynode-payments.h \
-  dynode-sync.h \
-  dynodeman.h \
-  dynodeconfig.h \
+  duality/dynode/dynode.h \
+  duality/dynode/dynode-payments.h \
+  duality/dynode/dynode-sync.h \
+  duality/dynode/dynodeman.h \
+  duality/dynode/dynodeconfig.h \
   flat-database.h \
   fs.h \
-  governance.h \
-  governance-classes.h \
-  governance-exceptions.h \
-  governance-object.h \
-  governance-vote.h \
-  governance-votedb.h \
+  duality/governance/governance.h \
+  duality/governance/governance-classes.h \
+  duality/governance/governance-exceptions.h \
+  duality/governance/governance-object.h \
+  duality/governance/governance-vote.h \
+  duality/governance/governance-votedb.h \
   hash.h \
   hdchain.h \
   httprpc.h \
   httpserver.h \
   indirectmap.h \
   init.h \
-  instantsend.h \
+  duality/instantsend/instantsend.h \
   key.h \
   keepass.h \
   keystore.h \
@@ -142,9 +142,9 @@ DYNAMIC_CORE_H = \
   pow.h \
   primitives/block.h \
   primitives/transaction.h \
-  privatesend.h \
-  psnotificationinterface.h \
-  privatesend-relay.h \
+  duality/privatesend/privatesend.h \
+  duality/privatesend/psnotificationinterface.h \
+  duality/privatesend/privatesend-relay.h \
   protocol.h \
   pubkey.h \
   random.h \
@@ -212,11 +212,11 @@ libdynamic_server_a_SOURCES = \
   dbwrapper.cpp \
   dns/dns.cpp \
   dns/dyndns.cpp \
-  governance.cpp \
-  governance-classes.cpp \
-  governance-object.cpp \
-  governance-vote.cpp \
-  governance-votedb.cpp \
+  duality/governance/governance.cpp \
+  duality/governance/governance-classes.cpp \
+  duality/governance/governance-object.cpp \
+  duality/governance/governance-vote.cpp \
+  duality/governance/governance-votedb.cpp \
   httprpc.cpp \
   httpserver.cpp \
   init.cpp \
@@ -267,18 +267,18 @@ endif
 libdynamic_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(DYNAMIC_INCLUDES)
 libdynamic_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libdynamic_wallet_a_SOURCES = \
-  activedynode.cpp \
-  dynode.cpp \
-  dynode-payments.cpp \
-  dynode-sync.cpp \
-  dynodeconfig.cpp \
-  dynodeman.cpp \
-  instantsend.cpp \
-  keepass.cpp \
+  duality/dynode/activedynode.cpp \
+  duality/dynode/dynode.cpp \
+  duality/dynode/dynode-payments.cpp \
+  duality/dynode/dynode-sync.cpp \
+  duality/dynode/dynodeconfig.cpp \
+  duality/dynode/dynodeman.cpp \
+  duality/instantsend/instantsend.cpp \
+  duality/keepass.cpp \
   policy/rbf.cpp \
-  privatesend.cpp \
-  privatesend-relay.cpp \
-  psnotificationinterface.cpp \
+  duality/privatesend/privatesend.cpp \
+  duality/privatesend/privatesend-relay.cpp \
+  duality/privatesend/psnotificationinterface.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/rpcdump.cpp \
@@ -350,7 +350,7 @@ libdynamic_common_a_SOURCES = \
   script/script_error.cpp \
   script/sign.cpp \
   script/standard.cpp \
-  spork.cpp \
+  duality/spork.cpp \
   $(DYNAMIC_CORE_H)
 
 # util: shared between all executables.

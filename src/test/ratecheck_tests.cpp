@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2017 The Dash Core developers
 
-#include "governance.h"
+#include "duality/governance/governance.h"
 
 #include "test/test_dynamic.h"
 

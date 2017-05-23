@@ -15,7 +15,7 @@
 #include "scheduler.h"
 #include "util.h"
 
-#include "dynodeconfig.h"
+#include "duality/dynode/dynodeconfig.h"
 
 #include <stdio.h>
 

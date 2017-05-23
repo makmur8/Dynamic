@@ -20,9 +20,9 @@
 #include "ui_interface.h"
 #include "util.h"
 
-#include "dynodeman.h"
-#include "dynode-sync.h"
-#include "privatesend.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/privatesend/privatesend.h"
 
 #include <stdint.h>
 
