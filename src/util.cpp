@@ -504,6 +504,11 @@ void ArgsManager::ForceSetArg(const std::string& strArg, const std::string& strV
     mapMultiArgs[strArg].push_back(strValue);
 }
 
+void ArgsManager::DeleteArg(const std::string& strArg)
+{
+    LOCK(cs_args);
+    mapArgs.erase(strArg);
+}
 
 
 

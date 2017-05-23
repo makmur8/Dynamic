@@ -286,6 +286,8 @@ public:
 
     /// Forces a arg setting, used only in testing
     void ForceSetArg(const std::string& strArg, const std::string& strValue);
+	/// Delete arg data, used in critical functions
+    void DeleteArg(const std::string& strArg);
 };
 
 extern ArgsManager gArgs;
@@ -309,6 +311,11 @@ static inline bool SoftSetArg(const std::string& strArg, const std::string& strV
 static inline void ForceSetArg(const std::string& strArg, const std::string& strValue)
 {
     gArgs.ForceSetArg(strArg, strValue);
+}
+
+static inline void DeleteArgument(const std::string& strArg)
+{
+    gArgs.DeleteArg(strArg);
 }
 
 static inline bool IsArgSet(const std::string& strArg)

@@ -916,12 +916,11 @@ void InitParameterInteraction()
         LogPrintf("%s: parameter interaction: -liquidityprovider=%d -> setting -privatesendmultisession=0\n", __func__, nLiqProvTmp);
     }
 
-    // TODO: Does this actually work?
-    /* if (IsArgSet("-hdseed") && IsHex(GetArg("-hdseed", "not hex")) && (IsArgSet("-mnemonic") || IsArgSet("-mnemonicpassphrase"))) {
-        gArgs.mapArgs.erase("-mnemonic");
-        gArgs.mapArgs.erase("-mnemonicpassphrase");
+    if (IsArgSet("-hdseed") && IsHex(GetArg("-hdseed", "not hex")) && (IsArgSet("-mnemonic") || IsArgSet("-mnemonicpassphrase"))) {
+        DeleteArgument("-mnemonic");
+        DeleteArgument("-mnemonicpassphrase");
         LogPrintf("%s: parameter interaction: can't use -hdseed and -mnemonic/-mnemonicpassphrase together, will prefer -seed\n", __func__);
-    }*/
+    }
 }
 
 void InitLogging()
