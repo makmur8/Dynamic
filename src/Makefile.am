@@ -125,7 +125,7 @@ DYNAMIC_CORE_H = \
 	httpserver.h \
 	indirectmap.h \
 	init.h \
-	keepass.h \
+	duality/keepass.h \
 	key.h \
 	keystore.h \
 	limitedmap.h \
@@ -159,7 +159,7 @@ DYNAMIC_CORE_H = \
 	script/standard.h \
 	serialize.h \
 	spentindex.h \
-	spork.h \
+	duality/spork.h \
 	streams.h \
 	support/allocators/secure.h \
 	support/allocators/zeroafterfree.h \
