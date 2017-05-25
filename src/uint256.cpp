@@ -49,10 +49,7 @@ bool base_blob<BITS>::EqualTo(uint64_t b) const
 template <unsigned int BITS>
 std::string base_blob<BITS>::GetHex() const
 {
-    char psz[sizeof(data) * 2 + 1];
-    for (unsigned int i = 0; i < sizeof(data); i++)
-        sprintf(psz + i * 2, "%02x", data[sizeof(data) - i - 1]);
-    return std::string(psz, psz + sizeof(data) * 2);
+    return HexStr(std::reverse_iterator<const uint8_t*>(data + sizeof(data)), std::reverse_iterator<const uint8_t*>(data));
 }
 
 template <unsigned int BITS>

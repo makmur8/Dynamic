@@ -129,7 +129,7 @@ DynDns::DynDns(const char *bind_ip, uint16_t port_no,
 
     if(::bind(m_sockfd, (struct sockaddr *) &m_address, sizeof (struct sockaddr_in)) < 0) {
         char buf[80];
-        sprintf(buf, "DynDns::DynDns: Cannot bind to port %u", port_no);
+        snprintf(buf, sizeof(buf), "DynDns::DynDns: Cannot bind to port %u", port_no);
         throw std::runtime_error(buf);
     }
 
