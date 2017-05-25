@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_CRYPTO_MUHASH_H
-#define BITCOIN_CRYPTO_MUHASH_H
+#ifndef DYNAMIC_CRYPTO_MUHASH_H
+#define DYNAMIC_CRYPTO_MUHASH_H
 
 #if defined(HAVE_CONFIG_H)
 #include "dynamic-config.h"
@@ -49,4 +49,4 @@ public:
     void Finalize(unsigned char* hash384) noexcept;
 };
 
-#endif // BITCOIN_CRYPTO_MUHASH_H
+#endif // DYNAMIC_CRYPTO_MUHASH_H

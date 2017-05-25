@@ -83,6 +83,7 @@ static inline int64_t GetCurrentTime()
 
 int64_t GetTime()
 {
+	int64_t mocktime = nMockTime.load(std::memory_order_relaxed);
     if (mocktime) return mocktime;
     
 	return GetCurrentTime<std::chrono::seconds>();

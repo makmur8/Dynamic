@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_SPENTINDEX_H
-#define BITCOIN_SPENTINDEX_H
+#ifndef DYNAMIC_SPENTINDEX_H
+#define DYNAMIC_SPENTINDEX_H
 
 #include "uint256.h"
 #include "amount.h"
@@ -95,4 +95,4 @@ struct CSpentIndexKeyCompare
     }
 };
 
-#endif // BITCOIN_SPENTINDEX_H
+#endif // DYNAMIC_SPENTINDEX_H

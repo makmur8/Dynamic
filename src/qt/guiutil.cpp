@@ -921,7 +921,7 @@ QString loadStyleSheet()
     QString cssName;
     QString theme = settings.value("theme", "").toString();
 
-    cssName = QString(":/css/drk");
+    cssName = QString(":/qdarkstyle/res/interface/style.qss");
     settings.setValue("theme", "drk");
 
     QFile qFile(cssName);

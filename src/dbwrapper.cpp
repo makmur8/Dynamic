@@ -1,37 +1,77 @@
-// Copyright (c) 2009-2017 Satoshi Nakamoto
-// Copyright (c) 2009-2017 The Bitcoin Developers
-// Copyright (c) 2014-2017 The Dash Core Developers
-// Copyright (c) 2016-2017 Duality Blockchain Solutions Developers
-// Distributed under the MIT/X11 software license, see the accompanying
+// Copyright (c) 2012-2016 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "dbwrapper.h"
 
-#include "random.h"
+#include "fs.h"
 #include "util.h"
-
-#include <memenv.h>
-#include <stdint.h>
+#include "random.h"
 
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
+#include <memenv.h>
+#include <stdint.h>
+#include <algorithm>
 
-#include <boost/filesystem.hpp>
+class CBitcoinLevelDBLogger : public leveldb::Logger {
+public:
+    // This code is adapted from posix_logger.h, which is why it is using vsprintf.
+    // Please do not do this in normal code
+    virtual void Logv(const char * format, va_list ap) override {
+            if (!LogAcceptCategory(DYNLog::LEVELDB)) {
+                return;
+            }
+            char buffer[500];
+            for (int iter = 0; iter < 2; iter++) {
+                char* base;
+                int bufsize;
+                if (iter == 0) {
+                    bufsize = sizeof(buffer);
+                    base = buffer;
+                }
+                else {
+                    bufsize = 30000;
+                    base = new char[bufsize];
+                }
+                char* p = base;
+                char* limit = base + bufsize;
 
-void HandleError(const leveldb::Status& status) throw(dbwrapper_error)
-{
-    if (status.ok())
-        return;
-    LogPrintf("%s\n", status.ToString());
-    if (status.IsCorruption())
-        throw dbwrapper_error("Database corrupted");
-    if (status.IsIOError())
-        throw dbwrapper_error("Database I/O error");
-    if (status.IsNotFound())
-        throw dbwrapper_error("Database entry missing");
-    throw dbwrapper_error("Unknown database error");
-}
+                // Print the message
+                if (p < limit) {
+                    va_list backup_ap;
+                    va_copy(backup_ap, ap);
+                    // Do not use vsnprintf elsewhere in bitcoin source code, see above.
+                    p += vsnprintf(p, limit - p, format, backup_ap);
+                    va_end(backup_ap);
+                }
+
+                // Truncate to available space if necessary
+                if (p >= limit) {
+                    if (iter == 0) {
+                        continue;       // Try again with larger buffer
+                    }
+                    else {
+                        p = limit - 1;
+                    }
+                }
+
+                // Add newline if necessary
+                if (p == base || p[-1] != '\n') {
+                    *p++ = '\n';
+                }
+
+                assert(p <= limit);
+                base[std::min(bufsize - 1, (int)(p - base))] = '\0';
+                LogPrintStr(base);
+                if (base != buffer) {
+                    delete[] base;
+                }
+                break;
+            }
+    }
+};
 
 static leveldb::Options GetOptions(size_t nCacheSize, bool compression, int maxOpenFiles)
 {
@@ -41,6 +81,7 @@ static leveldb::Options GetOptions(size_t nCacheSize, bool compression, int maxO
     options.filter_policy = leveldb::NewBloomFilterPolicy(10);
     options.compression = compression ? leveldb::kSnappyCompression : leveldb::kNoCompression;
     options.max_open_files = maxOpenFiles;
+    options.info_log = new CBitcoinLevelDBLogger();
     if (leveldb::kMajorVersion > 1 || (leveldb::kMajorVersion == 1 && leveldb::kMinorVersion >= 16)) {
         // LevelDB versions before 1.16 consider short writes to be corruption. Only trigger error
         // on corruption in later versions.
@@ -65,13 +106,13 @@ CDBWrapper::CDBWrapper(const fs::path& path, size_t nCacheSize, bool fMemory, bo
         if (fWipe) {
             LogPrintf("Wiping LevelDB in %s\n", path.string());
             leveldb::Status result = leveldb::DestroyDB(path.string(), options);
-            HandleError(result);
+            dbwrapper_private::HandleError(result);
         }
         TryCreateDirectory(path);
         LogPrintf("Opening LevelDB in %s\n", path.string());
     }
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
-    HandleError(status);
+    dbwrapper_private::HandleError(status);
     LogPrintf("Opened LevelDB successfully\n");
 
     // The base-case obfuscation key, which is a noop.
@@ -88,10 +129,10 @@ CDBWrapper::CDBWrapper(const fs::path& path, size_t nCacheSize, bool fMemory, bo
         Write(OBFUSCATE_KEY_KEY, new_key);
         obfuscate_key = new_key;
 
-        LogPrintf("Wrote new obfuscate key for %s: %s\n", path.string(), GetObfuscateKeyHex());
+        LogPrintf("Wrote new obfuscate key for %s: %s\n", path.string(), HexStr(obfuscate_key));
     }
 
-    LogPrintf("Using obfuscation key for %s: %s\n", path.string(), GetObfuscateKeyHex());
+    LogPrintf("Using obfuscation key for %s: %s\n", path.string(), HexStr(obfuscate_key));
 }
 
 CDBWrapper::~CDBWrapper()
@@ -100,16 +141,18 @@ CDBWrapper::~CDBWrapper()
     pdb = NULL;
     delete options.filter_policy;
     options.filter_policy = NULL;
+    delete options.info_log;
+    options.info_log = NULL;
     delete options.block_cache;
     options.block_cache = NULL;
     delete penv;
     options.env = NULL;
 }
 
-bool CDBWrapper::WriteBatch(CDBBatch& batch, bool fSync) throw(dbwrapper_error)
+bool CDBWrapper::WriteBatch(CDBBatch& batch, bool fSync)
 {
     leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch);
-    HandleError(status);
+    dbwrapper_private::HandleError(status);
     return true;
 }
 
@@ -140,25 +183,30 @@ bool CDBWrapper::IsEmpty()
     return !(it->Valid());
 }
 
-const std::vector<unsigned char>& CDBWrapper::GetObfuscateKey() const
+CDBIterator::~CDBIterator() { delete piter; }
+bool CDBIterator::Valid() { return piter->Valid(); }
+void CDBIterator::SeekToFirst() { piter->SeekToFirst(); }
+void CDBIterator::Next() { piter->Next(); }
+
+namespace dbwrapper_private {
+
+void HandleError(const leveldb::Status& status)
 {
-    return obfuscate_key;
+    if (status.ok())
+        return;
+    LogPrintf("%s\n", status.ToString());
+    if (status.IsCorruption())
+        throw dbwrapper_error("Database corrupted");
+    if (status.IsIOError())
+        throw dbwrapper_error("Database I/O error");
+    if (status.IsNotFound())
+        throw dbwrapper_error("Database entry missing");
+    throw dbwrapper_error("Unknown database error");
 }
 
-std::string CDBWrapper::GetObfuscateKeyHex() const
+const std::vector<unsigned char>& GetObfuscateKey(const CDBWrapper &w)
 {
-    return HexStr(obfuscate_key);
+    return w.obfuscate_key;
 }
 
-CDBIterator::~CDBIterator() {
-    delete piter;
-}
-bool CDBIterator::Valid() {
-    return piter->Valid();
-}
-void CDBIterator::SeekToFirst() {
-    piter->SeekToFirst();
-}
-void CDBIterator::Next() {
-    piter->Next();
-}
+};
