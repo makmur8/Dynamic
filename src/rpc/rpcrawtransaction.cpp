@@ -145,9 +145,8 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
 
     uint256 txid = tx.GetHash();
     entry.push_back(Pair("txid", txid.GetHex()));
-    entry.push_back(Pair("hash", tx.GetWitnessHash().GetHex()));
+    entry.push_back(Pair("hash", tx.GetHash().GetHex()));
     entry.push_back(Pair("size", (int)::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION)));
-    entry.push_back(Pair("vsize", (int)::GetVirtualTransactionSize(tx)));
     entry.push_back(Pair("version", tx.nVersion));
     entry.push_back(Pair("locktime", (int64_t)tx.nLockTime));
     UniValue vin(UniValue::VARR);
@@ -171,9 +170,9 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
                in.push_back(Pair("value", ValueFromAmount(spentInfo.satoshis)));
                 in.push_back(Pair("valueSat", spentInfo.satoshis));
                 if (spentInfo.addressType == 1) {
-                    in.push_back(Pair("address", CBitcoinAddress(CKeyID(spentInfo.addressHash)).ToString()));
+                    in.push_back(Pair("address", CDynamicAddress(CKeyID(spentInfo.addressHash)).ToString()));
                 } else if (spentInfo.addressType == 2)  {
-                    in.push_back(Pair("address", CBitcoinAddress(CScriptID(spentInfo.addressHash)).ToString()));
+                    in.push_back(Pair("address", CDynamicAddress(CScriptID(spentInfo.addressHash)).ToString()));
                 }
             }
 
@@ -295,11 +294,32 @@ UniValue getrawtransaction(const UniValue& params, bool fHelp)
     bool fVerbose = false;
     if (params.size() > 1)
         fVerbose = (params[1].get_int() != 0);
+   
+   CTransaction tx;
+   uint256 hashBlock;
+   int nHeight = 0;
+   int nConfirmations = 0;
+   int nBlockTime = 0;
 
-    CTransaction tx;
-    uint256 hashBlock;
-    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
+   {
+        LOCK(cs_main);
+        if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true))
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
+
+        BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
+        if (mi != mapBlockIndex.end() && (*mi).second) {
+            CBlockIndex* pindex = (*mi).second;
+            if (chainActive.Contains(pindex)) {
+                nHeight = pindex->nHeight;
+                nConfirmations = 1 + chainActive.Height() - pindex->nHeight;
+                nBlockTime = pindex->GetBlockTime();
+            } else {
+                nHeight = -1;
+                nConfirmations = 0;
+                nBlockTime = pindex->GetBlockTime();
+            }
+        }
+    }
 
     std::string strHex = EncodeHexTx(tx);
 

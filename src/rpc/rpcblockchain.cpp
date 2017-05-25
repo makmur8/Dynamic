@@ -6,9 +6,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "amount.h"
+#include "base58.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
+#include "clientversion.h"
 #include "coins.h"
 #include "crypto/muhash.h"
 #include "validation.h"
@@ -128,9 +130,9 @@ UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
 
                 if (GetSpentIndex(spentKey, spentInfo)) {
                     if (spentInfo.addressType == 1) {
-                        delta.push_back(Pair("address", CBitcoinAddress(CKeyID(spentInfo.addressHash)).ToString()));
+                        delta.push_back(Pair("address", CDynamicAddress(CKeyID(spentInfo.addressHash)).ToString()));
                     } else if (spentInfo.addressType == 2)  {
-                        delta.push_back(Pair("address", CBitcoinAddress(CScriptID(spentInfo.addressHash)).ToString()));
+                        delta.push_back(Pair("address", CDynamicAddress(CScriptID(spentInfo.addressHash)).ToString()));
                     } else {
                         continue;
                     }
@@ -157,12 +159,12 @@ UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
             UniValue delta(UniValue::VOBJ);
 
             if (out.scriptPubKey.IsPayToScriptHash()) {
-                vector<unsigned char> hashBytes(out.scriptPubKey.begin()+2, out.scriptPubKey.begin()+22);
-                delta.push_back(Pair("address", CBitcoinAddress(CScriptID(uint160(hashBytes))).ToString()));
+                std::vector<unsigned char> hashBytes(out.scriptPubKey.begin()+2, out.scriptPubKey.begin()+22);
+                delta.push_back(Pair("address", CDynamicAddress(CScriptID(uint160(hashBytes))).ToString()));
 
             } else if (out.scriptPubKey.IsPayToPublicKeyHash()) {
-                vector<unsigned char> hashBytes(out.scriptPubKey.begin()+3, out.scriptPubKey.begin()+23);
-                delta.push_back(Pair("address", CBitcoinAddress(CKeyID(uint160(hashBytes))).ToString()));
+                std::vector<unsigned char> hashBytes(out.scriptPubKey.begin()+3, out.scriptPubKey.begin()+23);
+                delta.push_back(Pair("address", CDynamicAddress(CKeyID(uint160(hashBytes))).ToString()));
             } else {
                 continue;
             }
@@ -383,7 +385,7 @@ UniValue getrawmempool(const UniValue& params, bool fHelp)
 UniValue getblockdeltas(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
-        throw runtime_error("");
+        throw std::runtime_error("");
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -451,25 +453,24 @@ UniValue getblockhashes(const UniValue& params, bool fHelp)
         }
     }
 
-    std::vector<std::pair<uint256, unsigned int> > blockHashes;
+    std::vector<uint256> blockHashes;
 
     if (fActiveOnly)
         LOCK(cs_main);
 
-    if (!GetTimestampIndex(high, low, fActiveOnly, blockHashes)) {
+    if (!GetTimestampIndex(high, low, blockHashes)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for block hashes");
     }
 
     UniValue result(UniValue::VARR);
 
-    for (std::vector<std::pair<uint256, unsigned int> >::const_iterator it=blockHashes.begin(); it!=blockHashes.end(); it++) {
+    for (std::vector<uint256>::const_iterator it=blockHashes.begin(); it!=blockHashes.end(); it++) {
         if (fLogicalTS) {
             UniValue item(UniValue::VOBJ);
-            item.push_back(Pair("blockhash", it->first.GetHex()));
-            item.push_back(Pair("logicalts", (int)it->second));
+            item.push_back(Pair("blockhash", it->GetHex()));
             result.push_back(item);
         } else {
-            result.push_back(it->first.GetHex());
+            result.push_back(it->GetHex());
         }
     }
 

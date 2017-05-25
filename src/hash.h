@@ -244,7 +244,7 @@ public:
     template<typename T>
     TruncatedSHA512Writer& operator<<(const T& obj) {
         // Serialize to this stream
-        ::Serialize(*this, obj);
+        ::Serialize(*this, obj, nType, nVersion);
         return (*this);
     }
 };

@@ -59,7 +59,7 @@ bool CCoinsView::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
 bool CCoinsView::GetStats(CCoinsStats &stats) const {
     return false;
 }
-
+CCoinsViewCursor *CCoinsView::Cursor() const { return 0; }
 
 CCoinsViewBacked::CCoinsViewBacked(CCoinsView *viewIn) : base(viewIn) { }
 bool CCoinsViewBacked::GetCoins(const uint256 &txid, CCoins &coins) const {
@@ -80,6 +80,7 @@ bool CCoinsViewBacked::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock)
 bool CCoinsViewBacked::GetStats(CCoinsStats &stats) const {
     return base->GetStats(stats);
 }
+CCoinsViewCursor *CCoinsViewBacked::Cursor() const { return base->Cursor(); }
 
 CCoinsKeyHasher::CCoinsKeyHasher() : salt(GetRandHash()) {}
 
@@ -318,4 +319,9 @@ CCoinsModifier::~CCoinsModifier()
         // If the coin still exists after the modification, add the new usage
         cache.cachedCoinsUsage += it->second.coins.DynamicMemoryUsage();
     }
+}
+
+
+CCoinsViewCursor::~CCoinsViewCursor()
+{
 }

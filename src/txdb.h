@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+class CCoinsViewDBCursor;
 class CBlockFileInfo;
 class CBlockIndex;
 class uint256;
@@ -63,6 +64,29 @@ public:
     uint256 GetBestBlock() const;
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats) const;
+    CCoinsViewCursor *Cursor() const;
+};
+
+/** Specialization of CCoinsViewCursor to iterate over a CCoinsViewDB */
+class CCoinsViewDBCursor: public CCoinsViewCursor
+{
+public:
+    ~CCoinsViewDBCursor() {}
+
+    bool GetKey(uint256 &key) const;
+    bool GetValue(CCoins &coins) const;
+    unsigned int GetValueSize() const;
+
+    bool Valid() const;
+    void Next();
+
+private:
+    CCoinsViewDBCursor(CDBIterator* pcursorIn, const uint256 &hashBlockIn):
+        CCoinsViewCursor(hashBlockIn), pcursor(pcursorIn) {}
+    std::unique_ptr<CDBIterator> pcursor;
+    std::pair<char, uint256> keyTmp;
+
+    friend class CCoinsViewDB;
 };
 
 /** Access to the block database (blocks/index/) */

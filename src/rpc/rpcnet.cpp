@@ -19,6 +19,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "version.h"
+#include "validation.h"
 
 #include <univalue.h>
 
