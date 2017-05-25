@@ -98,9 +98,9 @@ DYNAMIC_CORE_H = \
 	core_io.h \
 	core_memusage.h \
 	dbwrapper.h \
-	dns/dns.h \
-	dns/dyndns.h \
-	dns/hooks.h \
+	duality/dns/dns.h \
+	duality/dns/dyndns.h \
+	duality/dns/hooks.h \
 	duality/dynode/activedynode.h \
 	duality/dynode/dynode-payments.h \
 	duality/dynode/dynode-sync.h \
@@ -210,8 +210,8 @@ libdynamic_server_a_SOURCES = \
 	checkforks.cpp \
 	checkpoints.cpp \
 	dbwrapper.cpp \
-	dns/dns.cpp \
-	dns/dyndns.cpp \
+	duality/dns/dns.cpp \
+	duality/dns/dyndns.cpp \
 	duality/governance/governance-classes.cpp \
 	duality/governance/governance-object.cpp \
 	duality/governance/governance-vote.cpp \

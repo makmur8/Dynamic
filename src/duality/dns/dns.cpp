@@ -4,7 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "dns/dns.h"
+#include "duality/dns/dns.h"
 
 #include "script/interpreter.h"
 #include "policy/policy.h"

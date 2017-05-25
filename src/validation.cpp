@@ -14,7 +14,7 @@
 #include "checkpoints.h"
 #include "checkqueue.h"
 #include "consensus/consensus.h"
-#include "dns/dns.h"
+#include "duality/dns/dns.h"
 #include "duality/dynode/dynode-payments.h"
 #include "duality/dynode/dynode-sync.h"
 #include "duality/dynode/dynodeman.h"

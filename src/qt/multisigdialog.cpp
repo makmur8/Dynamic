@@ -17,7 +17,7 @@
 #include "chainparamsbase.h"
 #include "core_io.h"
 #include "dbwrapper.h"
-#include "dns/dns.h"
+#include "duality/dns/dns.h"
 #include "key.h"
 #include "validation.h"
 #include "policy/policy.h"

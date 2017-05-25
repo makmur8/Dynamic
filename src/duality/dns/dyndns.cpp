@@ -25,9 +25,9 @@
  *
  */
 
-#include "dns/dyndns.h"
+#include "duality/dns/dyndns.h"
 
-#include "dns/dns.h"
+#include "duality/dns/dns.h"
 #include "hooks.h"
 #include "util.h"
 
