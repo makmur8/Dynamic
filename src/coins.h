@@ -376,6 +376,7 @@ public:
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats) const;
+    CCoinsViewCursor *Cursor() const;
 };
 
 

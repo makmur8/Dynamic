@@ -453,24 +453,25 @@ UniValue getblockhashes(const UniValue& params, bool fHelp)
         }
     }
 
-    std::vector<uint256> blockHashes;
+    std::vector<std::pair<uint256, unsigned int> > blockHashes;
 
     if (fActiveOnly)
         LOCK(cs_main);
 
-    if (!GetTimestampIndex(high, low, blockHashes)) {
+    if (!GetTimestampIndex(high, low, fActiveOnly, blockHashes)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for block hashes");
     }
 
     UniValue result(UniValue::VARR);
 
-    for (std::vector<uint256>::const_iterator it=blockHashes.begin(); it!=blockHashes.end(); it++) {
+    for (std::vector<std::pair<uint256, unsigned int> >::const_iterator it=blockHashes.begin(); it!=blockHashes.end(); it++) {
         if (fLogicalTS) {
             UniValue item(UniValue::VOBJ);
-            item.push_back(Pair("blockhash", it->GetHex()));
+            item.push_back(Pair("blockhash", it->first.GetHex()));
+            item.push_back(Pair("logicalts", (int)it->second));
             result.push_back(item);
         } else {
-            result.push_back(it->GetHex());
+            result.push_back(it->first.GetHex());
         }
     }
 
@@ -1337,7 +1338,7 @@ UniValue dumpbootstrap(const UniValue& params, bool fHelp)
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
 
             fileout << FLATDATA(Params().MessageStart())
-                    << (unsigned int)GetSerializeSize(fileout, block)
+                    << (unsigned int)::GetSerializeSize(fileout, block)
                     << block;
         }
     } catch(const fs::filesystem_error &e) {

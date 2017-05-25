@@ -95,7 +95,6 @@ Mining
 * getmininginfo
 * getnetworkhashps ( blocks height )
 * getpowrewardstart [nHeight]
-* getwork ( "data" )
 * prioritisetransaction [txid] [priority delta] [fee delta]
 * submitblock "hexdata" ("jsonparametersobject")
 

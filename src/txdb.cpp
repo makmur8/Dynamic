@@ -107,7 +107,7 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) const {
        that restriction.  */
     std::unique_ptr<CDBIterator> pcursor(const_cast<CDBWrapper*>(&db)->NewIterator());
     pcursor->Seek(DB_COINS);
-
+	MuHash3072 acc;
     CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
     stats.hashBlock = GetBestBlock();
     ss << stats.hashBlock;
@@ -142,6 +142,8 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) const {
         LOCK(cs_main);
         stats.nHeight = mapBlockIndex.find(stats.hashBlock)->second->nHeight;
     }
+    unsigned char out[384];
+    acc.Finalize(out);
     stats.muhash = (TruncatedSHA512Writer(SER_DISK, 0) << stats.hashBlock << FLATDATA(out)).GetHash();
     stats.nTotalAmount = nTotalAmount;
     return true;
