@@ -24,7 +24,9 @@ public:
     int paramIdx;                      //! 0-based idx of param to convert
 };
 static const CRPCConvertParam vRPCConvertParams[] =
-{
+{	
+    { "dumpbootstrap", 1 },
+    { "dumpbootstrap", 2 },
     { "bumpfee", 1 },
     { "stop", 0 },
     { "setmocktime", 0 },
