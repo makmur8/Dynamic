@@ -13,6 +13,7 @@
 #include "memusage.h"
 #include "serialize.h"
 #include "uint256.h"
+#include "crypto/muhash.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -306,7 +307,7 @@ struct CCoinsStats
     uint64_t nTransactions;
     uint64_t nTransactionOutputs;
     uint64_t nSerializedSize;
-    uint256 hashSerialized;
+    uint256 muhash;
     CAmount nTotalAmount;
 
     CCoinsStats() : nHeight(0), nTransactions(0), nTransactionOutputs(0), nSerializedSize(0), nTotalAmount(0) {}

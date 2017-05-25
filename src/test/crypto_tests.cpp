@@ -8,6 +8,7 @@
 #include "crypto/sha512.h"
 #include "crypto/hmac_sha256.h"
 #include "crypto/hmac_sha512.h"
+#include "crypto/muhash.h"
 
 #include "test_random.h"
 #include "utilstrencodings.h"
@@ -280,6 +281,60 @@ BOOST_AUTO_TEST_CASE(pbkdf2_hmac_sha512_test) {
     strcpy((char *)s, "saltSALTsaltSALTsaltSALTsaltSALTsalt");
     PKCS5_PBKDF2_HMAC("passwordPASSWORDpassword", 3*8, s, 9*4, 4096, EVP_sha512(), 64, k);
     BOOST_CHECK(HexStr(k, k + 64) == "8c0511f4c6e597c6ac6315d8f0362e225f3c501495ba23b868c005174dc4ee71115b59f9e60cd9532fa33e0f75aefe30225c583a186cd82bd4daea9724a3d3b8");
+}
+
+static MuHash3072 FromInt(unsigned char i) {
+    unsigned char tmp[32] = {i, 0};
+    return MuHash3072(tmp);
+}
+
+BOOST_AUTO_TEST_CASE(muhash_tests)
+{
+    unsigned char out[384];
+
+    for (int iter = 0; iter < 10; ++iter) {
+        unsigned char res[384];
+        int table[4];
+        for (int i = 0; i < 4; ++i) {
+            table[i] = insecure_rand_ctx.randbits(3);
+        }
+        for (int order = 0; order < 4; ++order) {
+            MuHash3072 acc;
+            for (int i = 0; i < 4; ++i) {
+                int t = table[i ^ order];
+                if (t & 4) {
+                    acc /= FromInt(t & 3);
+                } else {
+                    acc *= FromInt(t & 3);
+                }
+            }
+            acc.Finalize(out);
+            if (order == 0) {
+                memcpy(res, out, 384);
+            } else {
+                BOOST_CHECK(memcmp(res, out, 384) == 0);
+            }
+        }
+
+        MuHash3072 x = FromInt(insecure_rand_ctx.randbits(4)); // x=X
+        MuHash3072 y = FromInt(insecure_rand_ctx.randbits(4)); // x=X, y=Y
+        MuHash3072 z; // x=X, y=Y, z=1
+        z *= x; // x=X, y=Y, z=X
+        z /= y; // x=X, y=Y, z=X/Y
+        y /= x; // x=X, y=Y/X, z=X/Y
+        z *= y; // x=X, y=Y/X, z=1
+        z.Finalize(out);
+        for (int i = 0; i < 384; ++i) {
+            BOOST_CHECK_EQUAL(out[i], i == 0);
+        }
+    }
+
+    MuHash3072 acc = FromInt(0);
+    acc *= FromInt(1);
+    acc /= FromInt(2);
+    acc.Finalize(out);
+    uint256 x = (TruncatedSHA512Writer(SER_DISK, 0) << FLATDATA(out)).GetHash();
+    BOOST_CHECK(x == uint256S("0e94c56c180f27fd6b182f091c5b007e2d6eba5ae28daa5aa92d2af8c26ea9a6"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -10,6 +10,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "coins.h"
+#include "crypto/muhash.h"
 #include "validation.h"
 #include "policy/policy.h"
 #include "rpc/rpcserver.h"
@@ -549,6 +550,49 @@ UniValue getblock(const UniValue& params, bool fHelp)
     return blockToJSON(block, pblockindex);
 }
 
+//! Calculate statistics about the unspent transaction output set
+static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats)
+{
+    std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
+
+    stats.hashBlock = pcursor->GetBestBlock();
+    {
+        LOCK(cs_main);
+        stats.nHeight = mapBlockIndex.find(stats.hashBlock)->second->nHeight;
+    }
+    CAmount nTotalAmount = 0;
+    MuHash3072 acc;
+    while (pcursor->Valid()) {
+        boost::this_thread::interruption_point();
+        uint256 key;
+        CCoins coins;
+        if (pcursor->GetKey(key) && pcursor->GetValue(coins)) {
+            stats.nTransactions++;
+            for (unsigned int i=0; i<coins.vout.size(); i++) {
+                const CTxOut &out = coins.vout[i];
+                if (!out.IsNull()) {
+                    TruncatedSHA512Writer ss(SER_DISK, 0);
+                    ss << COutPoint(key, i);
+                    ss << (uint32_t)(coins.nHeight * 2 + coins.fCoinBase);
+                    ss << out;
+                    acc *= MuHash3072(ss.GetHash().begin());
+                    stats.nTransactionOutputs++;
+                    nTotalAmount += out.nValue;
+                }
+            }
+            stats.nSerializedSize += 32 + pcursor->GetValueSize();
+        } else {
+            return error("%s: unable to read value", __func__);
+        }
+        pcursor->Next();
+    }
+    unsigned char out[384];
+    acc.Finalize(out);
+    stats.muhash = (TruncatedSHA512Writer(SER_DISK, 0) << stats.hashBlock << FLATDATA(out)).GetHash();
+    stats.nTotalAmount = nTotalAmount;
+    return true;
+}
+
 UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -563,7 +607,7 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
             "  \"transactions\": n,      (numeric) The number of transactions\n"
             "  \"txouts\": n,            (numeric) The number of output transactions\n"
             "  \"bytes_serialized\": n,  (numeric) The serialized size\n"
-            "  \"hash_serialized\": \"hash\",   (string) The serialized hash\n"
+            "  \"muhash\": \"hash\",     (string) The Rolling UTXO set hash\n"
             "  \"total_amount\": x.xxx          (numeric) The total amount\n"
             "}\n"
             "\nExamples:\n"
@@ -575,13 +619,13 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
 
     CCoinsStats stats;
     FlushStateToDisk();
-    if (pcoinsTip->GetStats(stats)) {
+    if (GetUTXOStats(pcoinsTip, stats)) {
         ret.push_back(Pair("height", (int64_t)stats.nHeight));
         ret.push_back(Pair("bestblock", stats.hashBlock.GetHex()));
         ret.push_back(Pair("transactions", (int64_t)stats.nTransactions));
         ret.push_back(Pair("txouts", (int64_t)stats.nTransactionOutputs));
         ret.push_back(Pair("bytes_serialized", (int64_t)stats.nSerializedSize));
-        ret.push_back(Pair("hash_serialized", stats.hashSerialized.GetHex()));
+        ret.push_back(Pair("muhash", stats.muhash.GetHex()));
         ret.push_back(Pair("total_amount", ValueFromAmount(stats.nTotalAmount)));
     }
     return ret;
