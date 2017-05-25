@@ -21,6 +21,7 @@
  * compare numbers with different units, or compare a mocktime to system time).
  */
 
+bool ChronoSanityCheck();
 int64_t GetTime();
 int64_t GetTimeMillis();
 int64_t GetTimeMicros();
