@@ -140,6 +140,7 @@ DYNAMIC_CORE_H = \
 	policy/fees.h \
 	policy/policy.h \
 	policy/rbf.h \
+	prevector.h \
 	pow.h \
 	primitives/block.h \
 	primitives/transaction.h \
@@ -193,6 +194,7 @@ DYNAMIC_CORE_H = \
 	zmq/zmqconfig.h\
 	zmq/zmqnotificationinterface.h \
 	zmq/zmqpublishnotifier.h
+
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
@@ -439,7 +441,8 @@ endif
 dynamic_cli_LDADD = \
   $(LIBDYNAMIC_CLI) \
   $(LIBUNIVALUE) \
-  $(LIBDYNAMIC_UTIL)
+  $(LIBDYNAMIC_UTIL) \
+  $(LIBDYNAMIC_CRYPTO)
 dynamic_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 

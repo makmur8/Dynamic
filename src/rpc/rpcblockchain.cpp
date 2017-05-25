@@ -23,6 +23,10 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "consensus/validation.h"
+#include "script/script.h"
+#include "script/script_error.h"
+#include "script/sign.h"
+#include "script/standard.h"
 
 #include <univalue.h>
 
@@ -109,7 +113,7 @@ UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
     UniValue deltas(UniValue::VARR);
 
     for (unsigned int i = 0; i < block.vtx.size(); i++) {
-        const CTransaction &tx = *(block.vtx[i]);
+        const CTransaction &tx = (block.vtx[i]);
         const uint256 txhash = tx.GetHash();
 
         UniValue entry(UniValue::VOBJ);

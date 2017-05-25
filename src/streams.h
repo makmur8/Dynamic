@@ -250,13 +250,13 @@ public:
     void SetType(int n)          {
         nType = n;
     }
-    int GetType()                {
+    int GetType() const          {
         return nType;
     }
     void SetVersion(int n)       {
         nVersion = n;
     }
-    int GetVersion()             {
+    int GetVersion() const       {
         return nVersion;
     }
     void ReadVersion()           {
@@ -448,15 +448,13 @@ public:
     void SetType(int n)          {
         nType = n;
     }
-    int GetType()                {
-        return nType;
-    }
     void SetVersion(int n)       {
         nVersion = n;
     }
-    int GetVersion()             {
-        return nVersion;
-    }
+
+    int GetType() const          { return nType; }
+	int GetVersion() const 		 { return nVersion; }
+
     void ReadVersion()           {
         *this >> nVersion;
     }
