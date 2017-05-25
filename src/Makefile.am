@@ -168,6 +168,7 @@ DYNAMIC_CORE_H = \
 	sync.h \
 	threadsafety.h \
 	timedata.h \
+	timestampindex.h \
 	tinyformat.h \
 	torcontrol.h \
 	txdb.h \
