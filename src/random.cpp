@@ -129,6 +129,13 @@ uint256 GetRandHash()
     return hash;
 }
 
+void FastRandomContext::RandomSeed()
+{
+    uint256 seed = GetRandHash();
+    rng.SetKey(seed.begin(), 32);
+    requires_seed = false;
+}
+
 FastRandomContext::FastRandomContext(bool fDeterministic)
 {
     // The seed values have some unlikely fixed points which we avoid.
@@ -145,6 +152,11 @@ FastRandomContext::FastRandomContext(bool fDeterministic)
         } while (tmp == 0 || tmp == 0x464fffffU);
         Rw = tmp;
     }
+}
+
+FastRandomContext::FastRandomContext(const uint256& seed) : requires_seed(false), bytebuf_size(0), bitbuf_size(0)
+{
+    rng.SetKey(seed.begin(), 32);
 }
 
 InsecureRand::InsecureRand(bool _fDeterministic)
