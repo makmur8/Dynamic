@@ -296,20 +296,20 @@ crypto_libdynamic_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) $(DYNAMIC_CONFIG_INCLUDES) 
 crypto_libdynamic_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) $(PIC_FLAGS)
 crypto_libdynamic_crypto_a_SOURCES = \
 	  crypto/common.h \
-	  crypto/argon2d/argon2.h \
-	  crypto/argon2d/core.h \
-	  crypto/argon2d/encoding.h \
-	  crypto/argon2d/thread.h \
-	  crypto/argon2d/argon2.c \
-	  crypto/argon2d/core.c \
-	  crypto/argon2d/encoding.c \
-	  crypto/argon2d/opt.c \
-	  crypto/argon2d/thread.c \
-	  crypto/blake2/blake2b.c \
-	  crypto/blake2/blake2.h \
-	  crypto/blake2/blake2-impl.h \
-	  crypto/blake2/blamka-round-opt.h \
-	  crypto/blake2/blamka-round-ref.h \
+	  duality/argon2d/argon2.h \
+	  duality/argon2d/core.h \
+	  duality/argon2d/encoding.h \
+	  duality/argon2d/thread.h \
+	  duality/argon2d/argon2.c \
+	  duality/argon2d/core.c \
+	  duality/argon2d/encoding.c \
+	  duality/argon2d/opt.c \
+	  duality/argon2d/thread.c \
+	  duality/blake2/blake2b.c \
+	  duality/blake2/blake2.h \
+	  duality/blake2/blake2-impl.h \
+	  duality/blake2/blamka-round-opt.h \
+	  duality/blake2/blamka-round-ref.h \
 	  crypto/chacha20.cpp \
 	  crypto/chacha20.h \
 	  crypto/hmac_sha256.cpp \
