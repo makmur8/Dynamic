@@ -6998,16 +6998,7 @@ bool SendMessages(CNode* pto)
         //
         // Message: getdata (non-blocks)
         //
-/*
-        if(!pto->mapAskFor.empty()) {
-			int64_t nFirst = -1;
-			{
-				nFirst = (*pto->mapAskFor.begin()).first;
-			}
-        }
-        // debug=1, seems to produce mostly this message
-        //LogPrint(DYNLog::NET, "SendMessages (mapAskFor) -- before loop: nNow = %d, nFirst = %d\n", nNow, nFirst);
-*/
+
         while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
         {
             const CInv& inv = (*pto->mapAskFor.begin()).second;
