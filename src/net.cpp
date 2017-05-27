@@ -27,6 +27,7 @@
 #include "ui_interface.h"
 #include "utilstrencodings.h"
 #include "wallet/wallet.h"
+#include "ntp.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -2027,6 +2028,12 @@ void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // Process messages
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
+
+    // Trusted NTP server, it's localhost by default.
+    strTrustedUpstream = GetArg("-ntp", "localhost");
+
+    // Start periodical NTP sampling thread
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "ntpsamples", &ThreadNtpSamples));
 
     // Dump network addresses
     scheduler.scheduleEvery(&DumpData, DUMP_ADDRESSES_INTERVAL);

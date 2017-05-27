@@ -118,6 +118,8 @@ DYNAMIC_CORE_H = \
 	duality/privatesend/privatesend-relay.h \
 	duality/privatesend/privatesend.h \
 	duality/privatesend/psnotificationinterface.h \
+	duality/keepass.h \
+	duality/spork.h \
 	flat-database.h \
 	fs.h \
 	hash.h \
@@ -126,7 +128,6 @@ DYNAMIC_CORE_H = \
 	httpserver.h \
 	indirectmap.h \
 	init.h \
-	duality/keepass.h \
 	key.h \
 	keystore.h \
 	limitedmap.h \
@@ -138,6 +139,7 @@ DYNAMIC_CORE_H = \
 	netbase.h \
 	netfulfilledman.h \
 	noui.h \
+	ntp.h \
 	policy/fees.h \
 	policy/policy.h \
 	policy/rbf.h \
@@ -161,7 +163,6 @@ DYNAMIC_CORE_H = \
 	script/standard.h \
 	serialize.h \
 	spentindex.h \
-	duality/spork.h \
 	streams.h \
 	support/allocators/secure.h \
 	support/allocators/zeroafterfree.h \
@@ -231,6 +232,7 @@ libdynamic_server_a_SOURCES = \
 	net.cpp \
 	netfulfilledman.cpp \
 	noui.cpp \
+	ntp.cpp \
 	policy/fees.cpp \
 	policy/policy.cpp \
 	pow.cpp \

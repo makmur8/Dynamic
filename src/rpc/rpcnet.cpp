@@ -608,3 +608,42 @@ UniValue clearbanned(const UniValue& params, bool fHelp)
 
     return NullUniValue;
 }
+
+UniValue ntptime(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw std::runtime_error(
+            "ntptime [ntpserver]\n"
+            "Returns current time from specific or random NTP server.");
+
+    int64_t nTime;
+    if (params.size() > 0) {
+        string strHostName = params[0].get_str();
+        nTime = NtpGetTime(strHostName);
+    }
+    else {
+        CNetAddr ip;
+        nTime = NtpGetTime(ip);
+    }
+
+    UniValue obj(UniValue::VOBJ);
+    
+    switch (nTime) {
+		case -1:
+			throw std::runtime_error("Socket initialization error");
+		case -2:
+			throw std::runtime_error("Switching socket mode to non-blocking failed");
+		case -3:
+			throw std::runtime_error("Unable to send data");
+		case -4:
+			throw std::runtime_error("Receive timed out");
+		default:
+			if (nTime > 0 && nTime != 2085978496) {
+				obj.push_back(Pair("epoch", nTime));
+				obj.push_back(Pair("time", DateTimeStrFormat(nTime)));
+			}
+			else throw std::runtime_error("Unexpected response");
+    }
+
+    return obj;
+}

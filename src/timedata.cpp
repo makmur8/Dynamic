@@ -18,6 +18,9 @@
 static CCriticalSection cs_nTimeOffset;
 static int64_t nTimeOffset = 0;
 
+/// Trusted NTP offset or median of NTP samples.
+extern int64_t nNtpOffset;
+
 /**
  * "Never go to sea with two chronometers; take one or three."
  * Our three time sources are:
@@ -79,7 +82,11 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
     {
         int64_t nMedian = vTimeOffsets.median();
         std::vector<int64_t> vSorted = vTimeOffsets.sorted();
-        // Only let other nodes change our time by so much
+        if (abs64(nNtpOffset) < 40 * 60) 
+        {
+			nTimeOffset = nNtpOffset;
+		}
+		// Only let other nodes change our time by so much
         if (abs64(nMedian) < 70 * 60)
         {
             nTimeOffset = nMedian;
