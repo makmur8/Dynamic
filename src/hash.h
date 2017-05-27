@@ -407,4 +407,19 @@ inline uint256 hash_Argon2d_ctx(const void* input, void *Matrix, const unsigned 
 
 #endif
 
+/** SipHash-2-4, using a uint64_t-based (rather than byte-based) interface */
+class CSipHasher
+{
+private:
+    uint64_t v[4];
+    int count;
+
+public:
+    CSipHasher(uint64_t k0, uint64_t k1);
+    CSipHasher& Write(uint64_t data);
+    uint64_t Finalize() const;
+};
+
+uint64_t SipHashUint256(uint64_t k0, uint64_t k1, const uint256& val);
+
 #endif // DYNAMIC_HASH_H

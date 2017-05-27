@@ -8,6 +8,7 @@
 #include "amount.h"
 #include "random.h"
 #include "uint256.h"
+#include "policy/feerate.h"
 
 #include <map>
 #include <string>

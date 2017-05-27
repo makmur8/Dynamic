@@ -502,7 +502,7 @@ void TorController::add_onion_cb(TorControlConnection& _conn, const TorControlRe
             }
             return;
         }
-        service = LookupNumeric(std::string(service_id+".onion").c_str(), GetListenPort());
+        service = CService(service_id+".onion", GetListenPort(), false);
         LogPrintf("tor: Got service ID %s, advertising service %s\n", service_id, service.ToString());
         if (WriteBinaryFile(GetPrivateKeyFile(), private_key)) {
             LogPrint(DYNLog::TOR, "tor: Cached service private key to %s\n", GetPrivateKeyFile().string());
@@ -526,8 +526,7 @@ void TorController::auth_cb(TorControlConnection& _conn, const TorControlReply& 
         // Now that we know Tor is running setup the proxy for onion addresses
         // if -onion isn't set to something else.
         if (GetArg("-onion", "") == "") {
-            CService resolved(LookupNumeric("127.0.0.1", 9050));
-            proxyType addrOnion = proxyType(resolved, true);
+            proxyType addrOnion = proxyType(CService("127.0.0.1", 9050), true);
             SetProxy(NET_TOR, addrOnion);
             SetLimited(NET_TOR, false);
         }

@@ -73,6 +73,7 @@ DYNAMIC_CORE_H = \
 	base58.h \
 	bip39.h \
 	bip39_english.h \
+	blockencodings.h \
 	bloom.h \
 	cachemap.h \
 	cachemultimap.h \
@@ -209,6 +210,7 @@ libdynamic_server_a_SOURCES = \
 	addrman.cpp \
 	alert.cpp \
 	bloom.cpp \
+	blockencodings.cpp \
 	chain.cpp \
 	checkforks.cpp \
 	checkpoints.cpp \
@@ -332,7 +334,6 @@ crypto_libdynamic_crypto_a_SOURCES = \
 libdynamic_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(DYNAMIC_INCLUDES)
 libdynamic_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libdynamic_common_a_SOURCES = \
-	amount.cpp \
 	arith_uint256.cpp \
 	base58.cpp \
 	bip39.cpp \
@@ -353,6 +354,7 @@ libdynamic_common_a_SOURCES = \
 	protocol.cpp \
 	pubkey.cpp \
 	scheduler.cpp \
+	policy/feerate.cpp \
 	script/interpreter.cpp \
 	script/script.cpp \
 	script/script_error.cpp \

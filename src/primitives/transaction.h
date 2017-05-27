@@ -145,7 +145,7 @@ public:
         READWRITE(prevout);
         READWRITE(*(CScriptBase*)(&scriptSig));
         READWRITE(nSequence);
-    }
+	}
 
     friend bool operator==(const CTxIn& a, const CTxIn& b)
     {
@@ -218,9 +218,9 @@ public:
         if (scriptPubKey.IsUnspendable())
             return 0;
 
-        size_t nSize = GetSerializeSize(SER_DISK,0)+148u;
-        return 3*minRelayTxFee.GetFee(nSize);
-    }
+		size_t nSize = GetSerializeSize(SER_DISK, 0);
+		return 3 * minRelayTxFee.GetFee(nSize);
+	}
 
     bool IsDust(const CFeeRate &minRelayTxFee) const
     {

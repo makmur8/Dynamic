@@ -12,7 +12,7 @@
  * network protocol versioning
  */
 
-static const int PROTOCOL_VERSION = 70400;
+static const int PROTOCOL_VERSION = 70500;
 
 //! initial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
@@ -42,5 +42,8 @@ static const int NO_BLOOM_VERSION = 60800;
 
 //! "sendheaders" command and announcing blocks with headers starts with this version
 static const int SENDHEADERS_VERSION = 60800;
+ 
+//! shord-id-based block download starts with this version
+static const int SHORT_IDS_BLOCKS_VERSION = 70500;
 
 #endif // DYNAMIC_VERSION_H
