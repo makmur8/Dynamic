@@ -70,8 +70,8 @@ int ClientModel::getNumConnections(unsigned int flags) const
 
     int nNum = 0;
     BOOST_FOREACH(const CNode* pnode, vNodes)
-        if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT))
-            nNum++;
+    if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT))
+        nNum++;
 
     return nNum;
 }
@@ -80,12 +80,12 @@ QString ClientModel::getDynodeCountString() const
 {
     // return tr("Total: %1 (PS compatible: %2 / Enabled: %3) (IPv4: %4, IPv6: %5, TOR: %6)").arg(QString::number((int)dnodeman.size()))
     return tr("Total: %1 (PS compatible: %2 / Enabled: %3)")
-            .arg(QString::number((int)dnodeman.size()))
-            .arg(QString::number((int)dnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION)))
-            .arg(QString::number((int)dnodeman.CountEnabled()));
-            // .arg(QString::number((int)dnodeman.CountByIP(NET_IPV4)))
-            // .arg(QString::number((int)dnodeman.CountByIP(NET_IPV6)))
-            // .arg(QString::number((int)dnodeman.CountByIP(NET_TOR)));
+           .arg(QString::number((int)dnodeman.size()))
+           .arg(QString::number((int)dnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION)))
+           .arg(QString::number((int)dnodeman.CountEnabled()));
+    // .arg(QString::number((int)dnodeman.CountByIP(NET_IPV4)))
+    // .arg(QString::number((int)dnodeman.CountByIP(NET_IPV6)))
+    // .arg(QString::number((int)dnodeman.CountByIP(NET_TOR)));
 }
 
 int ClientModel::getNumBlocks() const

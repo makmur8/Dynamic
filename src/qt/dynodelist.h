@@ -23,7 +23,7 @@
 #define DYNODELIST_FILTER_COOLDOWN_SECONDS            3
 
 namespace Ui {
-    class DynodeList;
+class DynodeList;
 }
 
 class ClientModel;

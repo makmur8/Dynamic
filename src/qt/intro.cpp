@@ -197,7 +197,7 @@ bool Intro::pickDataDirectory()
                 break;
             } catch (const fs::filesystem_error&) {
                 QMessageBox::critical(0, tr("Dynamic"),
-                    tr("Error: Specified data directory \"%1\" cannot be created.").arg(dataDir));
+                                      tr("Error: Specified data directory \"%1\" cannot be created.").arg(dataDir));
                 /* fall through, back to choosing screen */
             }
         }

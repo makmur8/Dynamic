@@ -4,7 +4,7 @@
  * Copyright 2015
  * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
  *
- * You may use this work under the terms of a Creative Commons CC0 1.0 
+ * You may use this work under the terms of a Creative Commons CC0 1.0
  * License/Waiver or the Apache Public License 2.0, at your option. The terms of
  * these licenses can be found at:
  *
@@ -25,7 +25,7 @@
 /**********************Argon2 internal constants*******************************/
 
 enum argon2_core_constants {
-    /* Version of the algorithm */   
+    /* Version of the algorithm */
     ARGON2_VERSION_NUMBER = 0x10,
     /* Memory block size in bytes */
     ARGON2_BLOCK_SIZE = 1024,
@@ -49,7 +49,9 @@ enum argon2_core_constants {
  * Memory blocks can be copied, XORed. Internal words can be accessed by [] (no
  * bounds checking).
  */
-typedef struct block_ { uint64_t v[ARGON2_QWORDS_IN_BLOCK]; } block;
+typedef struct block_ {
+    uint64_t v[ARGON2_QWORDS_IN_BLOCK];
+} block;
 
 /*****************Functions that work with the block******************/
 

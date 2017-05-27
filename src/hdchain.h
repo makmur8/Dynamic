@@ -47,7 +47,9 @@ private:
 
 public:
 
-    CHDChain() : nVersion(CHDChain::CURRENT_VERSION) { SetNull(); }
+    CHDChain() : nVersion(CHDChain::CURRENT_VERSION) {
+        SetNull();
+    }
     CHDChain(const CHDChain& other) :
         nVersion(other.nVersion),
         id(other.id),
@@ -56,7 +58,7 @@ public:
         vchMnemonic(other.vchMnemonic),
         vchMnemonicPassphrase(other.vchMnemonicPassphrase),
         mapAccounts(other.mapAccounts)
-        {}
+    {}
 
     ADD_SERIALIZE_METHODS;
     template <typename Stream, typename Operation>
@@ -109,7 +111,9 @@ public:
     bool SetSeed(const CSecureVector& vchSeedIn, bool fUpdateID);
     CSecureVector GetSeed() const;
 
-    uint256 GetID() const { return id; }
+    uint256 GetID() const {
+        return id;
+    }
 
     uint256 GetSeedHash();
     void DeriveChildExtKey(uint32_t nAccountIndex, bool fInternal, uint32_t nChildIndex, CExtKey& extKeyRet);

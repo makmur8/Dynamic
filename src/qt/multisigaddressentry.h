@@ -12,34 +12,34 @@ class WalletModel;
 
 namespace Ui
 {
-    class MultisigAddressEntry;
+class MultisigAddressEntry;
 }
 
 class MultisigAddressEntry : public QFrame
 {
     Q_OBJECT;
 
-  public:
+public:
     explicit MultisigAddressEntry(const PlatformStyle *platformStyle, QWidget *parent = 0);
     ~MultisigAddressEntry();
     void setModel(WalletModel *model);
     bool validate();
     QString getWalletAddress();
 
-  public Q_SLOTS:
+public Q_SLOTS:
     void setRemoveEnabled(bool enabled);
     void clear();
 
-  Q_SIGNALS:
+Q_SIGNALS:
     void removeEntry(MultisigAddressEntry *entry);
 
-  private:
+private:
     Ui::MultisigAddressEntry *ui;
     WalletModel *model;
     bool updateLabel(const QString &address);
     const PlatformStyle *platformStyle;
 
-  private Q_SLOTS:
+private Q_SLOTS:
     void on_walletaddress_textChanged(const QString &address);
     void on_pasteButton_clicked();
     void on_deleteButton_clicked();

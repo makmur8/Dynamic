@@ -71,7 +71,7 @@ public Q_SLOTS:
     /** Switch to DNS page */
     void gotoDNSPage();
     /** Switch to MultiSig page */
-	  void gotoMultiSigPage();
+    void gotoMultiSigPage();
 
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */

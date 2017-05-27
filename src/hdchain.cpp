@@ -43,29 +43,29 @@ void CHDChain::Debug(std::string strName) const
 {
     DBG(
         std::cout << __func__ << ": ---" << strName << "---" << std::endl;
-        if (fCrypted) {
-            std::cout << "mnemonic: ***CRYPTED***" << std::endl;
-            std::cout << "mnemonicpassphrase: ***CRYPTED***" << std::endl;
-            std::cout << "seed: ***CRYPTED***" << std::endl;
-        } else {
-            std::cout << "mnemonic: " << std::string(vchMnemonic.begin(), vchMnemonic.end()).c_str() << std::endl;
-            std::cout << "mnemonicpassphrase: " << std::string(vchMnemonicPassphrase.begin(), vchMnemonicPassphrase.end()).c_str() << std::endl;
-            std::cout << "seed: " << HexStr(vchSeed).c_str() << std::endl;
+    if (fCrypted) {
+    std::cout << "mnemonic: ***CRYPTED***" << std::endl;
+    std::cout << "mnemonicpassphrase: ***CRYPTED***" << std::endl;
+    std::cout << "seed: ***CRYPTED***" << std::endl;
+} else {
+    std::cout << "mnemonic: " << std::string(vchMnemonic.begin(), vchMnemonic.end()).c_str() << std::endl;
+        std::cout << "mnemonicpassphrase: " << std::string(vchMnemonicPassphrase.begin(), vchMnemonicPassphrase.end()).c_str() << std::endl;
+        std::cout << "seed: " << HexStr(vchSeed).c_str() << std::endl;
 
-            CExtKey extkey;
-            extkey.SetMaster(&vchSeed[0], vchSeed.size());
+        CExtKey extkey;
+        extkey.SetMaster(&vchSeed[0], vchSeed.size());
 
-            CDynamicExtKey b58extkey;
-            b58extkey.SetKey(extkey);
-            std::cout << "extended private masterkey: " << b58extkey.ToString().c_str() << std::endl;
+        CDynamicExtKey b58extkey;
+        b58extkey.SetKey(extkey);
+        std::cout << "extended private masterkey: " << b58extkey.ToString().c_str() << std::endl;
 
-            CExtPubKey extpubkey;
-            extpubkey = extkey.Neuter();
+        CExtPubKey extpubkey;
+        extpubkey = extkey.Neuter();
 
-            CDynamicExtPubKey b58extpubkey;
-            b58extpubkey.SetKey(extpubkey);
-            std::cout << "extended public masterkey: " << b58extpubkey.ToString().c_str() << std::endl;
-        }
+        CDynamicExtPubKey b58extpubkey;
+        b58extpubkey.SetKey(extpubkey);
+        std::cout << "extended public masterkey: " << b58extpubkey.ToString().c_str() << std::endl;
+    }
     );
 }
 

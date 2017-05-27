@@ -94,7 +94,7 @@ public:
     bool Insert(const K& key, const V& value)
     {
         if(nCurrentSize == nMaxSize) {
-           PruneLast();
+            PruneLast();
         }
         map_it mit = mapIndex.find(key);
         if(mit == mapIndex.end()) {

@@ -133,13 +133,13 @@ UniValue debug(const UniValue& params, bool fHelp)
         );
 
     std::string strMode = params[0].get_str();
-/*
-    gArgs.mapMultiArgs["-debug"].clear();
-    boost::split(gArgs.mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
-    gArgs.mapArgs["-debug"] = gArgs.mapMultiArgs["-debug"][gArgs.mapMultiArgs["-debug"].size() - 1];
+    /*
+        gArgs.mapMultiArgs["-debug"].clear();
+        boost::split(gArgs.mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
+        gArgs.mapArgs["-debug"] = gArgs.mapMultiArgs["-debug"][gArgs.mapMultiArgs["-debug"].size() - 1];
 
-    fDebug = gArgs.mapArgs["-debug"] != "0";
-*/
+        fDebug = gArgs.mapArgs["-debug"] != "0";
+    */
     return "Debug mode: " + (fDebug ? strMode : "off");
 }
 
@@ -184,7 +184,9 @@ UniValue dnsync(const UniValue& params, bool fHelp)
 class DescribeAddressVisitor : public boost::static_visitor<UniValue>
 {
 public:
-    UniValue operator()(const CNoDestination &dest) const { return UniValue(UniValue::VOBJ); }
+    UniValue operator()(const CNoDestination &dest) const {
+        return UniValue(UniValue::VOBJ);
+    }
 
     UniValue operator()(const CKeyID &keyID) const {
         UniValue obj(UniValue::VOBJ);
@@ -210,7 +212,7 @@ public:
             obj.push_back(Pair("hex", HexStr(subscript.begin(), subscript.end())));
             UniValue a(UniValue::VARR);
             BOOST_FOREACH(const CTxDestination& addr, addresses)
-                a.push_back(CDynamicAddress(addr).ToString());
+            a.push_back(CDynamicAddress(addr).ToString());
             obj.push_back(Pair("addresses", a));
             if (whichType == TX_MULTISIG)
                 obj.push_back(Pair("sigsrequired", nRequired));
@@ -225,23 +227,23 @@ public:
 */
 UniValue spork(const UniValue& params, bool fHelp)
 {
-    if(params.size() == 1 && params[0].get_str() == "show"){
+    if(params.size() == 1 && params[0].get_str() == "show") {
         UniValue ret(UniValue::VOBJ);
-        for(int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++){
+        for(int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++) {
             if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
                 ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.GetSporkValue(nSporkID)));
         }
         return ret;
-    } else if(params.size() == 1 && params[0].get_str() == "active"){
+    } else if(params.size() == 1 && params[0].get_str() == "active") {
         UniValue ret(UniValue::VOBJ);
-        for(int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++){
+        for(int nSporkID = SPORK_START; nSporkID <= SPORK_END; nSporkID++) {
             if(sporkManager.GetSporkNameByID(nSporkID) != "Unknown")
                 ret.push_back(Pair(sporkManager.GetSporkNameByID(nSporkID), sporkManager.IsSporkActive(nSporkID)));
         }
         return ret;
-    } else if (params.size() == 2){
+    } else if (params.size() == 2) {
         int nSporkID = sporkManager.GetSporkIDByName(params[0].get_str());
-        if(nSporkID == -1){
+        if(nSporkID == -1) {
             return "Invalid spork name";
         }
 
@@ -249,7 +251,7 @@ UniValue spork(const UniValue& params, bool fHelp)
         int64_t nValue = params[1].get_int64();
 
         //broadcast new spork
-        if(sporkManager.UpdateSpork(nSporkID, nValue)){
+        if(sporkManager.UpdateSpork(nSporkID, nValue)) {
             sporkManager.ExecuteSpork(nSporkID, nValue);
             return "success";
         } else {
@@ -375,23 +377,23 @@ CScript _createmultisig_redeemScript(const UniValue& params)
         // Case 2: hex public key
         else
 #endif
-        if (IsHex(ks))
-        {
-            CPubKey vchPubKey(ParseHex(ks));
-            if (!vchPubKey.IsFullyValid())
+            if (IsHex(ks))
+            {
+                CPubKey vchPubKey(ParseHex(ks));
+                if (!vchPubKey.IsFullyValid())
+                    throw std::runtime_error(" Invalid public key: "+ks);
+                pubkeys[i] = vchPubKey;
+            }
+            else
+            {
                 throw std::runtime_error(" Invalid public key: "+ks);
-            pubkeys[i] = vchPubKey;
-        }
-        else
-        {
-            throw std::runtime_error(" Invalid public key: "+ks);
-        }
+            }
     }
     CScript result = GetScriptForMultisig(nRequired, pubkeys);
 
     if (result.size() > MAX_SCRIPT_ELEMENT_SIZE)
         throw std::runtime_error(
-                strprintf("redeemScript exceeds size limit: %d > %d", result.size(), MAX_SCRIPT_ELEMENT_SIZE));
+            strprintf("redeemScript exceeds size limit: %d > %d", result.size(), MAX_SCRIPT_ELEMENT_SIZE));
 
     return result;
 }
@@ -401,29 +403,29 @@ UniValue createmultisig(const UniValue& params, bool fHelp)
     if (fHelp || params.size() < 2 || params.size() > 2)
     {
         std::string msg = "createmultisig nrequired [\"key\",...]\n"
-            "\nCreates a multi-signature address with n signature of m keys required.\n"
-            "It returns an object with the address and redeemScript.\n"
+                          "\nCreates a multi-signature address with n signature of m keys required.\n"
+                          "It returns an object with the address and redeemScript.\n"
 
-            "\nArguments:\n"
-            "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keys\"       (string, required) A json array of keys which are dynamic addresses or hex-encoded public keys\n"
-            "     [\n"
-            "       \"key\"    (string) dynamic address or hex-encoded public key\n"
-            "       ,...\n"
-            "     ]\n"
+                          "\nArguments:\n"
+                          "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
+                          "2. \"keys\"       (string, required) A json array of keys which are dynamic addresses or hex-encoded public keys\n"
+                          "     [\n"
+                          "       \"key\"    (string) dynamic address or hex-encoded public key\n"
+                          "       ,...\n"
+                          "     ]\n"
 
-            "\nResult:\n"
-            "{\n"
-            "  \"address\":\"multisigaddress\",  (string) The value of the new multisig address.\n"
-            "  \"redeemScript\":\"script\"       (string) The string value of the hex-encoded redemption script.\n"
-            "}\n"
+                          "\nResult:\n"
+                          "{\n"
+                          "  \"address\":\"multisigaddress\",  (string) The value of the new multisig address.\n"
+                          "  \"redeemScript\":\"script\"       (string) The string value of the hex-encoded redemption script.\n"
+                          "}\n"
 
-            "\nExamples:\n"
-            "\nCreate a multisig address from 2 addresses\n"
-            + HelpExampleCli("createmultisig", "2 \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"") +
-            "\nAs a json rpc call\n"
-            + HelpExampleRpc("createmultisig", "2, \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"")
-        ;
+                          "\nExamples:\n"
+                          "\nCreate a multisig address from 2 addresses\n"
+                          + HelpExampleCli("createmultisig", "2 \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"") +
+                          "\nAs a json rpc call\n"
+                          + HelpExampleRpc("createmultisig", "2, \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"")
+                          ;
         throw std::runtime_error(msg);
     }
 
@@ -672,7 +674,7 @@ UniValue getaddressmempool(const UniValue& params, bool fHelp)
     UniValue result(UniValue::VARR);
 
     for (std::vector<std::pair<CMempoolAddressDeltaKey, CMempoolAddressDelta> >::iterator it = indexes.begin();
-         it != indexes.end(); it++) {
+            it != indexes.end(); it++) {
 
         std::string address;
         if (!getAddressFromIndex(it->first.type, it->first.addressBytes, address)) {

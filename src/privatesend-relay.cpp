@@ -33,12 +33,12 @@ std::string CPrivateSendRelay::ToString()
     std::ostringstream info;
 
     info << "vin: " << vinDynode.ToString() <<
-        " nBlockHeight: " << (int)nBlockHeight <<
-        " nRelayType: "  << (int)nRelayType <<
-        " in " << in.ToString() <<
-        " out " << out.ToString();
-        
-    return info.str();   
+         " nBlockHeight: " << (int)nBlockHeight <<
+         " nRelayType: "  << (int)nRelayType <<
+         " in " << in.ToString() <<
+         " out " << out.ToString();
+
+    return info.str();
 }
 
 bool CPrivateSendRelay::Sign(std::string strSharedKey)
@@ -91,8 +91,8 @@ bool CPrivateSendRelay::VerifyMessage(std::string strSharedKey)
 void CPrivateSendRelay::Relay()
 {
     int nCount = std::min(dnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION), 20);
-    int nRank1 = (rand() % nCount)+1; 
-    int nRank2 = (rand() % nCount)+1; 
+    int nRank1 = (rand() % nCount)+1;
+    int nRank2 = (rand() % nCount)+1;
 
     //keep picking another second number till we get one that doesn't match
     while(nRank1 == nRank2) nRank2 = (rand() % nCount)+1;
@@ -108,7 +108,7 @@ void CPrivateSendRelay::RelayThroughNode(int nRank)
 {
     CDynode* psn = dnodeman.GetDynodeByRank(nRank, nBlockHeight, MIN_PRIVATESEND_PEER_PROTO_VERSION);
 
-    if(psn != NULL){
+    if(psn != NULL) {
         //printf("RelayThroughNode %s\n", psn->addr.ToString().c_str());
         CNode* pnode = ConnectNode((CAddress)psn->addr, NULL);
         if(pnode) {

@@ -44,7 +44,7 @@
  * Temporary functions for the purpose of
  * getblock
  **/
- 
+
 // Key used by getwork miners.
 // Allocated in InitRPCMining, free'd in ShutdownRPCMining
 static CReserveKey* pMiningKey = NULL;
@@ -63,7 +63,8 @@ void ShutdownRPCMining()
     if (!pMiningKey)
         return;
 
-    delete pMiningKey; pMiningKey = NULL;
+    delete pMiningKey;
+    pMiningKey = NULL;
 }
 
 UniValue getpowrewardstart(const UniValue& params, bool fHelp)
@@ -144,7 +145,7 @@ UniValue getnetworkhashps(const UniValue& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleCli("getnetworkhashps", "")
             + HelpExampleRpc("getnetworkhashps", "")
-       );
+        );
 
     LOCK(cs_main);
     return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1);
@@ -215,9 +216,9 @@ UniValue generate(const UniValue& params, bool fHelp)
     while (nHeight < nHeightEnd)
     {
 #ifdef ENABLE_WALLET
-            std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params(), coinbaseScript->reserveScript));
+        std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params(), coinbaseScript->reserveScript));
 #else
-            std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params()));
+        std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(Params()));
 #endif
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
@@ -279,9 +280,9 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
         if (nGenProcLimit == 0)
             fGenerate = false;
     }
-	ForceSetArg("-gen", (fGenerate ? "1" : "0"));
-	ForceSetArg("-genproclimit", itostr(nGenProcLimit));
-    
+    ForceSetArg("-gen", (fGenerate ? "1" : "0"));
+    ForceSetArg("-genproclimit", itostr(nGenProcLimit));
+
     GenerateDynamics(fGenerate, nGenProcLimit, Params());
 
     return NullUniValue;
@@ -400,7 +401,7 @@ static UniValue BIP22ValidationResult(const CValidationState& state)
     return "valid?";
 }
 
-std::string gbt_vb_name(const Consensus::DeploymentPos pos) 
+std::string gbt_vb_name(const Consensus::DeploymentPos pos)
 {
     const struct BIP9DeploymentInfo& vbinfo = VersionBitsDeploymentInfo[pos];
     std::string s = vbinfo.name;
@@ -439,7 +440,7 @@ UniValue getwork(const UniValue& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Dynamic is downloading blocks...");
 
-    if (!dynodeSync.IsSynced())     
+    if (!dynodeSync.IsSynced())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Dynamic is syncing with network...");
 
     typedef std::map<uint256, std::pair<CBlock*, CScript> > mapNewBlock_t;
@@ -450,19 +451,19 @@ UniValue getwork(const UniValue& params, bool fHelp)
     {
         // Update block
         static unsigned int nTransactionsUpdatedLast;
-		static CBlockIndex* pindexPrev;
-		static int64_t nStart;
+        static CBlockIndex* pindexPrev;
+        static int64_t nStart;
         static std::unique_ptr<CBlockTemplate> pblocktemplate;
-		
+
         if (pindexPrev != chainActive.Tip() ||
-            (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
+                (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
         {
             if (pindexPrev != chainActive.Tip())
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
                 BOOST_FOREACH(CBlockTemplate* pblocktemplate, vNewBlockTemplate)
-                    delete pblocktemplate;
+                delete pblocktemplate;
                 vNewBlockTemplate.clear();
             }
 
@@ -483,14 +484,14 @@ UniValue getwork(const UniValue& params, bool fHelp)
             // Need to update only after we know CreateNewBlock succeeded
             pindexPrev = pindexPrevNew;
         }
-    
-		CBlock* pblock = &pblocktemplate->block; // pointer for convenience
-		const Consensus::Params& consensusParams = Params().GetConsensus();
 
-		// Update nTime
-		UpdateTime(pblock, consensusParams, pindexPrev);
-		pblock->nNonce = 0;
-    
+        CBlock* pblock = &pblocktemplate->block; // pointer for convenience
+        const Consensus::Params& consensusParams = Params().GetConsensus();
+
+        // Update nTime
+        UpdateTime(pblock, consensusParams, pindexPrev);
+        pblock->nNonce = 0;
+
         // Update nExtraNonce
         static unsigned int nExtraNonce = 0;
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
@@ -534,7 +535,7 @@ UniValue getwork(const UniValue& params, bool fHelp)
         pblock->nNonce = pdata->nNonce;
         CMutableTransaction newTx;
         // Use CMutableTransaction when creating a new transaction instead of CTransaction.  CTransaction public variables are all const now.
-        newTx.vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second; // Oh, why? because vin is const in CTransaction now.  
+        newTx.vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second; // Oh, why? because vin is const in CTransaction now.
         pblock->vtx[0] = newTx;
         pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 
@@ -629,7 +630,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleCli("getblocktemplate", "")
             + HelpExampleRpc("getblocktemplate", "")
-         );
+        );
 
     LOCK(cs_main);
 
@@ -766,7 +767,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     static int64_t nStart;
     static std::unique_ptr<CBlockTemplate> pblocktemplate;
     if (pindexPrev != chainActive.Tip() ||
-        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
+            (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
         pindexPrev = nullptr;
@@ -792,13 +793,13 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     UpdateTime(pblock, consensusParams, pindexPrev);
     pblock->nNonce = 0;
 
-    UniValue aCaps(UniValue::VARR); 
+    UniValue aCaps(UniValue::VARR);
     aCaps.push_back("proposal");
 
     UniValue transactions(UniValue::VARR);
     std::map<uint256, int64_t> setTxIndex;
     int i = 0;
-    BOOST_FOREACH (const CTransaction& tx, pblock->vtx) 
+    BOOST_FOREACH (const CTransaction& tx, pblock->vtx)
     {
         uint256 txHash = tx.GetHash();
         setTxIndex[txHash] = i++;
@@ -836,7 +837,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     aMutable.push_back("time");
     aMutable.push_back("transactions");
     aMutable.push_back("prevblock");
-    
+
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("capabilities", aCaps));
 
@@ -846,40 +847,40 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         Consensus::DeploymentPos pos = Consensus::DeploymentPos(j);
         ThresholdState state = VersionBitsState(pindexPrev, consensusParams, pos, versionbitscache);
         switch (state) {
-            case THRESHOLD_DEFINED:
-            case THRESHOLD_FAILED:
-                // Not exposed to GBT at all
-                break;
-            case THRESHOLD_LOCKED_IN:
-                // Ensure bit is set in block version
-                pblock->nVersion |= VersionBitsMask(consensusParams, pos);
-                // FALL THROUGH to get vbavailable set...
-            case THRESHOLD_STARTED:
-            {
-                const struct BIP9DeploymentInfo& vbinfo = VersionBitsDeploymentInfo[pos];
-                vbavailable.push_back(Pair(gbt_vb_name(pos), consensusParams.vDeployments[pos].bit));
-                if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
-                    if (!vbinfo.gbt_force) {
-                        // If the client doesn't support this, don't indicate it in the [default] version
-                        pblock->nVersion &= ~VersionBitsMask(consensusParams, pos);
-                    }
+        case THRESHOLD_DEFINED:
+        case THRESHOLD_FAILED:
+            // Not exposed to GBT at all
+            break;
+        case THRESHOLD_LOCKED_IN:
+            // Ensure bit is set in block version
+            pblock->nVersion |= VersionBitsMask(consensusParams, pos);
+        // FALL THROUGH to get vbavailable set...
+        case THRESHOLD_STARTED:
+        {
+            const struct BIP9DeploymentInfo& vbinfo = VersionBitsDeploymentInfo[pos];
+            vbavailable.push_back(Pair(gbt_vb_name(pos), consensusParams.vDeployments[pos].bit));
+            if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
+                if (!vbinfo.gbt_force) {
+                    // If the client doesn't support this, don't indicate it in the [default] version
+                    pblock->nVersion &= ~VersionBitsMask(consensusParams, pos);
                 }
-                break;
             }
-            case THRESHOLD_ACTIVE:
-            {
-                // Add to rules only
-                const struct BIP9DeploymentInfo& vbinfo = VersionBitsDeploymentInfo[pos];
-                aRules.push_back(gbt_vb_name(pos));
-                if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
-                    // Not supported by the client; make sure it's safe to proceed
-                    if (!vbinfo.gbt_force) {
-                        // If we do anything other than throw an exception here, be sure version/force isn't sent to old clients
-                        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Support for '%s' rule requires explicit client support", vbinfo.name));
-                    }
+            break;
+        }
+        case THRESHOLD_ACTIVE:
+        {
+            // Add to rules only
+            const struct BIP9DeploymentInfo& vbinfo = VersionBitsDeploymentInfo[pos];
+            aRules.push_back(gbt_vb_name(pos));
+            if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
+                // Not supported by the client; make sure it's safe to proceed
+                if (!vbinfo.gbt_force) {
+                    // If we do anything other than throw an exception here, be sure version/force isn't sent to old clients
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Support for '%s' rule requires explicit client support", vbinfo.name));
                 }
-                break;
             }
+            break;
+        }
         }
     }
     result.push_back(Pair("version", pblock->nVersion));
@@ -1036,11 +1037,11 @@ UniValue estimatefee(const UniValue& params, bool fHelp)
             "\n"
             "A negative value is returned if not enough transactions and blocks\n"
             "have been observed to make an estimate.\n"
-             "-1 is always returned for nblocks == 1 as it is impossible to calculate\n"
-             "a fee that is high enough to get reliably included in the next block.\n"
-             "\nExample:\n"
+            "-1 is always returned for nblocks == 1 as it is impossible to calculate\n"
+            "a fee that is high enough to get reliably included in the next block.\n"
+            "\nExample:\n"
             + HelpExampleCli("estimatefee", "10")
-            );
+        );
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
 
@@ -1071,7 +1072,7 @@ UniValue estimatepriority(const UniValue& params, bool fHelp)
             "have been observed to make an estimate.\n"
             "\nExample:\n"
             + HelpExampleCli("estimatepriority", "10")
-            );
+        );
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
 
@@ -1104,7 +1105,7 @@ UniValue estimatesmartfee(const UniValue& params, bool fHelp)
             "However it will not return a value below the mempool reject fee.\n"
             "\nExample:\n"
             + HelpExampleCli("estimatesmartfee", "10")
-            );
+        );
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
 
@@ -1140,7 +1141,7 @@ UniValue estimatesmartpriority(const UniValue& params, bool fHelp)
             "However if the mempool reject fee is set it will return 1e9 * MAX_MONEY.\n"
             "\nExample:\n"
             + HelpExampleCli("estimatesmartpriority", "10")
-            );
+        );
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VNUM));
 

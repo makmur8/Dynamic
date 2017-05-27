@@ -11,7 +11,7 @@
 #include <QDialog>
 
 namespace Ui {
-    class PrivatesendConfig;
+class PrivatesendConfig;
 }
 class WalletModel;
 

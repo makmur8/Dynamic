@@ -46,7 +46,7 @@ public:
     CDynodePayee() :
         scriptPubKey(),
         vecVoteHashes()
-        {}
+    {}
 
     CDynodePayee(CScript payee, uint256 hashIn) :
         scriptPubKey(payee),
@@ -63,11 +63,19 @@ public:
         READWRITE(vecVoteHashes);
     }
 
-    CScript GetPayee() { return scriptPubKey; }
+    CScript GetPayee() {
+        return scriptPubKey;
+    }
 
-    void AddVoteHash(uint256 hashIn) { vecVoteHashes.push_back(hashIn); }
-    std::vector<uint256> GetVoteHashes() { return vecVoteHashes; }
-    int GetVoteCount() { return vecVoteHashes.size(); }
+    void AddVoteHash(uint256 hashIn) {
+        vecVoteHashes.push_back(hashIn);
+    }
+    std::vector<uint256> GetVoteHashes() {
+        return vecVoteHashes;
+    }
+    int GetVoteCount() {
+        return vecVoteHashes.size();
+    }
 };
 
 // Keep track of votes for payees from Dynodes
@@ -80,11 +88,11 @@ public:
     CDynodeBlockPayees() :
         nBlockHeight(0),
         vecPayees()
-        {}
+    {}
     CDynodeBlockPayees(int nBlockHeightIn) :
         nBlockHeight(nBlockHeightIn),
         vecPayees()
-        {}
+    {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -118,14 +126,14 @@ public:
         nBlockHeight(0),
         payee(),
         vchSig()
-        {}
+    {}
 
     CDynodePaymentVote(CTxIn vinDynode, int nBlockHeight, CScript payee) :
         vinDynode(vinDynode),
         nBlockHeight(nBlockHeight),
         payee(payee),
         vchSig()
-        {}
+    {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -151,8 +159,12 @@ public:
     bool IsValid(CNode* pnode, int nValidationHeight, std::string& strError);
     void Relay();
 
-    bool IsVerified() { return !vchSig.empty(); }
-    void MarkAsNotVerified() { vchSig.clear(); }
+    bool IsVerified() {
+        return !vchSig.empty();
+    }
+    void MarkAsNotVerified() {
+        vchSig.clear();
+    }
 
     std::string ToString() const;
 };
@@ -210,8 +222,12 @@ public:
     void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees);
     std::string ToString() const;
 
-    int GetBlockCount() { return mapDynodeBlocks.size(); }
-    int GetVoteCount() { return mapDynodePaymentVotes.size(); }
+    int GetBlockCount() {
+        return mapDynodeBlocks.size();
+    }
+    int GetVoteCount() {
+        return mapDynodePaymentVotes.size();
+    }
 
     bool IsEnoughData();
     int GetStorageLimit();

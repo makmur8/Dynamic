@@ -14,8 +14,8 @@
 #include <QStringList>
 
 DynamicUnits::DynamicUnits(QObject *parent):
-        QAbstractListModel(parent),
-        unitlist(availableUnits())
+    QAbstractListModel(parent),
+    unitlist(availableUnits())
 {
 }
 
@@ -47,11 +47,16 @@ QString DynamicUnits::id(int unit)
 {
     switch(unit)
     {
-    case DYN: return QString("dyn");
-    case mDYN: return QString("mdyn");
-    case uDYN: return QString("udyn");
-    case satoshis: return QString("satoshis");
-    default: return QString("???");
+    case DYN:
+        return QString("dyn");
+    case mDYN:
+        return QString("mdyn");
+    case uDYN:
+        return QString("udyn");
+    case satoshis:
+        return QString("satoshis");
+    default:
+        return QString("???");
     }
 }
 
@@ -61,22 +66,32 @@ QString DynamicUnits::name(int unit)
     {
         switch(unit)
         {
-            case DYN: return QString("DYN");
-            case mDYN: return QString("mDYN");
-            case uDYN: return QString::fromUtf8("μDYN");
-            case satoshis: return QString("satoshis");
-            default: return QString("???");
+        case DYN:
+            return QString("DYN");
+        case mDYN:
+            return QString("mDYN");
+        case uDYN:
+            return QString::fromUtf8("μDYN");
+        case satoshis:
+            return QString("satoshis");
+        default:
+            return QString("???");
         }
     }
     else
     {
         switch(unit)
         {
-            case DYN: return QString("tDYN");
-            case mDYN: return QString("mtDYN");
-            case uDYN: return QString::fromUtf8("μtDYN");
-            case satoshis: return QString("tsatoshis");
-            default: return QString("???");
+        case DYN:
+            return QString("tDYN");
+        case mDYN:
+            return QString("mtDYN");
+        case uDYN:
+            return QString::fromUtf8("μtDYN");
+        case satoshis:
+            return QString("tsatoshis");
+        default:
+            return QString("???");
         }
     }
 }
@@ -87,22 +102,32 @@ QString DynamicUnits::description(int unit)
     {
         switch(unit)
         {
-            case DYN: return QString("Dynamic");
-            case mDYN: return QString("Milli-Dynamic (1 / 1" THIN_SP_UTF8 "000)");
-            case uDYN: return QString("Micro-Dynamic (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
-            case satoshis: return QString("Ten Nano-Dynamic (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
-            default: return QString("???");
+        case DYN:
+            return QString("Dynamic");
+        case mDYN:
+            return QString("Milli-Dynamic (1 / 1" THIN_SP_UTF8 "000)");
+        case uDYN:
+            return QString("Micro-Dynamic (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+        case satoshis:
+            return QString("Ten Nano-Dynamic (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+        default:
+            return QString("???");
         }
     }
     else
     {
         switch(unit)
         {
-            case DYN: return QString("TestDynamic");
-            case mDYN: return QString("Milli-TestDynamic (1 / 1" THIN_SP_UTF8 "000)");
-            case uDYN: return QString("Micro-TestDynamic (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
-            case satoshis: return QString("Ten Nano-TestDynamic (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
-            default: return QString("???");
+        case DYN:
+            return QString("TestDynamic");
+        case mDYN:
+            return QString("Milli-TestDynamic (1 / 1" THIN_SP_UTF8 "000)");
+        case uDYN:
+            return QString("Micro-TestDynamic (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+        case satoshis:
+            return QString("Ten Nano-TestDynamic (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+        default:
+            return QString("???");
         }
     }
 }
@@ -111,11 +136,16 @@ qint64 DynamicUnits::factor(int unit)
 {
     switch(unit)
     {
-    case DYN:  return 100000000;
-    case mDYN: return 100000;
-    case uDYN: return 100;
-    case satoshis: return 1;
-    default:   return 100000000;
+    case DYN:
+        return 100000000;
+    case mDYN:
+        return 100000;
+    case uDYN:
+        return 100;
+    case satoshis:
+        return 1;
+    default:
+        return 100000000;
     }
 }
 
@@ -123,11 +153,16 @@ int DynamicUnits::decimals(int unit)
 {
     switch(unit)
     {
-    case DYN: return 8;
-    case mDYN: return 5;
-    case uDYN: return 2;
-    case satoshis: return 0;
-    default: return 0;
+    case DYN:
+        return 8;
+    case mDYN:
+        return 5;
+    case uDYN:
+        return 2;
+    case satoshis:
+        return 0;
+    default:
+        return 0;
     }
 }
 

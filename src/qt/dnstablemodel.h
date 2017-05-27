@@ -83,8 +83,10 @@ struct NameTableEntry
     static const int NAME_DELETE = -3;
     static const int NAME_NON_EXISTING = -4; //no pending operation, just a blank
     static const int NAME_MULTISIG = -5;
-    
-    bool HeightValid() { return nExpiresAt >= 0; }
+
+    bool HeightValid() {
+        return nExpiresAt >= 0;
+    }
 
     NameTableEntry() : nExpiresAt(NAME_NON_EXISTING), fIsMine(true) {}
     NameTableEntry(const QString &name, const QString &value, const QString &address, int nExpiresAt, bool fIsMine = true) :

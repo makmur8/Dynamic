@@ -151,7 +151,7 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
             if (!(error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT && GetBoolArg("-allowselfsignedrootcertificates", DEFAULT_SELFSIGNED_ROOTCERTS))) {
                 throw SSLVerifyError(X509_verify_cert_error_string(error));
             } else {
-               qDebug() << "PaymentRequestPlus::getMerchant: Allowing self signed root certificate, because -allowselfsignedrootcertificates is true.";
+                qDebug() << "PaymentRequestPlus::getMerchant: Allowing self signed root certificate, because -allowselfsignedrootcertificates is true.";
             }
         }
         X509_NAME *certname = X509_get_subject_name(signing_cert);
@@ -170,11 +170,11 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         EVP_MD_CTX *ctx;
         ctx = &_ctx;
 #endif
-         EVP_PKEY *pubkey = X509_get_pubkey(signing_cert);
+        EVP_PKEY *pubkey = X509_get_pubkey(signing_cert);
         EVP_MD_CTX_init(ctx);
         if (!EVP_VerifyInit_ex(ctx, digestAlgorithm, NULL) ||
-            !EVP_VerifyUpdate(ctx, data_to_verify.data(), data_to_verify.size()) ||
-            !EVP_VerifyFinal(ctx, (const unsigned char*)paymentRequest.signature().data(), (unsigned int)paymentRequest.signature().size(), pubkey)) {
+                !EVP_VerifyUpdate(ctx, data_to_verify.data(), data_to_verify.size()) ||
+                !EVP_VerifyFinal(ctx, (const unsigned char*)paymentRequest.signature().data(), (unsigned int)paymentRequest.signature().size(), pubkey)) {
             throw SSLVerifyError("Bad signature, invalid payment request.");
         }
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L

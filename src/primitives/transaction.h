@@ -20,7 +20,7 @@
 static const int NAMECOIN_TX_VERSION = 0x1030; //0x1035 is rfc1035, our initial version is 1030.
 typedef std::vector<unsigned char> CNameVal;
 struct NameTxInfo
-{ 
+{
     CNameVal name;
     CNameVal value;
     int nRentalDays;
@@ -47,8 +47,13 @@ public:
     uint256 hash;
     uint32_t n;
 
-    COutPoint() { SetNull(); }
-    COutPoint(uint256 hashIn, uint32_t nIn) { hash = hashIn; n = nIn; }
+    COutPoint() {
+        SetNull();
+    }
+    COutPoint(uint256 hashIn, uint32_t nIn) {
+        hash = hashIn;
+        n = nIn;
+    }
 
     ADD_SERIALIZE_METHODS;
 
@@ -58,8 +63,13 @@ public:
         READWRITE(n);
     }
 
-    void SetNull() { hash.SetNull(); n = (uint32_t) -1; }
-    bool IsNull() const { return (hash.IsNull() && n == (uint32_t) -1); }
+    void SetNull() {
+        hash.SetNull();
+        n = (uint32_t) -1;
+    }
+    bool IsNull() const {
+        return (hash.IsNull() && n == (uint32_t) -1);
+    }
 
     friend bool operator<(const COutPoint& a, const COutPoint& b)
     {
@@ -309,7 +319,7 @@ public:
     unsigned int CalculateModifiedSize(unsigned int nTxSize=0) const;
     // Used for DDNS
     bool ReadFromDisk(const CDiskTxPos& postx);
-    
+
     bool IsCoinBase() const
     {
         return (vin.size() == 1 && vin[0].prevout.IsNull());

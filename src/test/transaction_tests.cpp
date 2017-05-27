@@ -32,18 +32,18 @@
 extern UniValue read_json(const std::string& jsondata);
 
 static std::map<std::string, unsigned int> mapFlagNames = boost::assign::map_list_of
-    (std::string("NONE"), (unsigned int)SCRIPT_VERIFY_NONE)
-    (std::string("P2SH"), (unsigned int)SCRIPT_VERIFY_P2SH)
-    (std::string("STRICTENC"), (unsigned int)SCRIPT_VERIFY_STRICTENC)
-    (std::string("DERSIG"), (unsigned int)SCRIPT_VERIFY_DERSIG)
-    (std::string("LOW_S"), (unsigned int)SCRIPT_VERIFY_LOW_S)
-    (std::string("SIGPUSHONLY"), (unsigned int)SCRIPT_VERIFY_SIGPUSHONLY)
-    (std::string("MINIMALDATA"), (unsigned int)SCRIPT_VERIFY_MINIMALDATA)
-    (std::string("NULLDUMMY"), (unsigned int)SCRIPT_VERIFY_NULLDUMMY)
-    (std::string("DISCOURAGE_UPGRADABLE_NOPS"), (unsigned int)SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
-    (std::string("CLEANSTACK"), (unsigned int)SCRIPT_VERIFY_CLEANSTACK)
-    (std::string("CHECKLOCKTIMEVERIFY"), (unsigned int)SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
-    (std::string("CHECKSEQUENCEVERIFY"), (unsigned int)SCRIPT_VERIFY_CHECKSEQUENCEVERIFY);
+        (std::string("NONE"), (unsigned int)SCRIPT_VERIFY_NONE)
+        (std::string("P2SH"), (unsigned int)SCRIPT_VERIFY_P2SH)
+        (std::string("STRICTENC"), (unsigned int)SCRIPT_VERIFY_STRICTENC)
+        (std::string("DERSIG"), (unsigned int)SCRIPT_VERIFY_DERSIG)
+        (std::string("LOW_S"), (unsigned int)SCRIPT_VERIFY_LOW_S)
+        (std::string("SIGPUSHONLY"), (unsigned int)SCRIPT_VERIFY_SIGPUSHONLY)
+        (std::string("MINIMALDATA"), (unsigned int)SCRIPT_VERIFY_MINIMALDATA)
+        (std::string("NULLDUMMY"), (unsigned int)SCRIPT_VERIFY_NULLDUMMY)
+        (std::string("DISCOURAGE_UPGRADABLE_NOPS"), (unsigned int)SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
+        (std::string("CLEANSTACK"), (unsigned int)SCRIPT_VERIFY_CLEANSTACK)
+        (std::string("CHECKLOCKTIMEVERIFY"), (unsigned int)SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
+        (std::string("CHECKSEQUENCEVERIFY"), (unsigned int)SCRIPT_VERIFY_CHECKSEQUENCEVERIFY);
 
 unsigned int ParseScriptFlags(std::string strFlags)
 {
@@ -108,8 +108,8 @@ BOOST_AUTO_TEST_CASE(tx_valid)
             std::map<COutPoint, CScript> mapprevOutScriptPubKeys;
             UniValue inputs = test[0].get_array();
             bool fValid = true;
-        for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
-            const UniValue& input = inputs[inpIdx];
+            for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
+                const UniValue& input = inputs[inpIdx];
                 if (!input.isArray())
                 {
                     fValid = false;
@@ -183,8 +183,8 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
             std::map<COutPoint, CScript> mapprevOutScriptPubKeys;
             UniValue inputs = test[0].get_array();
             bool fValid = true;
-        for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
-            const UniValue& input = inputs[inpIdx];
+            for (unsigned int inpIdx = 0; inpIdx < inputs.size(); inpIdx++) {
+                const UniValue& input = inputs[inpIdx];
                 if (!input.isArray())
                 {
                     fValid = false;

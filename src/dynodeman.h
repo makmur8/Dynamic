@@ -174,7 +174,7 @@ public:
             READWRITE(strVersion);
         }
         else {
-            strVersion = SERIALIZATION_VERSION_STRING; 
+            strVersion = SERIALIZATION_VERSION_STRING;
             READWRITE(strVersion);
         }
 
@@ -291,7 +291,9 @@ public:
     /// Find a random entry
     CDynode* FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, int nProtocolVersion = -1);
 
-    std::vector<CDynode> GetFullDynodeVector() { return vDynodes; }
+    std::vector<CDynode> GetFullDynodeVector() {
+        return vDynodes;
+    }
 
     std::vector<std::pair<int, CDynode> > GetDynodeRanks(int nBlockHeight = -1, int nMinProtocol=0);
     int GetDynodeRank(const CTxIn &vin, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
@@ -310,7 +312,9 @@ public:
     void ProcessVerifyBroadcast(CNode* pnode, const CDynodeVerification& dnv);
 
     /// Return the number of (unique) Dynodes
-    int size() { return vDynodes.size(); }
+    int size() {
+        return vDynodes.size();
+    }
 
     std::string ToString() const;
 
@@ -318,7 +322,9 @@ public:
     void UpdateDynodeList(CDynodeBroadcast dnb);
     /// Perform complete check and only then update list and maps
     bool CheckDnbAndUpdateDynodeList(CNode* pfrom, CDynodeBroadcast dnb, int& nDos);
-    bool IsDnbRecoveryRequested(const uint256& hash) { return mDnbRecoveryRequests.count(hash); }
+    bool IsDnbRecoveryRequested(const uint256& hash) {
+        return mDnbRecoveryRequests.count(hash);
+    }
 
     void UpdateLastPaid();
 

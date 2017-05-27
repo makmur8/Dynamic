@@ -94,13 +94,13 @@ public:
     }
 
     bool ScanNames(const CNameVal& name, unsigned int nMax,
-            std::vector<
-                std::pair<
-                    CNameVal,
-                    std::pair<CNameIndex, int>
-                >
-            > &nameScan
-            );
+                   std::vector<
+                   std::pair<
+                   CNameVal,
+                   std::pair<CNameIndex, int>
+                   >
+                   > &nameScan
+                  );
     bool DumpToTextFile();
 };
 
@@ -121,11 +121,11 @@ std::string MultiSigGetPubKeyFromAddress(const std::string& strAddress);
 
 struct NameTxReturn
 {
-     bool ok;
-     std::string err_msg;
-     RPCErrorCode err_code;
-     std::string address;
-     uint256 hex;   // Transaction hash in hex
+    bool ok;
+    std::string err_msg;
+    RPCErrorCode err_code;
+    std::string address;
+    uint256 hex;   // Transaction hash in hex
 };
 NameTxReturn name_operation(const int op, const CNameVal& name, CNameVal value, const int nRentalDays, const std::string& strAddress, const std::string& strValueType);
 

@@ -42,7 +42,7 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
     ui->deleteButton->setIcon(QIcon(":/icons/" + theme + "/remove"));
     ui->deleteButton_is->setIcon(QIcon(":/icons/" + theme + "/remove"));
     ui->deleteButton_s->setIcon(QIcon(":/icons/" + theme + "/remove"));
-      
+
     // normal dynamic address field
     GUIUtil::setupAddressWidget(ui->payTo, this);
     // just a label for displaying dynamic address(es)

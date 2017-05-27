@@ -56,7 +56,7 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fInclud
 
     UniValue a(UniValue::VARR);
     BOOST_FOREACH(const CTxDestination& addr, addresses)
-        a.push_back(CDynamicAddress(addr).ToString());
+    a.push_back(CDynamicAddress(addr).ToString());
     out.push_back(Pair("addresses", a));
 }
 
@@ -263,8 +263,8 @@ UniValue gettxoutproof(const UniValue& params, bool fHelp)
         uint256 hash(uint256S(txid.get_str()));
         if (setTxids.count(hash))
             throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated txid: ")+txid.get_str());
-       setTxids.insert(hash);
-       oneTxid = hash;
+        setTxids.insert(hash);
+        oneTxid = hash;
     }
 
     LOCK(cs_main);
@@ -300,8 +300,8 @@ UniValue gettxoutproof(const UniValue& params, bool fHelp)
 
     unsigned int ntxFound = 0;
     BOOST_FOREACH(const CTransaction&tx, block.vtx)
-        if (setTxids.count(tx.GetHash()))
-            ntxFound++;
+    if (setTxids.count(tx.GetHash()))
+        ntxFound++;
     if (ntxFound != setTxids.size())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "(Not all) transactions not found in specified block");
 
@@ -341,7 +341,7 @@ UniValue verifytxoutproof(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found in chain");
 
     BOOST_FOREACH(const uint256& hash, vMatch)
-        res.push_back(hash.GetHex());
+    res.push_back(hash.GetHex());
     return res;
 }
 
@@ -542,7 +542,7 @@ UniValue decodescript(const UniValue& params, bool fHelp)
 
     UniValue r(UniValue::VOBJ);
     CScript script;
-    if (params[0].get_str().size() > 0){
+    if (params[0].get_str().size() > 0) {
         std::vector<unsigned char> scriptData(ParseHexV(params[0], "argument"));
         script = CScript(scriptData.begin(), scriptData.end());
     } else {
@@ -729,7 +729,7 @@ UniValue signrawtransaction(const UniValue& params, bool fHelp)
                 if (coins->IsAvailable(nOut) && coins->vout[nOut].scriptPubKey != scriptPubKey) {
                     std::string err("Previous output scriptPubKey mismatch:\n");
                     err = err + ScriptToAsmStr(coins->vout[nOut].scriptPubKey) + "\nvs:\n"+
-                        ScriptToAsmStr(scriptPubKey);
+                          ScriptToAsmStr(scriptPubKey);
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR, err);
                 }
                 if ((unsigned int)nOut >= coins->vout.size())

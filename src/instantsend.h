@@ -31,7 +31,7 @@ extern int nCompleteTXLocks;
 class CInstantSend
 {
 private:
-static const int ORPHAN_VOTE_SECONDS            = 60;
+    static const int ORPHAN_VOTE_SECONDS            = 60;
 
     // Keep track of current block index
     const CBlockIndex *pCurrentBlockIndex;
@@ -115,11 +115,11 @@ public:
     CTxLockRequest() :
         CTransaction(),
         nTimeCreated(GetTime())
-        {}
+    {}
     CTxLockRequest(const CTransaction& tx) :
         CTransaction(tx),
         nTimeCreated(GetTime())
-        {}
+    {}
 
     bool IsValid(bool fRequireUnspent = true) const;
     CAmount GetMinFee() const;
@@ -146,7 +146,7 @@ public:
         vchDynodeSignature(),
         nConfirmedHeight(-1),
         nTimeCreated(GetTime())
-        {}
+    {}
 
     CTxLockVote(const uint256& txHashIn, const COutPoint& outpointIn, const COutPoint& outpointDynodeIn) :
         txHash(txHashIn),
@@ -155,31 +155,41 @@ public:
         vchDynodeSignature(),
         nConfirmedHeight(-1),
         nTimeCreated(GetTime())
-        {}
+    {}
 
-ADD_SERIALIZE_METHODS;
+    ADD_SERIALIZE_METHODS;
 
-template <typename Stream, typename Operation>
-inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
-    READWRITE(txHash);
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(txHash);
         READWRITE(outpoint);
         READWRITE(outpointDynode);
         READWRITE(vchDynodeSignature);
-}
+    }
 
-uint256 GetHash() const;
+    uint256 GetHash() const;
 
-    uint256 GetTxHash() const { return txHash; }
-    COutPoint GetOutpoint() const { return outpoint; }
-    COutPoint GetDynodeOutpoint() const { return outpointDynode; }
-    int64_t GetTimeCreated() const { return nTimeCreated; }
+    uint256 GetTxHash() const {
+        return txHash;
+    }
+    COutPoint GetOutpoint() const {
+        return outpoint;
+    }
+    COutPoint GetDynodeOutpoint() const {
+        return outpointDynode;
+    }
+    int64_t GetTimeCreated() const {
+        return nTimeCreated;
+    }
 
     bool IsValid(CNode* pnode) const;
-    void SetConfirmedHeight(int nConfirmedHeightIn) { nConfirmedHeight = nConfirmedHeightIn; }
+    void SetConfirmedHeight(int nConfirmedHeightIn) {
+        nConfirmedHeight = nConfirmedHeightIn;
+    }
     bool IsExpired(int nHeight) const;
 
-bool Sign();
-bool CheckSignature() const;
+    bool Sign();
+    bool CheckSignature() const;
 
     void Relay() const;
 };
@@ -197,15 +207,21 @@ public:
     COutPointLock(const COutPoint& outpointIn) :
         outpoint(outpointIn),
         mapDynodeVotes()
-        {}
+    {}
 
-    COutPoint GetOutpoint() const { return outpoint; }
+    COutPoint GetOutpoint() const {
+        return outpoint;
+    }
 
     bool AddVote(const CTxLockVote& vote);
     std::vector<CTxLockVote> GetVotes() const;
     bool HasDynodeVoted(const COutPoint& outpointDynodeIn) const;
-    int CountVotes() const { return mapDynodeVotes.size(); }
-    bool IsReady() const { return CountVotes() >= SIGNATURES_REQUIRED; }
+    int CountVotes() const {
+        return mapDynodeVotes.size();
+    }
+    bool IsReady() const {
+        return CountVotes() >= SIGNATURES_REQUIRED;
+    }
 
     void Relay() const;
 };
@@ -220,12 +236,14 @@ public:
         nConfirmedHeight(-1),
         txLockRequest(txLockRequestIn),
         mapOutPointLocks()
-        {}
+    {}
 
     CTxLockRequest txLockRequest;
     std::map<COutPoint, COutPointLock> mapOutPointLocks;
 
-    uint256 GetHash() const { return txLockRequest.GetHash(); }
+    uint256 GetHash() const {
+        return txLockRequest.GetHash();
+    }
 
     void AddOutPointLock(const COutPoint& outpoint);
     bool AddVote(const CTxLockVote& vote);
@@ -234,7 +252,9 @@ public:
     bool HasDynodeVoted(const COutPoint& outpointIn, const COutPoint& outpointDynodeIn);
     int CountVotes() const;
 
-    void SetConfirmedHeight(int nConfirmedHeightIn) { nConfirmedHeight = nConfirmedHeightIn; }
+    void SetConfirmedHeight(int nConfirmedHeightIn) {
+        nConfirmedHeight = nConfirmedHeightIn;
+    }
     bool IsExpired(int nHeight) const;
 
     void Relay() const;

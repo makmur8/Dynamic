@@ -11,7 +11,7 @@
 #include <QDialog>
 
 namespace Ui {
-    class OpenURIDialog;
+class OpenURIDialog;
 }
 
 class OpenURIDialog : public QDialog

@@ -12,7 +12,7 @@ void TrafficGraphDataTests::simpleCurrentSampleQueueTests()
 
     TrafficGraphData::SampleQueue queue = trafficGraphData.getCurrentRangeQueue();
     QCOMPARE(queue.size(), TrafficGraphData::DESIRED_DATA_SAMPLES);
-    for (int i = 0; i < TrafficGraphData::DESIRED_DATA_SAMPLES; i++){
+    for (int i = 0; i < TrafficGraphData::DESIRED_DATA_SAMPLES; i++) {
         QCOMPARE((int)queue.at(i).in, TrafficGraphData::DESIRED_DATA_SAMPLES - i - 1);
         QCOMPARE((int)queue.at(i).out, TrafficGraphData::DESIRED_DATA_SAMPLES - i - 1);
     }
@@ -28,7 +28,7 @@ namespace
 {
 void checkQueue(const TrafficGraphData::SampleQueue& queue, int value)
 {
-    for (int i = 0; i < queue.size(); i++){
+    for (int i = 0; i < queue.size(); i++) {
         std::ostringstream oss;
         oss<< "i:" << i << " value:" << value << " actual:" << queue.at(i).in;
         QVERIFY2(value == (int)queue.at(i).in, oss.str().c_str());
@@ -40,17 +40,17 @@ void testQueueFill(TrafficGraphData::GraphRange range, int multiplier)
 {
     int size = 10000;
     TrafficGraphData trafficGraphData(range);
-    for (int i = 1; i <= size; i++){
+    for (int i = 1; i <= size; i++) {
         bool result = trafficGraphData.update(TrafficSample(1, 1));
         std::ostringstream oss;
         oss<< "result:" << result << " multiplier:" << multiplier << " i:" << i << " range:" << range;
-        if (i == 1){
+        if (i == 1) {
             if (range == TrafficGraphData::Range_5m)
                 QVERIFY2(result, oss.str().c_str());
             else
                 QVERIFY2(!result, oss.str().c_str());
         }
-        else if (i % multiplier == 0){
+        else if (i % multiplier == 0) {
             QVERIFY2(result, oss.str().c_str());
         }
         else {
@@ -88,7 +88,7 @@ void checkRange(TrafficGraphData& trafficGraphData, int size, TrafficGraphData::
 void testQueueFillAndCheckRangesForSize(int size)
 {
     TrafficGraphData trafficGraphData(TrafficGraphData::Range_5m);
-    for (int i = 1; i <= size; i++){
+    for (int i = 1; i <= size; i++) {
         trafficGraphData.update(TrafficSample(1, 1));
     }
 
@@ -123,7 +123,7 @@ namespace
 void compareQueues(const TrafficGraphData::SampleQueue& expected, const TrafficGraphData::SampleQueue& actual)
 {
     QCOMPARE(expected.size(), actual.size());
-    for (int i = 0; i < expected.size(); i++){
+    for (int i = 0; i < expected.size(); i++) {
         std::ostringstream oss;
         oss<< "i:" << i << " expected:" << expected.at(i).in << " actual:" << actual.at(i).in;
         QVERIFY2((int)expected.at(i).in == (int)actual.at(i).in, oss.str().c_str());
@@ -137,7 +137,7 @@ void testRangeSwitch(TrafficGraphData::GraphRange baseRange, TrafficGraphData::G
     qsrand((uint)time.msec());
     TrafficGraphData trafficGraphDataBase(baseRange);
     TrafficGraphData trafficGraphData(toRange);
-    for (int i = 1; i <= size; i++){
+    for (int i = 1; i <= size; i++) {
         int in = qrand() % 1000;
         int out = qrand() % 1000;
         trafficGraphData.update(TrafficSample(in, out));
@@ -161,13 +161,13 @@ void TrafficGraphDataTests::switchRangeTests()
 void TrafficGraphDataTests::clearTests()
 {
     TrafficGraphData trafficGraphData(TrafficGraphData::Range_5m);
-    for (int i = 1; i <= TrafficGraphData::DESIRED_DATA_SAMPLES; i++){
+    for (int i = 1; i <= TrafficGraphData::DESIRED_DATA_SAMPLES; i++) {
         trafficGraphData.update(TrafficSample(1, 1));
     }
     QCOMPARE(trafficGraphData.getCurrentRangeQueue().size(),TrafficGraphData::DESIRED_DATA_SAMPLES);
     trafficGraphData.clear();
     QCOMPARE(trafficGraphData.getCurrentRangeQueue().size(), 0);
-    for (int i = 1; i <= TrafficGraphData::DESIRED_DATA_SAMPLES; i++){
+    for (int i = 1; i <= TrafficGraphData::DESIRED_DATA_SAMPLES; i++) {
         trafficGraphData.update(TrafficSample(1, 1));
     }
     QCOMPARE(trafficGraphData.getCurrentRangeQueue().size(), TrafficGraphData::DESIRED_DATA_SAMPLES);

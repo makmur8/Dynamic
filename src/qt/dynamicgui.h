@@ -242,7 +242,7 @@ private Q_SLOTS:
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
     /** Switch to MultiSig page */
-	void gotoMultiSigPage();
+    void gotoMultiSigPage();
     /** Switch to Dynode page */
     void gotoDynodePage();
     /** Switch to DNS page */

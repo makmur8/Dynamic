@@ -96,8 +96,8 @@ private:
 
 public:
     WorkQueue(size_t maxDepth) : running(true),
-                                 maxDepth(maxDepth),
-                                 numThreads(0)
+        maxDepth(maxDepth),
+        numThreads(0)
     {
     }
     /** Precondition: worker threads have all stopped
@@ -146,7 +146,7 @@ public:
     void WaitExit()
     {
         std::unique_lock<std::mutex> lock(cs);
-        while (numThreads > 0){
+        while (numThreads > 0) {
             cond.wait(lock);
         }
     }
@@ -387,8 +387,8 @@ bool InitHTTPServer()
     // clear the DYNLog::LIBEVENT flag.
     if (!UpdateHTTPServerLogging(logCategories & DYNLog::LIBEVENT)) {
         logCategories &= ~DYNLog::LIBEVENT;
-	}
-	
+    }
+
 #ifdef WIN32
     evthread_use_windows_threads();
 #else
@@ -489,7 +489,7 @@ void StopHTTPServer()
         // closing during a repair-restart. It doesn't hurt, though, because threadHTTP.timed_join
         // below takes care of this and sends a loopbreak.
         workQueue->WaitExit();
-#endif        
+#endif
         delete workQueue;
         workQueue = nullptr;
     }
@@ -550,7 +550,7 @@ void HTTPEvent::trigger(struct timeval* tv)
         evtimer_add(ev, tv); // trigger after timeval passed
 }
 HTTPRequest::HTTPRequest(struct evhttp_request* req) : req(req),
-                                                       replySent(false)
+    replySent(false)
 {
 }
 HTTPRequest::~HTTPRequest()
@@ -614,7 +614,7 @@ void HTTPRequest::WriteReply(int nStatus, const std::string& strReply)
     assert(evb);
     evbuffer_add(evb, strReply.data(), strReply.size());
     HTTPEvent* ev = new HTTPEvent(eventBase, true,
-        std::bind(evhttp_send_reply, req, nStatus, (const char*)NULL, (struct evbuffer *)NULL));
+                                  std::bind(evhttp_send_reply, req, nStatus, (const char*)NULL, (struct evbuffer *)NULL));
     ev->trigger(0);
     replySent = true;
     req = 0; // transferred back to main thread

@@ -16,14 +16,14 @@ class PlatformStyle;
 
 namespace Ui
 {
-    class MultisigInputEntry;
+class MultisigInputEntry;
 }
 
 class MultisigInputEntry : public QFrame
 {
     Q_OBJECT;
 
-  public:
+public:
     explicit MultisigInputEntry(const PlatformStyle *platformStyle, QWidget *parent = 0);
     ~MultisigInputEntry();
     void setModel(WalletModel *model);
@@ -34,21 +34,21 @@ class MultisigInputEntry : public QFrame
     void setTransactionId(QString transactionId);
     void setTransactionOutputIndex(int index);
 
-  public Q_SLOTS:
+public Q_SLOTS:
     void setRemoveEnabled(bool enabled);
     void clear();
 
-  Q_SIGNALS:
+Q_SIGNALS:
     void removeEntry(MultisigInputEntry *entry);
     void updateAmount();
 
-  private:
+private:
     Ui::MultisigInputEntry *ui;
     WalletModel *model;
     uint256 txHash;
     const PlatformStyle *platformStyle;
 
-  private Q_SLOTS:
+private Q_SLOTS:
     void on_transactionId_textChanged(const QString &transactionId);
     void on_pasteTransactionIdButton_clicked();
     void on_deleteButton_clicked();

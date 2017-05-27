@@ -103,7 +103,7 @@ bool CTxMemPool::UpdateForDescendants(txiter updateIt, int maxDescendantsToVisit
             } else if (!setAllDescendants.count(childEntry)) {
                 // Schedule for later processing and update our visit count
                 if (stageEntries.insert(childEntry).second && !setExclude.count(childEntry->GetTx().GetHash())) {
-                        nChildrenToVisit++;
+                    nChildrenToVisit++;
                 }
             }
             if (nChildrenToVisit > maxDescendantsToVisit) {
@@ -280,7 +280,7 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove)
         // should be a bit faster.
         // However, if we happen to be in the middle of processing a reorg, then
         // the mempool can be in an inconsistent state.  In this case, the set
-        // of ancestors reachable via mapLinks will be the same as the set of 
+        // of ancestors reachable via mapLinks will be the same as the set of
         // ancestors whose packages include this transaction, because when we
         // add a new transaction to the mempool in addUnchecked(), we assume it
         // has no children, and in the case of a reorg where that assumption is
@@ -565,7 +565,7 @@ void CTxMemPool::removeUnchecked(txiter it)
 {
     const uint256 hash = it->GetTx().GetHash();
     BOOST_FOREACH(const CTxIn& txin, it->GetTx().vin)
-        mapNextTx.erase(txin.prevout);
+    mapNextTx.erase(txin.prevout);
 
     totalTxSize -= it->GetTxSize();
     cachedInnerUsage -= it->DynamicMemoryUsage();
@@ -664,7 +664,7 @@ void CTxMemPool::removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMem
                 if (it2 != mapTx.end())
                     continue;
                 const CCoins *coins = pcoins->AccessCoins(txin.prevout.hash);
-		if (nCheckFrequency != 0) assert(coins);
+                if (nCheckFrequency != 0) assert(coins);
                 if (!coins || (coins->IsCoinBase() && ((signed long)nMemPoolHeight) - coins->nHeight < COINBASE_MATURITY)) {
                     transactionsToRemove.push_back(tx);
                     break;
@@ -1127,7 +1127,7 @@ void CTxMemPool::TrimToSize(size_t sizelimit, std::vector<uint256>* pvNoSpendsRe
         if (pvNoSpendsRemaining) {
             txn.reserve(stage.size());
             BOOST_FOREACH(txiter iter, stage)
-                txn.push_back(iter->GetTx());
+            txn.push_back(iter->GetTx());
         }
         RemoveStaged(stage);
         if (pvNoSpendsRemaining) {

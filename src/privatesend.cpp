@@ -71,7 +71,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         }
 
         if(vecSessionCollaterals.size() == 0 && pdn->nLastSsq != 0 &&
-            pdn->nLastSsq + dnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION)/5 > dnodeman.nSsqCount)
+                pdn->nLastSsq + dnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION)/5 > dnodeman.nSsqCount)
         {
             LogPrintf("PSACCEPT -- last psq too recent, must wait: addr=%s\n", pfrom->addr.ToString());
             PushStatus(pfrom, STATUS_REJECTED, ERR_RECENT);
@@ -81,7 +81,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         PoolMessage nMessageID = MSG_NOERR;
 
         bool fResult = nSessionID == 0  ? CreateNewSession(nDenom, txCollateral, nMessageID)
-                                        : AddUserToExistingSession(nDenom, txCollateral, nMessageID);
+                       : AddUserToExistingSession(nDenom, txCollateral, nMessageID);
         if(fResult) {
             LogPrintf("PSACCEPT -- is compatible, please submit!\n");
             PushStatus(pfrom, STATUS_ACCEPTED, nMessageID);
@@ -307,7 +307,7 @@ void CPrivatesendPool::ProcessMessage(CNode* pfrom, std::string& strCommand, CDa
         vRecv >> nMsgSessionID >> nMsgState >> nMsgEntriesCount >> nMsgStatusUpdate >> nMsgMessageID;
 
         LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgSessionID %d  nMsgState: %d  nEntriesCount: %d  nMsgStatusUpdate: %d  nMsgMessageID %d\n",
-                nMsgSessionID, nMsgState, nEntriesCount, nMsgStatusUpdate, nMsgMessageID);
+                 nMsgSessionID, nMsgState, nEntriesCount, nMsgStatusUpdate, nMsgMessageID);
 
         if(nMsgState < POOL_STATE_MIN || nMsgState > POOL_STATE_MAX) {
             LogPrint(DYNLog::PRIVATESEND, "PSSTATUSUPDATE -- nMsgState is out of bounds: %d\n", nMsgState);
@@ -486,9 +486,12 @@ void CPrivatesendPool::UnlockCoins()
 {
     while(true) {
         TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-        if(!lockWallet) {MilliSleep(50); continue;}
+        if(!lockWallet) {
+            MilliSleep(50);
+            continue;
+        }
         BOOST_FOREACH(COutPoint outpoint, vecOutPointLocked)
-            pwalletMain->UnlockCoin(outpoint);
+        pwalletMain->UnlockCoin(outpoint);
         break;
     }
 
@@ -498,13 +501,20 @@ void CPrivatesendPool::UnlockCoins()
 std::string CPrivatesendPool::GetStateString() const
 {
     switch(nState) {
-        case POOL_STATE_IDLE:                   return "IDLE";
-        case POOL_STATE_QUEUE:                  return "QUEUE";
-        case POOL_STATE_ACCEPTING_ENTRIES:      return "ACCEPTING_ENTRIES";
-        case POOL_STATE_SIGNING:                return "SIGNING";
-        case POOL_STATE_ERROR:                  return "ERROR";
-        case POOL_STATE_SUCCESS:                return "SUCCESS";
-        default:                                return "UNKNOWN";
+    case POOL_STATE_IDLE:
+        return "IDLE";
+    case POOL_STATE_QUEUE:
+        return "QUEUE";
+    case POOL_STATE_ACCEPTING_ENTRIES:
+        return "ACCEPTING_ENTRIES";
+    case POOL_STATE_SIGNING:
+        return "SIGNING";
+    case POOL_STATE_ERROR:
+        return "ERROR";
+    case POOL_STATE_SUCCESS:
+        return "SUCCESS";
+    default:
+        return "UNKNOWN";
     }
 }
 
@@ -518,42 +528,42 @@ std::string CPrivatesendPool::GetStatus()
         return strAutoDenomResult;
 
     switch(nState) {
-        case POOL_STATE_IDLE:
-            return _("PrivateSend is idle.");
-        case POOL_STATE_QUEUE:
-            if(     nStatusMessageProgress % 70 <= 30) strSuffix = ".";
-            else if(nStatusMessageProgress % 70 <= 50) strSuffix = "..";
-            else if(nStatusMessageProgress % 70 <= 70) strSuffix = "...";
-            return strprintf(_("Submitted to Dynode, waiting in queue %s"), strSuffix);
-        case POOL_STATE_ACCEPTING_ENTRIES:
-            if(nEntriesCount == 0) {
+    case POOL_STATE_IDLE:
+        return _("PrivateSend is idle.");
+    case POOL_STATE_QUEUE:
+        if(     nStatusMessageProgress % 70 <= 30) strSuffix = ".";
+        else if(nStatusMessageProgress % 70 <= 50) strSuffix = "..";
+        else if(nStatusMessageProgress % 70 <= 70) strSuffix = "...";
+        return strprintf(_("Submitted to Dynode, waiting in queue %s"), strSuffix);
+    case POOL_STATE_ACCEPTING_ENTRIES:
+        if(nEntriesCount == 0) {
+            nStatusMessageProgress = 0;
+            return strAutoDenomResult;
+        } else if(fLastEntryAccepted) {
+            if(nStatusMessageProgress % 10 > 8) {
+                fLastEntryAccepted = false;
                 nStatusMessageProgress = 0;
-                return strAutoDenomResult;
-            } else if(fLastEntryAccepted) {
-                if(nStatusMessageProgress % 10 > 8) {
-                    fLastEntryAccepted = false;
-                    nStatusMessageProgress = 0;
-                }
-                return _("PrivateSend request complete:") + " " + _("Your transaction was accepted into the pool!");
-            } else {
-                if(     nStatusMessageProgress % 70 <= 40) return strprintf(_("Submitted following entries to Dynode: %u / %d"), nEntriesCount, GetMaxPoolTransactions());
-                else if(nStatusMessageProgress % 70 <= 50) strSuffix = ".";
-                else if(nStatusMessageProgress % 70 <= 60) strSuffix = "..";
-                else if(nStatusMessageProgress % 70 <= 70) strSuffix = "...";
-                return strprintf(_("Submitted to Dynode, waiting for more entries ( %u / %d ) %s"), nEntriesCount, GetMaxPoolTransactions(), strSuffix);
             }
-        case POOL_STATE_SIGNING:
-            if(     nStatusMessageProgress % 70 <= 40) return _("Found enough users, signing ...");
+            return _("PrivateSend request complete:") + " " + _("Your transaction was accepted into the pool!");
+        } else {
+            if(     nStatusMessageProgress % 70 <= 40) return strprintf(_("Submitted following entries to Dynode: %u / %d"), nEntriesCount, GetMaxPoolTransactions());
             else if(nStatusMessageProgress % 70 <= 50) strSuffix = ".";
             else if(nStatusMessageProgress % 70 <= 60) strSuffix = "..";
             else if(nStatusMessageProgress % 70 <= 70) strSuffix = "...";
-            return strprintf(_("Found enough users, signing ( waiting %s )"), strSuffix);
-        case POOL_STATE_ERROR:
-            return _("PrivateSend request incomplete:") + " " + strLastMessage + " " + _("Will retry...");
-        case POOL_STATE_SUCCESS:
-            return _("PrivateSend request complete:") + " " + strLastMessage;
-       default:
-            return strprintf(_("Unknown state: id = %u"), nState);
+            return strprintf(_("Submitted to Dynode, waiting for more entries ( %u / %d ) %s"), nEntriesCount, GetMaxPoolTransactions(), strSuffix);
+        }
+    case POOL_STATE_SIGNING:
+        if(     nStatusMessageProgress % 70 <= 40) return _("Found enough users, signing ...");
+        else if(nStatusMessageProgress % 70 <= 50) strSuffix = ".";
+        else if(nStatusMessageProgress % 70 <= 60) strSuffix = "..";
+        else if(nStatusMessageProgress % 70 <= 70) strSuffix = "...";
+        return strprintf(_("Found enough users, signing ( waiting %s )"), strSuffix);
+    case POOL_STATE_ERROR:
+        return _("PrivateSend request incomplete:") + " " + strLastMessage + " " + _("Will retry...");
+    case POOL_STATE_SUCCESS:
+        return _("PrivateSend request complete:") + " " + strLastMessage;
+    default:
+        return strprintf(_("Unknown state: id = %u"), nState);
     }
 }
 
@@ -597,10 +607,10 @@ void CPrivatesendPool::CreateFinalTransaction()
     // make our new transaction
     for(int i = 0; i < GetEntriesCount(); i++) {
         BOOST_FOREACH(const CTxPSOut& txpsout, vecEntries[i].vecTxPSOut)
-            txNew.vout.push_back(txpsout);
+        txNew.vout.push_back(txpsout);
 
         BOOST_FOREACH(const CTxPSIn& txpsin, vecEntries[i].vecTxPSIn)
-            txNew.vin.push_back(txpsin);
+        txNew.vin.push_back(txpsin);
     }
 
     // BIP69 https://github.com/kristovatlas/bips/blob/master/bip-0069.mediawiki
@@ -689,8 +699,8 @@ void CPrivatesendPool::ChargeFees()
         BOOST_FOREACH(const CTransaction& txCollateral, vecSessionCollaterals) {
             bool fFound = false;
             BOOST_FOREACH(const CPrivateSendEntry& entry, vecEntries)
-                if(entry.txCollateral == txCollateral)
-                    fFound = true;
+            if(entry.txCollateral == txCollateral)
+                fFound = true;
 
             // This queue entry didn't send us the promised transaction
             if(!fFound) {
@@ -726,7 +736,7 @@ void CPrivatesendPool::ChargeFees()
 
     if(nState == POOL_STATE_ACCEPTING_ENTRIES || nState == POOL_STATE_SIGNING) {
         LogPrintf("CPrivatesendPool::ChargeFees -- found uncooperative node (didn't %s transaction), charging fees: %s\n",
-                (nState == POOL_STATE_SIGNING) ? "sign" : "send", vecOffendersCollaterals[0].ToString());
+                  (nState == POOL_STATE_SIGNING) ? "sign" : "send", vecOffendersCollaterals[0].ToString());
 
         LOCK(cs_main);
 
@@ -785,15 +795,15 @@ void CPrivatesendPool::CheckTimeout()
         TRY_LOCK(cs_privatesend, lockPS);
         if(!lockPS) return; // it's ok to fail here, we run this quite frequently
 
-       int c = 0;
-       std::vector<CPrivatesendQueue>::iterator it = vecPrivatesendQueue.begin();
-       while(it != vecPrivatesendQueue.end()){
-           if((*it).IsExpired()){
-               LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
-               it = vecPrivatesendQueue.erase(it);
-           } else ++it;
-           c++;
-       }
+        int c = 0;
+        std::vector<CPrivatesendQueue>::iterator it = vecPrivatesendQueue.begin();
+        while(it != vecPrivatesendQueue.end()) {
+            if((*it).IsExpired()) {
+                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
+                it = vecPrivatesendQueue.erase(it);
+            } else ++it;
+            c++;
+        }
     }
 
     if(!fEnablePrivateSend && !fDyNode) return;
@@ -801,16 +811,16 @@ void CPrivatesendPool::CheckTimeout()
     // catching hanging sessions
     if(!fDyNode) {
         switch(nState) {
-            case POOL_STATE_ERROR:
-                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool error -- Running CheckPool\n");
-                CheckPool();
-                break;
-            case POOL_STATE_SUCCESS:
-                LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool success -- Running CheckPool\n");
-                CheckPool();
-                break;
-            default:
-                break;
+        case POOL_STATE_ERROR:
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool error -- Running CheckPool\n");
+            CheckPool();
+            break;
+        case POOL_STATE_SUCCESS:
+            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- Pool success -- Running CheckPool\n");
+            CheckPool();
+            break;
+        default:
+            break;
         }
     }
 
@@ -820,7 +830,7 @@ void CPrivatesendPool::CheckTimeout()
 
     if(nState != POOL_STATE_IDLE && fTimeout) {
         LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::CheckTimeout -- %s timed out (%ds) -- restting\n",
-                (nState == POOL_STATE_SIGNING) ? "Signing" : "Session", nTimeout);
+                 (nState == POOL_STATE_SIGNING) ? "Signing" : "Session", nTimeout);
         ChargeFees();
         UnlockCoins();
         SetNull();
@@ -862,7 +872,7 @@ bool CPrivatesendPool::IsInputScriptSigValid(const CTxIn& txin)
     BOOST_FOREACH(CPrivateSendEntry& entry, vecEntries) {
 
         BOOST_FOREACH(const CTxPSOut& txpsout, entry.vecTxPSOut)
-            txNew.vout.push_back(txpsout);
+        txNew.vout.push_back(txpsout);
 
         BOOST_FOREACH(const CTxPSIn& txpsin, entry.vecTxPSIn) {
             txNew.vin.push_back(txpsin);
@@ -1038,8 +1048,8 @@ bool CPrivatesendPool::AddScriptSig(const CTxIn& txinNew)
 bool CPrivatesendPool::IsSignaturesComplete()
 {
     BOOST_FOREACH(const CPrivateSendEntry& entry, vecEntries)
-        BOOST_FOREACH(const CTxPSIn& txpsin, entry.vecTxPSIn)
-            if(!txpsin.fHasSig) return false;
+    BOOST_FOREACH(const CTxPSIn& txpsin, entry.vecTxPSIn)
+    if(!txpsin.fHasSig) return false;
 
     return true;
 }
@@ -1062,10 +1072,10 @@ bool CPrivatesendPool::SendDenominate(const std::vector<CTxIn>& vecTxIn, const s
 
     // lock the funds we're going to use
     BOOST_FOREACH(CTxIn txin, txMyCollateral.vin)
-        vecOutPointLocked.push_back(txin.prevout);
+    vecOutPointLocked.push_back(txin.prevout);
 
     BOOST_FOREACH(CTxIn txin, vecTxIn)
-        vecOutPointLocked.push_back(txin.prevout);
+    vecOutPointLocked.push_back(txin.prevout);
 
     // we should already be connected to a Dynode
     if(!nSessionID) {
@@ -1210,7 +1220,7 @@ bool CPrivatesendPool::SignFinalTransaction(const CTransaction& finalTransaction
                 }
 
                 BOOST_FOREACH(const CTxOut txout, entry.vecTxPSOut)
-                    nValue2 += txout.nValue;
+                nValue2 += txout.nValue;
 
                 int nTargetOuputsCount = entry.vecTxPSOut.size();
                 if(nFoundOutputsCount < nTargetOuputsCount || nValue1 != nValue2) {
@@ -1297,26 +1307,26 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     }
 
     switch(nWalletBackups) {
-        case 0:
-            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Automatic backups disabled, no mixing available.\n");
-            strAutoDenomResult = _("Automatic backups disabled") + ", " + _("no mixing available.");
-            fEnablePrivateSend = false; // stop mixing
-            pwalletMain->nKeysLeftSinceAutoBackup = 0; // no backup, no "keys since last backup"
-            return false;
-        case -1:
-            // Automatic backup failed, nothing else we can do until user fixes the issue manually.
-            // There is no way to bring user attention in daemon mode so we just update status and
-            // keep spaming if debug is on.
-            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- ERROR! Failed to create automatic backup.\n");
-            strAutoDenomResult = _("ERROR! Failed to create automatic backup") + ", " + _("see debug.log for details.");
-            return false;
-        case -2:
-            // We were able to create automatic backup but keypool was not replenished because wallet is locked.
-            // There is no way to bring user attention in daemon mode so we just update status and
-            // keep spaming if debug is on.
-            LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- WARNING! Failed to create replenish keypool, please unlock your wallet to do so.\n");
-            strAutoDenomResult = _("WARNING! Failed to replenish keypool, please unlock your wallet to do so.") + ", " + _("see debug.log for details.");
-            return false;
+    case 0:
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- Automatic backups disabled, no mixing available.\n");
+        strAutoDenomResult = _("Automatic backups disabled") + ", " + _("no mixing available.");
+        fEnablePrivateSend = false; // stop mixing
+        pwalletMain->nKeysLeftSinceAutoBackup = 0; // no backup, no "keys since last backup"
+        return false;
+    case -1:
+        // Automatic backup failed, nothing else we can do until user fixes the issue manually.
+        // There is no way to bring user attention in daemon mode so we just update status and
+        // keep spaming if debug is on.
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- ERROR! Failed to create automatic backup.\n");
+        strAutoDenomResult = _("ERROR! Failed to create automatic backup") + ", " + _("see debug.log for details.");
+        return false;
+    case -2:
+        // We were able to create automatic backup but keypool was not replenished because wallet is locked.
+        // There is no way to bring user attention in daemon mode so we just update status and
+        // keep spaming if debug is on.
+        LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- WARNING! Failed to create replenish keypool, please unlock your wallet to do so.\n");
+        strAutoDenomResult = _("WARNING! Failed to replenish keypool, please unlock your wallet to do so.") + ", " + _("see debug.log for details.");
+        return false;
     }
 
     if(pwalletMain->nKeysLeftSinceAutoBackup < PRIVATESEND_KEYS_THRESHOLD_STOP) {
@@ -1410,12 +1420,12 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
     CAmount nBalanceDenominated = nBalanceDenominatedConf + nBalanceDenominatedUnconf;
 
     LogPrint(DYNLog::PRIVATESEND, "CPrivatesendPool::DoAutomaticDenominating -- nValueMin: %f, nBalanceNeedsAnonymized: %f, nBalanceAnonimizableNonDenom: %f, nBalanceDenominatedConf: %f, nBalanceDenominatedUnconf: %f, nBalanceDenominated: %f\n",
-            (float)nValueMin/COIN,
-            (float)nBalanceNeedsAnonymized/COIN,
-            (float)nBalanceAnonimizableNonDenom/COIN,
-            (float)nBalanceDenominatedConf/COIN,
-            (float)nBalanceDenominatedUnconf/COIN,
-            (float)nBalanceDenominated/COIN);
+             (float)nValueMin/COIN,
+             (float)nBalanceNeedsAnonymized/COIN,
+             (float)nBalanceAnonimizableNonDenom/COIN,
+             (float)nBalanceDenominatedConf/COIN,
+             (float)nBalanceDenominatedUnconf/COIN,
+             (float)nBalanceDenominated/COIN);
 
     if(fDryRun) return true;
 
@@ -1541,7 +1551,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
 
                 pnode->PushMessage(NetMsgType::PSACCEPT, nSessionDenom, txMyCollateral);
                 LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- connected (from queue), sending PSACCEPT: nSessionDenom: %d (%s), addr=%s\n",
-                        nSessionDenom, GetDenominationsToString(nSessionDenom), pnode->addr.ToString());
+                          nSessionDenom, GetDenominationsToString(nSessionDenom), pnode->addr.ToString());
                 strAutoDenomResult = _("Mixing in progress...");
                 SetState(POOL_STATE_QUEUE);
                 nTimeLastSuccessfulStep = GetTimeMillis();
@@ -1584,9 +1594,9 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
 
         if(pdn->nLastSsq != 0 && pdn->nLastSsq + nDnCountEnabled/5 > dnodeman.nSsqCount) {
             LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- Too early to mix on this Dynode!"
-                        " Dynode=%s  addr=%s  nLastSsq=%d  CountEnabled/5=%d  nSsqCount=%d\n",
-                        pdn->vin.prevout.ToStringShort(), pdn->addr.ToString(), pdn->nLastSsq,
-                        nDnCountEnabled/5, dnodeman.nSsqCount);
+                      " Dynode=%s  addr=%s  nLastSsq=%d  CountEnabled/5=%d  nSsqCount=%d\n",
+                      pdn->vin.prevout.ToStringShort(), pdn->addr.ToString(), pdn->nLastSsq,
+                      nDnCountEnabled/5, dnodeman.nSsqCount);
             nTries++;
             continue;
         }
@@ -1620,7 +1630,7 @@ bool CPrivatesendPool::DoAutomaticDenominating(bool fDryRun)
 
             pnode->PushMessage(NetMsgType::PSACCEPT, nSessionDenom, txMyCollateral);
             LogPrintf("CPrivatesendPool::DoAutomaticDenominating -- connected, sending PSACCEPT, nSessionDenom: %d (%s)\n",
-                    nSessionDenom, GetDenominationsToString(nSessionDenom));
+                      nSessionDenom, GetDenominationsToString(nSessionDenom));
             strAutoDenomResult = _("Mixing in progress...");
             SetState(POOL_STATE_QUEUE);
             nTimeLastSuccessfulStep = GetTimeMillis();
@@ -1702,7 +1712,7 @@ bool CPrivatesendPool::PrepareDenominate(int nMinRounds, int nMaxRounds, std::st
         return false;
     }
 
-    bool fSelected = pwalletMain->SelectCoinsByDenominations(nSessionDenom, vecPrivateSendDenominations[vecBits.front()], GetMaxPoolAmount(), vecTxIn, vCoins, nValueIn, nMinRounds, nMaxRounds);     
+    bool fSelected = pwalletMain->SelectCoinsByDenominations(nSessionDenom, vecPrivateSendDenominations[vecBits.front()], GetMaxPoolAmount(), vecTxIn, vCoins, nValueIn, nMinRounds, nMaxRounds);
     if (nMinRounds >= 0 && !fSelected) {
         strErrorRet = "Can't select current denominated inputs";
         return false;
@@ -1826,7 +1836,9 @@ bool CPrivatesendPool::MakeCollateralAmounts(const CompactTallyItem& tallyItem)
     assert(reservekeyCollateral.GetReservedKey(vchPubKey, false)); // should never fail, as we just unlocked
     scriptCollateral = GetScriptForDestination(vchPubKey.GetID());
 
-    vecSend.push_back((CRecipient){scriptCollateral, PRIVATESEND_COLLATERAL*4, false});
+    vecSend.push_back((CRecipient) {
+        scriptCollateral, PRIVATESEND_COLLATERAL*4, false
+    });
 
     // try to use non-denominated and not DN-like funds first, select them explicitly
     CCoinControl coinControl;
@@ -1835,17 +1847,17 @@ bool CPrivatesendPool::MakeCollateralAmounts(const CompactTallyItem& tallyItem)
     // send change to the same address so that we were able create more denoms out of it later
     coinControl.destChange = tallyItem.address.Get();
     BOOST_FOREACH(const CTxIn& txin, tallyItem.vecTxIn)
-        coinControl.Select(txin.prevout);
+    coinControl.Select(txin.prevout);
 
     bool fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange,
-            nFeeRet, nChangePosRet, strFail, &coinControl, true, ONLY_NONDENOMINATED_NOT1000IFDN);
+                    nFeeRet, nChangePosRet, strFail, &coinControl, true, ONLY_NONDENOMINATED_NOT1000IFDN);
     if(!fSuccess) {
         // if we failed (most likeky not enough funds), try to use all coins instead -
         // DN-like funds should not be touched in any case and we can't mix denominated without collaterals anyway
         LogPrintf("CPrivatesendPool::MakeCollateralAmounts -- ONLY_NONDENOMINATED_NOT1000IFDN Error: %s\n", strFail);
         CCoinControl *coinControlNull = NULL;
         fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange,
-                nFeeRet, nChangePosRet, strFail, coinControlNull, true, ONLY_NOT1000IFDN);
+                   nFeeRet, nChangePosRet, strFail, coinControlNull, true, ONLY_NOT1000IFDN);
         if(!fSuccess) {
             LogPrintf("CPrivatesendPool::MakeCollateralAmounts -- ONLY_NOT1000IFDN Error: %s\n", strFail);
             reservekeyCollateral.ReturnKey();
@@ -1907,7 +1919,9 @@ bool CPrivatesendPool::CreateDenominated(const CompactTallyItem& tallyItem, bool
     // ****** Add collateral outputs ************ /
 
     if(fCreateMixingCollaterals) {
-        vecSend.push_back((CRecipient){scriptCollateral, PRIVATESEND_COLLATERAL*4, false});
+        vecSend.push_back((CRecipient) {
+            scriptCollateral, PRIVATESEND_COLLATERAL*4, false
+        });
         nValueLeft -= PRIVATESEND_COLLATERAL*4;
     }
 
@@ -1951,7 +1965,9 @@ bool CPrivatesendPool::CreateDenominated(const CompactTallyItem& tallyItem, bool
                 // TODO: do not keep reservekeyDenom here
                 reservekeyDenom.KeepKey();
 
-                vecSend.push_back((CRecipient){ scriptDenom, nDenomValue, false });
+                vecSend.push_back((CRecipient) {
+                    scriptDenom, nDenomValue, false
+                });
 
                 //increment outputs and subtract denomination amount
                 nOutputs++;
@@ -1976,7 +1992,7 @@ bool CPrivatesendPool::CreateDenominated(const CompactTallyItem& tallyItem, bool
     // send change to the same address so that we were able create more denoms out of it later
     coinControl.destChange = tallyItem.address.Get();
     BOOST_FOREACH(const CTxIn& txin, tallyItem.vecTxIn)
-        coinControl.Select(txin.prevout);
+    coinControl.Select(txin.prevout);
 
     CWalletTx wtx;
     CAmount nFeeRet = 0;
@@ -1986,7 +2002,7 @@ bool CPrivatesendPool::CreateDenominated(const CompactTallyItem& tallyItem, bool
     CReserveKey reservekeyChange(pwalletMain);
 
     bool fSuccess = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange,
-            nFeeRet, nChangePosRet, strFail, &coinControl, true, ONLY_NONDENOMINATED_NOT1000IFDN);
+                    nFeeRet, nChangePosRet, strFail, &coinControl, true, ONLY_NONDENOMINATED_NOT1000IFDN);
     if(!fSuccess) {
         LogPrintf("CPrivatesendPool::CreateDenominated -- Error: %s\n", strFail);
         // TODO: return reservekeyDenom here
@@ -2077,7 +2093,7 @@ bool CPrivatesendPool::CreateNewSession(int nDenom, CTransaction txCollateral, P
 
     vecSessionCollaterals.push_back(txCollateral);
     LogPrintf("CPrivatesendPool::CreateNewSession -- new session created, nSessionID: %d  nSessionDenom: %d (%s)  vecSessionCollaterals.size(): %d\n",
-            nSessionID, nSessionDenom, GetDenominationsToString(nSessionDenom), vecSessionCollaterals.size());
+              nSessionID, nSessionDenom, GetDenominationsToString(nSessionDenom), vecSessionCollaterals.size());
 
     return true;
 }
@@ -2099,7 +2115,7 @@ bool CPrivatesendPool::AddUserToExistingSession(int nDenom, CTransaction txColla
 
     if(nDenom != nSessionDenom) {
         LogPrintf("CPrivatesendPool::AddUserToExistingSession -- incompatible denom %d (%s) != nSessionDenom %d (%s)\n",
-                    nDenom, GetDenominationsToString(nDenom), nSessionDenom, GetDenominationsToString(nSessionDenom));
+                  nDenom, GetDenominationsToString(nDenom), nSessionDenom, GetDenominationsToString(nSessionDenom));
         nMessageIDRet = ERR_DENOM;
         return false;
     }
@@ -2111,7 +2127,7 @@ bool CPrivatesendPool::AddUserToExistingSession(int nDenom, CTransaction txColla
     vecSessionCollaterals.push_back(txCollateral);
 
     LogPrintf("CPrivatesendPool::AddUserToExistingSession -- new user accepted, nSessionID: %d  nSessionDenom: %d (%s)  vecSessionCollaterals.size(): %d\n",
-            nSessionID, nSessionDenom, GetDenominationsToString(nSessionDenom), vecSessionCollaterals.size());
+              nSessionID, nSessionDenom, GetDenominationsToString(nSessionDenom), vecSessionCollaterals.size());
 
     return true;
 }
@@ -2153,7 +2169,7 @@ int CPrivatesendPool::GetDenominations(const std::vector<CTxPSOut>& vecTxPSOut)
     std::vector<CTxOut> vecTxOut;
 
     BOOST_FOREACH(CTxPSOut out, vecTxPSOut)
-        vecTxOut.push_back(out);
+    vecTxOut.push_back(out);
 
     return GetDenominations(vecTxOut);
 }
@@ -2173,7 +2189,7 @@ int CPrivatesendPool::GetDenominations(const std::vector<CTxOut>& vecTxOut, bool
 
     // make a list of denominations, with zero uses
     BOOST_FOREACH(CAmount nDenomValue, vecPrivateSendDenominations)
-        vecDenomUsed.push_back(std::make_pair(nDenomValue, 0));
+    vecDenomUsed.push_back(std::make_pair(nDenomValue, 0));
 
     // look for denominations and update uses to 1
     BOOST_FOREACH(CTxOut txout, vecTxOut) {
@@ -2238,29 +2254,52 @@ int CPrivatesendPool::GetDenominationsByAmounts(const std::vector<CAmount>& vecA
 std::string CPrivatesendPool::GetMessageByID(PoolMessage nMessageID)
 {
     switch (nMessageID) {
-        case ERR_ALREADY_HAVE:          return _("Already have that input.");
-        case ERR_DENOM:                 return _("No matching denominations found for mixing.");
-        case ERR_ENTRIES_FULL:          return _("Entries are full.");
-        case ERR_EXISTING_TX:           return _("Not compatible with existing transactions.");
-        case ERR_FEES:                  return _("Transaction fees are too high.");
-        case ERR_INVALID_COLLATERAL:    return _("Collateral not valid.");
-        case ERR_INVALID_INPUT:         return _("Input is not valid.");
-        case ERR_INVALID_SCRIPT:        return _("Invalid script detected.");
-        case ERR_INVALID_TX:            return _("Transaction not valid.");
-        case ERR_MAXIMUM:               return _("Entry exceeds maximum size.");
-        case ERR_DN_LIST:               return _("Not in the Dynode list.");
-        case ERR_MODE:                  return _("Incompatible mode.");
-        case ERR_NON_STANDARD_PUBKEY:   return _("Non-standard public key detected.");
-        case ERR_NOT_A_DN:              return _("This is not a Dynode.");
-        case ERR_QUEUE_FULL:            return _("Dynode queue is full.");
-        case ERR_RECENT:                return _("Last PrivateSend was too recent.");
-        case ERR_SESSION:               return _("Session not complete!");
-        case ERR_MISSING_TX:            return _("Missing input transaction information.");
-        case ERR_VERSION:               return _("Incompatible version.");
-        case MSG_NOERR:                 return _("No errors detected.");
-        case MSG_SUCCESS:               return _("Transaction created successfully.");
-        case MSG_ENTRIES_ADDED:         return _("Your entries added successfully.");
-        default:                        return _("Unknown response.");
+    case ERR_ALREADY_HAVE:
+        return _("Already have that input.");
+    case ERR_DENOM:
+        return _("No matching denominations found for mixing.");
+    case ERR_ENTRIES_FULL:
+        return _("Entries are full.");
+    case ERR_EXISTING_TX:
+        return _("Not compatible with existing transactions.");
+    case ERR_FEES:
+        return _("Transaction fees are too high.");
+    case ERR_INVALID_COLLATERAL:
+        return _("Collateral not valid.");
+    case ERR_INVALID_INPUT:
+        return _("Input is not valid.");
+    case ERR_INVALID_SCRIPT:
+        return _("Invalid script detected.");
+    case ERR_INVALID_TX:
+        return _("Transaction not valid.");
+    case ERR_MAXIMUM:
+        return _("Entry exceeds maximum size.");
+    case ERR_DN_LIST:
+        return _("Not in the Dynode list.");
+    case ERR_MODE:
+        return _("Incompatible mode.");
+    case ERR_NON_STANDARD_PUBKEY:
+        return _("Non-standard public key detected.");
+    case ERR_NOT_A_DN:
+        return _("This is not a Dynode.");
+    case ERR_QUEUE_FULL:
+        return _("Dynode queue is full.");
+    case ERR_RECENT:
+        return _("Last PrivateSend was too recent.");
+    case ERR_SESSION:
+        return _("Session not complete!");
+    case ERR_MISSING_TX:
+        return _("Missing input transaction information.");
+    case ERR_VERSION:
+        return _("Incompatible version.");
+    case MSG_NOERR:
+        return _("No errors detected.");
+    case MSG_SUCCESS:
+        return _("Transaction created successfully.");
+    case MSG_ENTRIES_ADDED:
+        return _("Your entries added successfully.");
+    default:
+        return _("Unknown response.");
     }
 }
 
@@ -2312,8 +2351,8 @@ bool CPrivatesendQueue::Relay()
 {
     std::vector<CNode*> vNodesCopy = CopyNodeVector();
     BOOST_FOREACH(CNode* pnode, vNodesCopy)
-        if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
-            pnode->PushMessage(NetMsgType::PSQUEUE, (*this));
+    if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
+        pnode->PushMessage(NetMsgType::PSQUEUE, (*this));
 
     ReleaseNodeVector(vNodesCopy);
     return true;
@@ -2350,8 +2389,8 @@ void CPrivatesendPool::RelayFinalTransaction(const CTransaction& txFinal)
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
-        if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
-            pnode->PushMessage(NetMsgType::PSFINALTX, nSessionID, txFinal);
+    if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
+        pnode->PushMessage(NetMsgType::PSFINALTX, nSessionID, txFinal);
 }
 
 void CPrivatesendPool::RelayIn(const CPrivateSendEntry& entry)
@@ -2375,16 +2414,16 @@ void CPrivatesendPool::RelayStatus(PoolStatusUpdate nStatusUpdate, PoolMessage n
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
-        if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
-            PushStatus(pnode, nStatusUpdate, nMessageID);
+    if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
+        PushStatus(pnode, nStatusUpdate, nMessageID);
 }
 
 void CPrivatesendPool::RelayCompletedTransaction(PoolMessage nMessageID)
 {
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
-        if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
-            pnode->PushMessage(NetMsgType::PSCOMPLETE, nSessionID, (int)nMessageID);
+    if(pnode->nVersion >= MIN_PRIVATESEND_PEER_PROTO_VERSION)
+        pnode->PushMessage(NetMsgType::PSCOMPLETE, nSessionID, (int)nMessageID);
 }
 
 void CPrivatesendPool::SetState(PoolState nStateNew)

@@ -11,7 +11,7 @@
 #include <QDialog>
 
 namespace Ui {
-    class TransactionDescDialog;
+class TransactionDescDialog;
 }
 
 QT_BEGIN_NAMESPACE

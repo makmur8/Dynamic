@@ -82,7 +82,7 @@ QString MultisigInputEntry::getRedeemScript()
 
 void MultisigInputEntry::setTransactionId(QString transactionId)
 {
-   ui->transactionId->setText(transactionId);
+    ui->transactionId->setText(transactionId);
 }
 
 void MultisigInputEntry::setTransactionOutputIndex(int index)
@@ -169,7 +169,7 @@ void MultisigInputEntry::on_transactionOutput_currentIndexChanged(int index)
                 CScript redeemScript;
                 if(model->getWallet()->GetCScript(scriptID, redeemScript))
                 {
-                    std::string strRedeemScript = HexStr(redeemScript.begin(), redeemScript.end()); 
+                    std::string strRedeemScript = HexStr(redeemScript.begin(), redeemScript.end());
                     ui->redeemScript->setText(strRedeemScript.c_str());
                 }
                 else
@@ -185,4 +185,4 @@ void MultisigInputEntry::on_transactionOutput_currentIndexChanged(int index)
     }
 
     Q_EMIT updateAmount();
-} 
+}

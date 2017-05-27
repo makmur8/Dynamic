@@ -78,9 +78,9 @@ static int AppInitRPC(int argc, char* argv[])
         std::string strUsage = _("Dynamic RPC client version") + " " + FormatFullVersion() + "\n";
         if (!IsArgSet("-version")) {
             strUsage += "\n" + _("Usage:") + "\n" +
-                  "  dynamic-cli [options] <command> [params]  " + _("Send command to Dynamic") + "\n" +
-                  "  dynamic-cli [options] help                " + _("List commands") + "\n" +
-                  "  dynamic-cli [options] help <command>      " + _("Get help for a command") + "\n";
+                        "  dynamic-cli [options] <command> [params]  " + _("Send command to Dynamic") + "\n" +
+                        "  dynamic-cli [options] help                " + _("List commands") + "\n" +
+                        "  dynamic-cli [options] help <command>      " + _("Get help for a command") + "\n";
 
             strUsage += "\n" + HelpMessageCli();
         }
@@ -214,8 +214,8 @@ UniValue CallRPC(const std::string& strMethod, const UniValue& params)
         // Try fall back to cookie-based authentication if no password is provided
         if (!GetAuthCookie(&strRPCUserColonPass)) {
             throw std::runtime_error(strprintf(
-                _("Could not locate RPC credentials. No authentication cookie could be found, and no rpcpassword is set in the configuration file (%s)"),
-                    GetConfigFile().string().c_str()));
+                                         _("Could not locate RPC credentials. No authentication cookie could be found, and no rpcpassword is set in the configuration file (%s)"),
+                                         GetConfigFile().string().c_str()));
 
         }
     } else {
@@ -256,7 +256,7 @@ UniValue CallRPC(const std::string& strMethod, const UniValue& params)
 
     // Parse reply
     UniValue valReply(UniValue::VSTR);
-    if (!valReply.read(response.body))     
+    if (!valReply.read(response.body))
         throw std::runtime_error("couldn't parse reply from server");
     const UniValue& reply = valReply.get_obj();
     if (reply.empty())

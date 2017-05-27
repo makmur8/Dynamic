@@ -46,10 +46,10 @@ bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockRewar
     // all we know is predefined budget cycle and window
 
     const Consensus::Params& consensusParams = Params().GetConsensus();
-     if(nBlockHeight < consensusParams.nSuperblockStartBlock) {
+    if(nBlockHeight < consensusParams.nSuperblockStartBlock) {
         int nOffset = nBlockHeight % consensusParams.nBudgetPaymentsCycleBlocks;
         if(nBlockHeight >= consensusParams.nBudgetPaymentsStartBlock &&
-            nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
+                nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
             if(dynodeSync.IsSynced() && !sporkManager.IsSporkActive(SPORK_13_OLD_SUPERBLOCK_FLAG)) {
                 LogPrint(DYNLog::GOBJECT, "IsBlockValueValid -- Client synced but budget spork is disabled, checking block value against block reward\n");
                 if(!isBlockRewardValueMet) {
@@ -157,7 +157,7 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
 
         int nOffset = nBlockHeight % consensusParams.nBudgetPaymentsCycleBlocks;
         if(nBlockHeight >= consensusParams.nBudgetPaymentsStartBlock &&
-            nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
+                nOffset < consensusParams.nBudgetPaymentsWindowBlocks) {
             if(!sporkManager.IsSporkActive(SPORK_13_OLD_SUPERBLOCK_FLAG)) {
                 // no budget blocks should be accepted here, if SPORK_13_OLD_SUPERBLOCK_FLAG is disabled
                 LogPrint(DYNLog::GOBJECT, "IsBlockPayeeValid -- ERROR: Client synced but budget spork is disabled and Dynode payment is invalid\n");
@@ -219,17 +219,17 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
     // only create superblocks if spork is enabled AND if superblock is actually triggered
     // (height should be validated inside)
     if(sporkManager.IsSporkActive(SPORK_9_SUPERBLOCKS_ENABLED) &&
-        CSuperblockManager::IsSuperblockTriggered(nBlockHeight)) {
-            LogPrint(DYNLog::GOBJECT, "FillBlockPayments -- triggered superblock creation at height %d\n", nBlockHeight);
-            CSuperblockManager::CreateSuperblock(txNew, nBlockHeight, voutSuperblockRet);
-            return;
+            CSuperblockManager::IsSuperblockTriggered(nBlockHeight)) {
+        LogPrint(DYNLog::GOBJECT, "FillBlockPayments -- triggered superblock creation at height %d\n", nBlockHeight);
+        CSuperblockManager::CreateSuperblock(txNew, nBlockHeight, voutSuperblockRet);
+        return;
     }
 
     if (chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock) {
         // FILL BLOCK PAYEE WITH DYNODE PAYMENT OTHERWISE
         dnpayments.FillBlockPayee(txNew, nBlockHeight);
         LogPrint(DYNLog::DNPAYMENTS, "FillBlockPayments -- nBlockHeight %d blockReward %lld txoutDynodeRet %s txNew %s",
-                                nBlockHeight, blockReward, txoutDynodeRet.ToString(), txNew.ToString());
+                 nBlockHeight, blockReward, txoutDynodeRet.ToString(), txNew.ToString());
     }
 }
 
@@ -272,23 +272,23 @@ bool CDynodePayments::CanVote(COutPoint outDynode, int nBlockHeight)
 
 void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
 {
-    CBlockIndex* pindexPrev = chainActive.Tip();       
-    if(!pindexPrev) return;        
+    CBlockIndex* pindexPrev = chainActive.Tip();
+    if(!pindexPrev) return;
 
     bool hasPayment = true;
     CScript payee;
 
-    if (chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock){
-            if (fDebug)
-                LogPrintf("CreateNewBlock: No Dynode payments prior to block 20,546\n");
-            hasPayment = false;
+    if (chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) {
+        if (fDebug)
+            LogPrintf("CreateNewBlock: No Dynode payments prior to block 20,546\n");
+        hasPayment = false;
     }
 
     //spork
-    if(!dnpayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){       
+    if(!dnpayments.GetBlockPayee(pindexPrev->nHeight+1, payee)) {
         //no Dynode detected
         CDynode* winningNode = dnodeman.Find(payee);
-        if(winningNode){
+        if(winningNode) {
             payee = GetScriptForDestination(winningNode->pubKeyCollateralAddress.GetID());
         } else {
             if (fDebug)
@@ -300,28 +300,52 @@ void CDynodePayments::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
     CAmount blockValue;
     CAmount dynodePayment;
 
-    if (chainActive.Height() == 0) { blockValue = 4000000 * COIN; }
-    else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().GetConsensus().nRewardsStart) { blockValue = BLOCKCHAIN_INIT_REWARD; }
-    else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) { blockValue = PHASE_1_POW_REWARD; }
-    else { blockValue = BLOCKCHAIN_INIT_REWARD; }
+    if (chainActive.Height() == 0) {
+        blockValue = 4000000 * COIN;
+    }
+    else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().GetConsensus().nRewardsStart) {
+        blockValue = BLOCKCHAIN_INIT_REWARD;
+    }
+    else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) {
+        blockValue = PHASE_1_POW_REWARD;
+    }
+    else {
+        blockValue = BLOCKCHAIN_INIT_REWARD;
+    }
 
-    if (!hasPayment && hasPayment && chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
-    else if (hasPayment && chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock && chainActive.Height() < Params().GetConsensus().nUpdateDiffAlgoHeight) {dynodePayment = PHASE_1_DYNODE_PAYMENT; }
-    else if (hasPayment && chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock && chainActive.Height() >= Params().GetConsensus().nUpdateDiffAlgoHeight) {dynodePayment = PHASE_2_DYNODE_PAYMENT; }
-    else { dynodePayment = BLOCKCHAIN_INIT_REWARD; }
+    if (!hasPayment && hasPayment && chainActive.Height() <= Params().GetConsensus().nDynodePaymentsStartBlock) {
+        dynodePayment = BLOCKCHAIN_INIT_REWARD;
+    }
+    else if (hasPayment && chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock && chainActive.Height() < Params().GetConsensus().nUpdateDiffAlgoHeight) {
+        dynodePayment = PHASE_1_DYNODE_PAYMENT;
+    }
+    else if (hasPayment && chainActive.Height() > Params().GetConsensus().nDynodePaymentsStartBlock && chainActive.Height() >= Params().GetConsensus().nUpdateDiffAlgoHeight) {
+        dynodePayment = PHASE_2_DYNODE_PAYMENT;
+    }
+    else {
+        dynodePayment = BLOCKCHAIN_INIT_REWARD;
+    }
 
     txNew.vout[0].nValue = blockValue;
 
-    if(hasPayment){
+    if(hasPayment) {
         txNew.vout.resize(2);
 
         txNew.vout[1].scriptPubKey = payee;
         txNew.vout[1].nValue = dynodePayment;
 
-        if (chainActive.Height() == 0) { txNew.vout[0].nValue = 4000000 * COIN; }
-        else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().GetConsensus().nRewardsStart) { txNew.vout[0].nValue = BLOCKCHAIN_INIT_REWARD; }
-        else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) { txNew.vout[0].nValue = PHASE_1_POW_REWARD; }
-        else { txNew.vout[0].nValue = BLOCKCHAIN_INIT_REWARD; }
+        if (chainActive.Height() == 0) {
+            txNew.vout[0].nValue = 4000000 * COIN;
+        }
+        else if (chainActive.Height() >= 1 && chainActive.Height() <= Params().GetConsensus().nRewardsStart) {
+            txNew.vout[0].nValue = BLOCKCHAIN_INIT_REWARD;
+        }
+        else if (chainActive.Height() > Params().GetConsensus().nRewardsStart) {
+            txNew.vout[0].nValue = PHASE_1_POW_REWARD;
+        }
+        else {
+            txNew.vout[0].nValue = BLOCKCHAIN_INIT_REWARD;
+        }
 
         CTxDestination address1;
         ExtractDestination(payee, address1);
@@ -351,7 +375,7 @@ void CDynodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
 
         int nCountNeeded;
         vRecv >> nCountNeeded;
-        
+
         int nDnCount = dnodeman.CountDynodes();
 
         if (nDnCount > 200) {
@@ -444,7 +468,7 @@ void CDynodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
 
         LogPrint(DYNLog::DNPAYMENTS, "DYNODEPAYMENTVOTE -- vote: address=%s, nBlockHeight=%d, nHeight=%d, prevout=%s\n", address2.ToString(), vote.nBlockHeight, pCurrentBlockIndex->nHeight, vote.vinDynode.prevout.ToStringShort());
 
-        if(AddPaymentVote(vote)){
+        if(AddPaymentVote(vote)) {
             vote.Relay();
             dynodeSync.AddedPaymentVote();
         }
@@ -455,8 +479,8 @@ bool CDynodePaymentVote::Sign()
 {
     std::string strError;
     std::string strMessage = vinDynode.prevout.ToStringShort() +
-                boost::lexical_cast<std::string>(nBlockHeight) +
-                ScriptToAsmStr(payee);
+                             boost::lexical_cast<std::string>(nBlockHeight) +
+                             ScriptToAsmStr(payee);
 
     if(!CMessageSigner::SignMessage(strMessage, vchSig, activeDynode.keyDynode)) {
         LogPrintf("CDynodePaymentVote::Sign -- SignMessage() failed\n");
@@ -473,7 +497,7 @@ bool CDynodePaymentVote::Sign()
 
 bool CDynodePayments::GetBlockPayee(int nBlockHeight, CScript& payee)
 {
-    if(mapDynodeBlocks.count(nBlockHeight)){
+    if(mapDynodeBlocks.count(nBlockHeight)) {
         return mapDynodeBlocks[nBlockHeight].GetBestPayee(payee);
     }
 
@@ -492,7 +516,7 @@ bool CDynodePayments::IsScheduled(CDynode& dn, int nNotBlockHeight)
     dnpayee = GetScriptForDestination(dn.pubKeyCollateralAddress.GetID());
 
     CScript payee;
-    for(int64_t h = pCurrentBlockIndex->nHeight; h <= pCurrentBlockIndex->nHeight + 8; h++){
+    for(int64_t h = pCurrentBlockIndex->nHeight; h <= pCurrentBlockIndex->nHeight + 8; h++) {
         if(h == nNotBlockHeight) continue;
         if(mapDynodeBlocks.count(h) && mapDynodeBlocks[h].GetBestPayee(payee) && dnpayee == payee) {
             return true;
@@ -514,8 +538,8 @@ bool CDynodePayments::AddPaymentVote(const CDynodePaymentVote& vote)
     mapDynodePaymentVotes[vote.GetHash()] = vote;
 
     if(!mapDynodeBlocks.count(vote.nBlockHeight)) {
-       CDynodeBlockPayees blockPayees(vote.nBlockHeight);
-       mapDynodeBlocks[vote.nBlockHeight] = blockPayees;
+        CDynodeBlockPayees blockPayees(vote.nBlockHeight);
+        mapDynodeBlocks[vote.nBlockHeight] = blockPayees;
     }
 
     mapDynodeBlocks[vote.nBlockHeight].AddPayee(vote);
@@ -649,7 +673,7 @@ std::string CDynodePayments::GetRequiredPaymentsString(int nBlockHeight)
 {
     LOCK(cs_mapDynodeBlocks);
 
-    if(mapDynodeBlocks.count(nBlockHeight)){
+    if(mapDynodeBlocks.count(nBlockHeight)) {
         return mapDynodeBlocks[nBlockHeight].GetRequiredPaymentsString();
     }
 
@@ -660,7 +684,7 @@ bool CDynodePayments::IsTransactionValid(const CTransaction& txNew, int nBlockHe
 {
     LOCK(cs_mapDynodeBlocks);
 
-    if(mapDynodeBlocks.count(nBlockHeight)){
+    if(mapDynodeBlocks.count(nBlockHeight)) {
         return mapDynodeBlocks[nBlockHeight].IsTransactionValid(txNew);
     }
 
@@ -820,8 +844,8 @@ bool CDynodePaymentVote::CheckSignature(const CPubKey& pubKeyDynode, int nValida
     nDos = 0;
 
     std::string strMessage = vinDynode.prevout.ToStringShort() +
-                boost::lexical_cast<std::string>(nBlockHeight) +
-                ScriptToAsmStr(payee);
+                             boost::lexical_cast<std::string>(nBlockHeight) +
+                             ScriptToAsmStr(payee);
 
     std::string strError = "";
     if (!CMessageSigner::VerifyMessage(pubKeyDynode, vchSig, strMessage, strError)) {
@@ -842,14 +866,14 @@ std::string CDynodePaymentVote::ToString() const
     std::ostringstream info;
 
     info << vinDynode.prevout.ToStringShort() <<
-            ", " << nBlockHeight <<
-            ", " << ScriptToAsmStr(payee) <<
-            ", " << (int)vchSig.size();
+         ", " << nBlockHeight <<
+         ", " << ScriptToAsmStr(payee) <<
+         ", " << (int)vchSig.size();
 
     return info.str();
 }
 
-// Send all votes up to nCountNeeded blocks (but not more than GetStorageLimit)        
+// Send all votes up to nCountNeeded blocks (but not more than GetStorageLimit)
 void CDynodePayments::Sync(CNode* pnode)
 {
     LOCK(cs_mapDynodeBlocks);
@@ -925,13 +949,13 @@ void CDynodePayments::RequestLowDataPaymentBlocks(CNode* pnode)
         // DEBUG
         DBG (
             // Let's see why this failed
-            BOOST_FOREACH(CDynodePayee& payee, it->second.vecPayees) {
-                CTxDestination address1;
-                ExtractDestination(payee.GetPayee(), address1);
-                CDynamicAddress address2(address1);
-                printf("payee %s votes %d\n", address2.ToString().c_str(), payee.GetVoteCount());
-            }
-            printf("block %d votes total %d\n", it->first, nTotalVotes);
+        BOOST_FOREACH(CDynodePayee& payee, it->second.vecPayees) {
+            CTxDestination address1;
+            ExtractDestination(payee.GetPayee(), address1);
+            CDynamicAddress address2(address1);
+            printf("payee %s votes %d\n", address2.ToString().c_str(), payee.GetVoteCount());
+        }
+        printf("block %d votes total %d\n", it->first, nTotalVotes);
         )
         // END DEBUG
         // Low data block found, let's try to sync it
@@ -960,7 +984,7 @@ std::string CDynodePayments::ToString() const
     std::ostringstream info;
 
     info << "Votes: " << (int)mapDynodePaymentVotes.size() <<
-            ", Blocks: " << (int)mapDynodeBlocks.size();
+         ", Blocks: " << (int)mapDynodeBlocks.size();
 
     return info.str();
 }

@@ -260,7 +260,7 @@ void CGovernanceManager::ProcessMessage(CNode* pfrom, std::string& strCommand, C
 
         if(!AcceptVoteMessage(nHash)) {
             LogPrint(DYNLog::GOBJECT, "DNGOVERNANCEOBJECTVOTE -- Received unrequested vote object: %s, hash: %s, peer = %d\n",
-                      vote.ToString(), strHash, pfrom->GetId());
+                     vote.ToString(), strHash, pfrom->GetId());
             return;
         }
 
@@ -332,13 +332,13 @@ bool CGovernanceManager::AddGovernanceObject(CGovernanceObject& govobj, bool& fA
         return false;
     }
 
-    LogPrint(DYNLog::GOBJECT, "CGovernanceManager::AddGovernanceObject -- Adding object: hash = %s, type = %d\n", nHash.ToString(), govobj.GetObjectType()); 
+    LogPrint(DYNLog::GOBJECT, "CGovernanceManager::AddGovernanceObject -- Adding object: hash = %s, type = %d\n", nHash.ToString(), govobj.GetObjectType());
 
     if(govobj.nObjectType == GOVERNANCE_OBJECT_WATCHDOG) {
         // If it's a watchdog, make sure it fits required time bounds
         if((govobj.GetCreationTime() < GetAdjustedTime() - GOVERNANCE_WATCHDOG_EXPIRATION_TIME ||
-            govobj.GetCreationTime() > GetAdjustedTime() + GOVERNANCE_WATCHDOG_EXPIRATION_TIME)
-            ) {
+                govobj.GetCreationTime() > GetAdjustedTime() + GOVERNANCE_WATCHDOG_EXPIRATION_TIME)
+          ) {
             // drop it
             LogPrint(DYNLog::GOBJECT, "CGovernanceManager::AddGovernanceObject -- CreationTime is out of bounds: hash = %s\n", nHash.ToString());
             return false;
@@ -361,9 +361,9 @@ bool CGovernanceManager::AddGovernanceObject(CGovernanceObject& govobj, bool& fA
     // SHOULD WE ADD THIS OBJECT TO ANY OTHER MANANGERS?
 
     DBG( cout << "CGovernanceManager::AddGovernanceObject Before trigger block, strData = "
-              << govobj.GetDataAsString()
-              << ", nObjectType = " << govobj.nObjectType
-              << endl; );
+         << govobj.GetDataAsString()
+         << ", nObjectType = " << govobj.nObjectType
+         << endl; );
 
     switch(govobj.nObjectType) {
     case GOVERNANCE_OBJECT_TRIGGER:
@@ -395,10 +395,10 @@ bool CGovernanceManager::UpdateCurrentWatchdog(CGovernanceObject& watchdogNew)
     int64_t nNow = GetTime();
 
     if(nHashWatchdogCurrent == uint256() ||                                              // no known current OR
-       ((nNow - watchdogNew.GetCreationTime() < nExpirationDelay) &&                     // (new one is NOT expired AND
-        ((nNow - nTimeWatchdogCurrent > nExpirationDelay) || (nHashNew > nHashCurrent))) //  (current is expired OR
-                                                                                         //   its hash is lower))
-    ) {
+            ((nNow - watchdogNew.GetCreationTime() < nExpirationDelay) &&                     // (new one is NOT expired AND
+             ((nNow - nTimeWatchdogCurrent > nExpirationDelay) || (nHashNew > nHashCurrent))) //  (current is expired OR
+            //   its hash is lower))
+      ) {
         LOCK(cs);
         object_m_it it = mapObjects.find(nHashWatchdogCurrent);
         if(it != mapObjects.end()) {
@@ -510,7 +510,7 @@ void CGovernanceManager::UpdateCachesAndClean()
                  strHash, pObj->GetDeletionTime(), nTimeSinceDeletion, pObj->IsSetCachedDelete(), pObj->IsSetExpired());
 
         if((pObj->IsSetCachedDelete() || pObj->IsSetExpired()) &&
-           (nTimeSinceDeletion >= GOVERNANCE_DELETION_DELAY)) {
+                (nTimeSinceDeletion >= GOVERNANCE_DELETION_DELAY)) {
             LogPrintf("CGovernanceManager::UpdateCachesAndClean -- erase obj %s\n", (*it).first.ToString());
             dnodeman.RemoveGovernanceObject(pObj->GetHash());
 
@@ -579,7 +579,7 @@ std::vector<CGovernanceVote> CGovernanceManager::GetCurrentVotes(const uint256& 
         std::vector<CDynode> dnlist = dnodeman.GetFullDynodeVector();
         for (std::vector<CDynode>::iterator it = dnlist.begin(); it != dnlist.end(); ++it)
         {
-           vecDNTxIn.push_back(it->vin);
+            vecDNTxIn.push_back(it->vin);
         }
     }
     else {
@@ -800,7 +800,7 @@ void CGovernanceManager::Sync(CNode* pfrom, const uint256& nProp, const CBloomFi
                 if(filter.contains(vecVotes[i].GetHash())) {
                     continue;
                 }
-                 pfrom->PushInventory(CInv(MSG_GOVERNANCE_OBJECT_VOTE, vecVotes[i].GetHash()));
+                pfrom->PushInventory(CInv(MSG_GOVERNANCE_OBJECT_VOTE, vecVotes[i].GetHash()));
                 ++nVoteCount;
             }
         }
@@ -870,25 +870,27 @@ bool CGovernanceManager::DynodeRateCheck(const CGovernanceObject& govobj, bool f
 
     if(nTimestamp < nNow - 2 * nSuperblockCycleSeconds) {
         LogPrintf("CGovernanceManager::DynodeRateCheck -- object %s rejected due to too old timestamp, Dynode vin = %s, timestamp = %d, current time = %d\n",
-                 strHash, vin.prevout.ToStringShort(), nTimestamp, nNow);
+                  strHash, vin.prevout.ToStringShort(), nTimestamp, nNow);
         return false;
     }
 
     if(nTimestamp > nNow + 60*60) {
         LogPrintf("CGovernanceManager::DynodeRateCheck -- object %s rejected due to too new (future) timestamp, Dynode vin = %s, timestamp = %d, current time = %d\n",
-                 strHash, vin.prevout.ToStringShort(), nTimestamp, nNow);
+                  strHash, vin.prevout.ToStringShort(), nTimestamp, nNow);
         return false;
     }
 
     double dMaxRate = 2 * 1.1 / double(nSuperblockCycleSeconds);
     double dRate = 0.0;
-    CRateCheckBuffer buffer;    switch(nObjectType) {
+    CRateCheckBuffer buffer;
+    switch(nObjectType) {
     case GOVERNANCE_OBJECT_TRIGGER:
         // Allow 1 trigger per dn per cycle, with a small fudge factor
         dMaxRate = 1.1 / nSuperblockCycleSeconds;
         buffer = it->second.triggerBuffer;
         buffer.AddTimestamp(nTimestamp);
-        dRate = buffer.GetRate();        if(fUpdateLast) {
+        dRate = buffer.GetRate();
+        if(fUpdateLast) {
             it->second.triggerBuffer.AddTimestamp(nTimestamp);
         }
         break;
@@ -899,7 +901,7 @@ bool CGovernanceManager::DynodeRateCheck(const CGovernanceObject& govobj, bool f
         dRate = buffer.GetRate();
         if(fUpdateLast) {
             it->second.watchdogBuffer.AddTimestamp(nTimestamp);
-        } 
+        }
         break;
     default:
         break;
@@ -929,8 +931,8 @@ bool CGovernanceManager::ProcessVote(CNode* pfrom, const CGovernanceVote& vote, 
     if(mapInvalidVotes.HasKey(nHashVote)) {
         std::ostringstream ostr;
         ostr << "CGovernanceManager::ProcessVote -- Old invalid vote "
-                << ", DN outpoint = " << vote.GetVinDynode().prevout.ToStringShort()
-                << ", governance object hash = " << vote.GetParentHash().ToString() << "\n";
+             << ", DN outpoint = " << vote.GetVinDynode().prevout.ToStringShort()
+             << ", governance object hash = " << vote.GetParentHash().ToString() << "\n";
         LogPrintf(ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_PERMANENT_ERROR, 20);
         return false;
@@ -1031,10 +1033,10 @@ void CGovernanceManager::RequestGovernanceObject(CNode* pfrom, const uint256& nH
 
     LogPrint(DYNLog::GOBJECT, "CGovernanceObject::RequestGovernanceObject -- hash = %s (peer=%d)\n", nHash.ToString(), pfrom->GetId());
 
-     if(pfrom->nVersion < GOVERNANCE_FILTER_PROTO_VERSION) {
-         pfrom->PushMessage(NetMsgType::DNGOVERNANCESYNC, nHash);
-         return;
-     }
+    if(pfrom->nVersion < GOVERNANCE_FILTER_PROTO_VERSION) {
+        pfrom->PushMessage(NetMsgType::DNGOVERNANCESYNC, nHash);
+        return;
+    }
 
     CBloomFilter filter;
     filter.clear();
@@ -1079,10 +1081,11 @@ int CGovernanceManager::RequestGovernanceObjectVotes(const std::vector<CNode*>& 
     size_t nProjectedVotes = 1;
     if(Params().NetworkIDString() != CBaseChainParams::MAIN) {
         nProjectedVotes = 1;
-        nMaxObjRequestsPerNode = std::max(1, int(nProjectedVotes / std::max(1, dnodeman.size())));    }
+        nMaxObjRequestsPerNode = std::max(1, int(nProjectedVotes / std::max(1, dnodeman.size())));
+    }
 
     {
-    
+
         LOCK2(cs_main, cs);
 
         if(mapObjects.empty()) return -2;
@@ -1108,7 +1111,7 @@ int CGovernanceManager::RequestGovernanceObjectVotes(const std::vector<CNode*>& 
     }
 
     LogPrint(DYNLog::GOBJECT, "CGovernanceManager::RequestGovernanceObjectVotes -- start: vpGovObjsTriggersTmp %d vpGovObjsTmp %d mapAskedRecently %d\n",
-                vpGovObjsTriggersTmp.size(), vpGovObjsTmp.size(), mapAskedRecently.size());
+             vpGovObjsTriggersTmp.size(), vpGovObjsTmp.size(), mapAskedRecently.size());
 
     InsecureRand insecureRand;
     // shuffle pointers
@@ -1154,7 +1157,7 @@ int CGovernanceManager::RequestGovernanceObjectVotes(const std::vector<CNode*>& 
         if(!fAsked) i--;
     }
     LogPrint(DYNLog::GOBJECT, "CGovernanceManager::RequestGovernanceObjectVotes -- end: vpGovObjsTriggersTmp %d vpGovObjsTmp %d mapAskedRecently %d\n",
-                vpGovObjsTriggersTmp.size(), vpGovObjsTmp.size(), mapAskedRecently.size());
+             vpGovObjsTriggersTmp.size(), vpGovObjsTmp.size(), mapAskedRecently.size());
 
     return int(vpGovObjsTriggersTmp.size() + vpGovObjsTmp.size());
 
@@ -1225,7 +1228,7 @@ void CGovernanceManager::AddCachedTriggers()
 
     for(object_m_it it = mapObjects.begin(); it != mapObjects.end(); ++it) {
         CGovernanceObject& govobj = it->second;
-        
+
         if(govobj.nObjectType != GOVERNANCE_OBJECT_TRIGGER) {
             continue;
         }
@@ -1258,26 +1261,26 @@ std::string CGovernanceManager::ToString() const
 
     while(it != mapObjects.end()) {
         switch(it->second.GetObjectType()) {
-            case GOVERNANCE_OBJECT_PROPOSAL:
-                nProposalCount++;
-                break;
-            case GOVERNANCE_OBJECT_TRIGGER:
-                nTriggerCount++;
-                break;
-            case GOVERNANCE_OBJECT_WATCHDOG:
-                nWatchdogCount++;
-                break;
-            default:
-                nOtherCount++;
-                break;
+        case GOVERNANCE_OBJECT_PROPOSAL:
+            nProposalCount++;
+            break;
+        case GOVERNANCE_OBJECT_TRIGGER:
+            nTriggerCount++;
+            break;
+        case GOVERNANCE_OBJECT_WATCHDOG:
+            nWatchdogCount++;
+            break;
+        default:
+            nOtherCount++;
+            break;
         }
         ++it;
     }
 
     return strprintf("Governance Objects: %d (Proposals: %d, Triggers: %d, Watchdogs: %d/%d, Other: %d; Seen: %d), Votes: %d",
-                    (int)mapObjects.size(),
-                    nProposalCount, nTriggerCount, nWatchdogCount, mapWatchdogObjects.size(), nOtherCount, (int)mapSeenGovernanceObjects.size(),
-                    (int)mapVoteToObject.GetSize());
+                     (int)mapObjects.size(),
+                     nProposalCount, nTriggerCount, nWatchdogCount, mapWatchdogObjects.size(), nOtherCount, (int)mapSeenGovernanceObjects.size(),
+                     (int)mapVoteToObject.GetSize());
 }
 
 void CGovernanceManager::UpdatedBlockTip(const CBlockIndex *pindex)

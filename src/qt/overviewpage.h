@@ -19,7 +19,7 @@ class TxViewDelegate;
 class WalletModel;
 
 namespace Ui {
-    class OverviewPage;
+class OverviewPage;
 }
 
 QT_BEGIN_NAMESPACE

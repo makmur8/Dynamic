@@ -13,7 +13,7 @@
 class AddressTableModel;
 
 namespace Ui {
-    class EditAddressDialog;
+class EditAddressDialog;
 }
 
 QT_BEGIN_NAMESPACE

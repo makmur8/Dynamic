@@ -90,11 +90,21 @@ public:
     std::string ToString() const;
     int CompareTo(const CBase58Data& b58) const;
 
-    bool operator==(const CBase58Data& b58) const { return CompareTo(b58) == 0; }
-    bool operator<=(const CBase58Data& b58) const { return CompareTo(b58) <= 0; }
-    bool operator>=(const CBase58Data& b58) const { return CompareTo(b58) >= 0; }
-    bool operator< (const CBase58Data& b58) const { return CompareTo(b58) <  0; }
-    bool operator> (const CBase58Data& b58) const { return CompareTo(b58) >  0; }
+    bool operator==(const CBase58Data& b58) const {
+        return CompareTo(b58) == 0;
+    }
+    bool operator<=(const CBase58Data& b58) const {
+        return CompareTo(b58) <= 0;
+    }
+    bool operator>=(const CBase58Data& b58) const {
+        return CompareTo(b58) >= 0;
+    }
+    bool operator< (const CBase58Data& b58) const {
+        return CompareTo(b58) <  0;
+    }
+    bool operator> (const CBase58Data& b58) const {
+        return CompareTo(b58) >  0;
+    }
 };
 
 /** base58-encoded Dynamic addresses.
@@ -112,9 +122,15 @@ public:
     bool IsValid(const CChainParams &params) const;
 
     CDynamicAddress() {}
-    CDynamicAddress(const CTxDestination &dest) { Set(dest); }
-    CDynamicAddress(const std::string& strAddress) { SetString(strAddress); }
-    CDynamicAddress(const char* pszAddress) { SetString(pszAddress); }
+    CDynamicAddress(const CTxDestination &dest) {
+        Set(dest);
+    }
+    CDynamicAddress(const std::string& strAddress) {
+        SetString(strAddress);
+    }
+    CDynamicAddress(const char* pszAddress) {
+        SetString(pszAddress);
+    }
 
     CTxDestination Get() const;
     bool GetKeyID(CKeyID &keyID) const;
@@ -134,7 +150,9 @@ public:
     bool SetString(const char* pszSecret);
     bool SetString(const std::string& strSecret);
 
-    CDynamicSecret(const CKey& vchSecret) { SetKey(vchSecret); }
+    CDynamicSecret(const CKey& vchSecret) {
+        SetKey(vchSecret);
+    }
     CDynamicSecret() {}
 };
 

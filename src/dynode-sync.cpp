@@ -31,17 +31,17 @@ bool CDynodeSync::CheckNodeHeight(CNode* pnode, bool fDisconnectStuckNodes)
             // Disconnect to free this connection slot for another peer.
             pnode->fDisconnect = true;
             LogPrintf("CDynodeSync::CheckNodeHeight -- disconnecting from stuck peer, nHeight=%d, nCommonHeight=%d, peer=%d\n",
-                        pCurrentBlockIndex->nHeight, stats.nCommonHeight, pnode->id);
+                      pCurrentBlockIndex->nHeight, stats.nCommonHeight, pnode->id);
         } else {
             LogPrintf("CDynodeSync::CheckNodeHeight -- skipping stuck peer, nHeight=%d, nCommonHeight=%d, peer=%d\n",
-                        pCurrentBlockIndex->nHeight, stats.nCommonHeight, pnode->id);
+                      pCurrentBlockIndex->nHeight, stats.nCommonHeight, pnode->id);
         }
         return false;
     }
     else if(pCurrentBlockIndex->nHeight < stats.nSyncHeight - 1) {
         // This peer announced more headers than we have blocks currently
         LogPrintf("CDynodeSync::CheckNodeHeight -- skipping peer, who announced more headers than we have blocks currently, nHeight=%d, nSyncHeight=%d, peer=%d\n",
-                    pCurrentBlockIndex->nHeight, stats.nSyncHeight, pnode->id);
+                  pCurrentBlockIndex->nHeight, stats.nSyncHeight, pnode->id);
         return false;
     }
 
@@ -78,7 +78,7 @@ bool CDynodeSync::IsBlockchainSynced(bool fBlockAccepted)
         if(GetTime() - nTimeLastProcess < DYNODE_SYNC_TICK_SECONDS) {
             nSkipped++;
             return fBlockchainSynced;
-       }
+        }
     }
 
     if(fDebug) LogPrintf("CDynodeSync::IsBlockchainSynced -- state before check: %ssynced, skipped %d times\n", fBlockchainSynced ? "" : "not ", nSkipped);
@@ -145,14 +145,22 @@ std::string CDynodeSync::GetAssetName()
 {
     switch(nRequestedDynodeAssets)
     {
-        case(DYNODE_SYNC_INITIAL):      return "DYNODE_SYNC_INITIAL";
-        case(DYNODE_SYNC_SPORKS):       return "DYNODE_SYNC_SPORKS";
-        case(DYNODE_SYNC_LIST):         return "DYNODE_SYNC_LIST";
-        case(DYNODE_SYNC_DNW):          return "DYNODE_SYNC_DNW";
-        case(DYNODE_SYNC_GOVERNANCE):   return "DYNODE_SYNC_GOVERNANCE";
-        case(DYNODE_SYNC_FAILED):       return "DYNODE_SYNC_FAILED";
-        case DYNODE_SYNC_FINISHED:      return "DYNODE_SYNC_FINISHED";
-        default:                           return "UNKNOWN";
+    case(DYNODE_SYNC_INITIAL):
+        return "DYNODE_SYNC_INITIAL";
+    case(DYNODE_SYNC_SPORKS):
+        return "DYNODE_SYNC_SPORKS";
+    case(DYNODE_SYNC_LIST):
+        return "DYNODE_SYNC_LIST";
+    case(DYNODE_SYNC_DNW):
+        return "DYNODE_SYNC_DNW";
+    case(DYNODE_SYNC_GOVERNANCE):
+        return "DYNODE_SYNC_GOVERNANCE";
+    case(DYNODE_SYNC_FAILED):
+        return "DYNODE_SYNC_FAILED";
+    case DYNODE_SYNC_FINISHED:
+        return "DYNODE_SYNC_FINISHED";
+    default:
+        return "UNKNOWN";
     }
 }
 
@@ -160,44 +168,44 @@ void CDynodeSync::SwitchToNextAsset()
 {
     switch(nRequestedDynodeAssets)
     {
-        case(DYNODE_SYNC_FAILED):
-            throw std::runtime_error("Can't switch to next asset from failed, should use Reset() first!");
-            break;
-        case(DYNODE_SYNC_INITIAL):
-            ClearFulfilledRequests();
-            nRequestedDynodeAssets = DYNODE_SYNC_SPORKS;
-            LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
-            break;
-        case(DYNODE_SYNC_SPORKS):
-            nTimeLastDynodeList = GetTime();
-            nRequestedDynodeAssets = DYNODE_SYNC_LIST;
-            LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
-            break;
-        case(DYNODE_SYNC_LIST):
-            nTimeLastPaymentVote = GetTime();
-            nRequestedDynodeAssets = DYNODE_SYNC_DNW;
-            LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
-            break;
-        case(DYNODE_SYNC_DNW):
-            nTimeLastGovernanceItem = GetTime();
-            nRequestedDynodeAssets = DYNODE_SYNC_GOVERNANCE;
-            LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
-            break;
-        case(DYNODE_SYNC_GOVERNANCE):
-            LogPrintf("CDynodeSync::SwitchToNextAsset -- Sync has finished\n");
-            nRequestedDynodeAssets = DYNODE_SYNC_FINISHED;
-            uiInterface.NotifyAdditionalDataSyncProgressChanged(1);
-            //try to activate our Dynode if possible
-            activeDynode.ManageState();
+    case(DYNODE_SYNC_FAILED):
+        throw std::runtime_error("Can't switch to next asset from failed, should use Reset() first!");
+        break;
+    case(DYNODE_SYNC_INITIAL):
+        ClearFulfilledRequests();
+        nRequestedDynodeAssets = DYNODE_SYNC_SPORKS;
+        LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
+        break;
+    case(DYNODE_SYNC_SPORKS):
+        nTimeLastDynodeList = GetTime();
+        nRequestedDynodeAssets = DYNODE_SYNC_LIST;
+        LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
+        break;
+    case(DYNODE_SYNC_LIST):
+        nTimeLastPaymentVote = GetTime();
+        nRequestedDynodeAssets = DYNODE_SYNC_DNW;
+        LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
+        break;
+    case(DYNODE_SYNC_DNW):
+        nTimeLastGovernanceItem = GetTime();
+        nRequestedDynodeAssets = DYNODE_SYNC_GOVERNANCE;
+        LogPrintf("CDynodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
+        break;
+    case(DYNODE_SYNC_GOVERNANCE):
+        LogPrintf("CDynodeSync::SwitchToNextAsset -- Sync has finished\n");
+        nRequestedDynodeAssets = DYNODE_SYNC_FINISHED;
+        uiInterface.NotifyAdditionalDataSyncProgressChanged(1);
+        //try to activate our Dynode if possible
+        activeDynode.ManageState();
 
-            TRY_LOCK(cs_vNodes, lockRecv);
-            if(!lockRecv) return;
+        TRY_LOCK(cs_vNodes, lockRecv);
+        if(!lockRecv) return;
 
-            BOOST_FOREACH(CNode* pnode, vNodes) {
-                netfulfilledman.AddFulfilledRequest(pnode->addr, "full-sync");
-            }
+        BOOST_FOREACH(CNode* pnode, vNodes) {
+            netfulfilledman.AddFulfilledRequest(pnode->addr, "full-sync");
+        }
 
-            break;
+        break;
     }
     nRequestedDynodeAttempt = 0;
     nTimeAssetSyncStarted = GetTime();
@@ -206,14 +214,22 @@ void CDynodeSync::SwitchToNextAsset()
 std::string CDynodeSync::GetSyncStatus()
 {
     switch (dynodeSync.nRequestedDynodeAssets) {
-        case DYNODE_SYNC_INITIAL:       return _("Synchronization pending...");
-        case DYNODE_SYNC_SPORKS:        return _("Synchronizing sporks...");
-        case DYNODE_SYNC_LIST:          return _("Synchronizing Dynodes...");
-        case DYNODE_SYNC_DNW:           return _("Synchronizing Dynode payments...");
-        case DYNODE_SYNC_GOVERNANCE:    return _("Synchronizing governance objects...");
-        case DYNODE_SYNC_FAILED:        return _("Synchronization failed");
-        case DYNODE_SYNC_FINISHED:      return _("Synchronization finished");
-        default:                           return "";
+    case DYNODE_SYNC_INITIAL:
+        return _("Synchronization pending...");
+    case DYNODE_SYNC_SPORKS:
+        return _("Synchronizing sporks...");
+    case DYNODE_SYNC_LIST:
+        return _("Synchronizing Dynodes...");
+    case DYNODE_SYNC_DNW:
+        return _("Synchronizing Dynode payments...");
+    case DYNODE_SYNC_GOVERNANCE:
+        return _("Synchronizing governance objects...");
+    case DYNODE_SYNC_FAILED:
+        return _("Synchronization failed");
+    case DYNODE_SYNC_FINISHED:
+        return _("Synchronization finished");
+    default:
+        return "";
     }
 }
 
@@ -252,7 +268,7 @@ void CDynodeSync::ProcessTick()
     static int nTick = 0;
 
     if(nTick++ % DYNODE_SYNC_TICK_SECONDS != 0) return;
-    
+
     if(!pCurrentBlockIndex) return;
 
     //the actual count of Dynodes we have currently
@@ -303,7 +319,7 @@ void CDynodeSync::ProcessTick()
     }
 
     if(nRequestedDynodeAssets == DYNODE_SYNC_INITIAL ||
-        (nRequestedDynodeAssets == DYNODE_SYNC_SPORKS && IsBlockchainSynced()))
+            (nRequestedDynodeAssets == DYNODE_SYNC_SPORKS && IsBlockchainSynced()))
     {
         SwitchToNextAsset();
     }
@@ -467,8 +483,8 @@ void CDynodeSync::ProcessTick()
                         if(nLastTick == nTick) continue;
 
                         if(GetTime() - nTimeNoObjectsLeft > DYNODE_SYNC_TIMEOUT_SECONDS &&
-                            governance.GetVoteCount() - nLastVotes < std::max(int(0.0001 * nLastVotes), DYNODE_SYNC_TICK_SECONDS)
-                        ) {
+                                governance.GetVoteCount() - nLastVotes < std::max(int(0.0001 * nLastVotes), DYNODE_SYNC_TICK_SECONDS)
+                          ) {
                             // We already asked for all objects, waited for DYNODE_SYNC_TIMEOUT_SECONDS
                             // after that and less then 0.01% or DYNODE_SYNC_TICK_SECONDS
                             // (i.e. 1 per second) votes were recieved during the last tick.
@@ -484,7 +500,7 @@ void CDynodeSync::ProcessTick()
                         nLastTick = nTick;
                         nLastVotes = governance.GetVoteCount();
                     }
-                 }
+                }
 
                 netfulfilledman.AddFulfilledRequest(pnode->addr, "governance-sync");
 

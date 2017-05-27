@@ -23,13 +23,20 @@ const char* GetTxnOutputType(txnouttype t)
 {
     switch (t)
     {
-    case TX_NONSTANDARD: return "nonstandard";
-    case TX_PUBKEY: return "pubkey";
-    case TX_PUBKEYHASH: return "pubkeyhash";
-    case TX_SCRIPTHASH: return "scripthash";
-    case TX_MULTISIG: return "multisig";
-    case TX_NULL_DATA: return "nulldata";
-    case TX_NAME: return "name";
+    case TX_NONSTANDARD:
+        return "nonstandard";
+    case TX_PUBKEY:
+        return "pubkey";
+    case TX_PUBKEYHASH:
+        return "pubkeyhash";
+    case TX_SCRIPTHASH:
+        return "scripthash";
+    case TX_MULTISIG:
+        return "multisig";
+    case TX_NULL_DATA:
+        return "nulldata";
+    case TX_NAME:
+        return "name";
     }
     return NULL;
 }
@@ -143,7 +150,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::v
             else if (opcode2 == OP_SMALLINTEGER)
             {   // Single-byte small integer pushed onto vSolutions
                 if (opcode1 == OP_0 ||
-                    (opcode1 >= OP_1 && opcode1 <= OP_16))
+                        (opcode1 >= OP_1 && opcode1 <= OP_16))
                 {
                     char n = (char)CScript::DecodeOP_N(opcode1);
                     vSolutionsRet.push_back(valtype(1, n));
@@ -201,7 +208,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
     std::vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, typeRet, vSolutions))
         return false;
-    if (typeRet == TX_NULL_DATA){
+    if (typeRet == TX_NULL_DATA) {
         // This is data, not addresses
         return false;
     }
@@ -227,7 +234,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
         nRequiredRet = 1;
         CTxDestination address;
         if (!ExtractDestination(scriptPubKey, address))
-           return false;
+            return false;
         addressRet.push_back(address);
     }
 
@@ -241,7 +248,9 @@ class CScriptVisitor : public boost::static_visitor<bool>
 private:
     CScript *script;
 public:
-    CScriptVisitor(CScript *scriptin) { script = scriptin; }
+    CScriptVisitor(CScript *scriptin) {
+        script = scriptin;
+    }
 
     bool operator()(const CNoDestination &dest) const {
         script->clear();
@@ -281,7 +290,7 @@ CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys)
 
     script << CScript::EncodeOP_N(nRequired);
     BOOST_FOREACH(const CPubKey& key, keys)
-        script << ToByteVector(key);
+    script << ToByteVector(key);
     script << CScript::EncodeOP_N(keys.size()) << OP_CHECKMULTISIG;
     return script;
 }

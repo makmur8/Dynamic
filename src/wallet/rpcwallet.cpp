@@ -36,8 +36,8 @@ static CCriticalSection cs_nWalletUnlockTime;
 std::string HelpRequiringPassphrase()
 {
     return pwalletMain && pwalletMain->IsCrypted()
-        ? "\nRequires wallet passphrase to be set with walletpassphrase call."
-        : "";
+           ? "\nRequires wallet passphrase to be set with walletpassphrase call."
+           : "";
 }
 
 bool EnsureWalletIsAvailable(bool avoidException)
@@ -78,7 +78,7 @@ void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
     entry.push_back(Pair("txid", hash.GetHex()));
     UniValue conflicts(UniValue::VARR);
     BOOST_FOREACH(const uint256& conflict, wtx.GetConflicts())
-        conflicts.push_back(conflict.GetHex());
+    conflicts.push_back(conflict.GetHex());
     entry.push_back(Pair("walletconflicts", conflicts));
     entry.push_back(Pair("time", wtx.GetTxTime()));
     entry.push_back(Pair("timereceived", (int64_t)wtx.nTimeReceived));
@@ -100,7 +100,7 @@ void WalletTxToJSON(const CWalletTx& wtx, UniValue& entry)
     entry.push_back(Pair("bip125-replaceable", rbfStatus));
 
     BOOST_FOREACH(const PAIRTYPE(std::string,std::string)& item, wtx.mapValue)
-        entry.push_back(Pair(item.first, item.second));
+    entry.push_back(Pair(item.first, item.second));
 }
 
 std::string AccountFromValue(const UniValue& value)
@@ -115,7 +115,7 @@ UniValue getnewaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "getnewaddress ( \"account\" )\n"
@@ -167,13 +167,13 @@ CDynamicAddress GetAccountAddress(std::string strAccount, bool bForceNew=false)
     {
         CScript scriptPubKey = GetScriptForDestination(account.vchPubKey.GetID());
         for (std::map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
-             it != pwalletMain->mapWallet.end() && account.vchPubKey.IsValid();
-             ++it)
+                it != pwalletMain->mapWallet.end() && account.vchPubKey.IsValid();
+                ++it)
         {
             const CWalletTx& wtx = (*it).second;
             BOOST_FOREACH(const CTxOut& txout, wtx.vout)
-                if (txout.scriptPubKey == scriptPubKey)
-                    bKeyUsed = true;
+            if (txout.scriptPubKey == scriptPubKey)
+                bKeyUsed = true;
         }
     }
 
@@ -194,7 +194,7 @@ UniValue getaccountaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "getaccountaddress \"account\"\n"
@@ -226,7 +226,7 @@ UniValue getrawchangeaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "getrawchangeaddress\n"
@@ -237,7 +237,7 @@ UniValue getrawchangeaddress(const UniValue& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleCli("getrawchangeaddress", "")
             + HelpExampleRpc("getrawchangeaddress", "")
-       );
+        );
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -261,7 +261,7 @@ UniValue setaccount(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw std::runtime_error(
             "setaccount \"dynamicaddress\" \"account\"\n"
@@ -307,7 +307,7 @@ UniValue getaccount(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "getaccount \"dynamicaddress\"\n"
@@ -339,7 +339,7 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "getaddressesbyaccount \"account\"\n"
@@ -395,7 +395,7 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
     if (!pwalletMain->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePosRet,
-                                         strError, NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
+                                        strError, NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > pwalletMain->GetBalance())
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -408,7 +408,7 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 2 || params.size() > 7)
         throw std::runtime_error(
             "sendtoaddress \"dynamicaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount use_is use_ps )\n"
@@ -533,7 +533,7 @@ UniValue listaddressgroupings(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp)
         throw std::runtime_error(
             "listaddressgroupings\n"
@@ -584,7 +584,7 @@ UniValue signmessage(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 2)
         throw std::runtime_error(
             "signmessage \"dynamicaddress\" \"message\"\n"
@@ -640,7 +640,7 @@ UniValue getreceivedbyaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw std::runtime_error(
             "getreceivedbyaddress \"dynamicaddress\" ( minconf )\n"
@@ -659,7 +659,7 @@ UniValue getreceivedbyaddress(const UniValue& params, bool fHelp)
             + HelpExampleCli("getreceivedbyaddress", "\"D5nRy9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\" 10") +
             "\nAs a json rpc call\n"
             + HelpExampleRpc("getreceivedbyaddress", "\"D5nRy9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\", 10")
-       );
+        );
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -685,9 +685,9 @@ UniValue getreceivedbyaddress(const UniValue& params, bool fHelp)
             continue;
 
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
-            if (txout.scriptPubKey == scriptPubKey)
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
-                    nAmount += txout.nValue;
+        if (txout.scriptPubKey == scriptPubKey)
+            if (wtx.GetDepthInMainChain() >= nMinDepth)
+                nAmount += txout.nValue;
     }
 
     return  ValueFromAmount(nAmount);
@@ -698,7 +698,7 @@ UniValue getreceivedbyaccount(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw std::runtime_error(
             "getreceivedbyaccount \"account\" ( minconf )\n"
@@ -754,7 +754,7 @@ UniValue getbalance(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 3)
         throw std::runtime_error(
             "getbalance ( \"account\" minconf includeWatchonly )\n"
@@ -809,10 +809,10 @@ UniValue getbalance(const UniValue& params, bool fHelp)
             if (wtx.GetDepthInMainChain() >= nMinDepth)
             {
                 BOOST_FOREACH(const COutputEntry& r, listReceived)
-                    nBalance += r.amount;
+                nBalance += r.amount;
             }
             BOOST_FOREACH(const COutputEntry& s, listSent)
-                nBalance -= s.amount;
+            nBalance -= s.amount;
             nBalance -= allFee;
         }
         return  ValueFromAmount(nBalance);
@@ -829,11 +829,11 @@ UniValue getunconfirmedbalance(const UniValue &params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 0)
         throw std::runtime_error(
-                "getunconfirmedbalance\n"
-                "Returns the server's total unconfirmed balance\n");
+            "getunconfirmedbalance\n"
+            "Returns the server's total unconfirmed balance\n");
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -845,7 +845,7 @@ UniValue movecmd(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 3 || params.size() > 5)
         throw std::runtime_error(
             "move \"fromaccount\" \"toaccount\" amount ( minconf \"comment\" )\n"
@@ -918,7 +918,7 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 3 || params.size() > 6)
         throw std::runtime_error(
             "sendfrom \"fromaccount\" \"todynamicaddress\" amount ( minconf \"comment\" \"comment-to\" )\n"
@@ -982,7 +982,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 2 || params.size() > 7)
         throw std::runtime_error(
             "sendmany \"fromaccount\" {\"address\":amount,...} ( minconf \"comment\" [\"address\",...] subtractfeefromamount use_is use_ps )\n"
@@ -1088,7 +1088,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
         fUsePrivateSend = params[6].get_bool();
 
     bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, nChangePosRet, strFailReason,
-                                                   NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend);
+                    NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend);
     if (!fCreated)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     if (!pwalletMain->CommitTransaction(wtx, keyChange, fUseInstantSend ? NetMsgType::TXLOCKREQUEST : NetMsgType::TX))
@@ -1104,32 +1104,32 @@ UniValue addmultisigaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 2 || params.size() > 3)
     {
         std::string msg = "addmultisigaddress nrequired [\"key\",...] ( \"account\" )\n"
-            "\nAdd a nrequired-to-sign multisignature address to the wallet.\n"
-            "Each key is a Dynamic address or hex-encoded public key.\n"
-            "If 'account' is specified (DEPRECATED), assign address to that account.\n"
+                          "\nAdd a nrequired-to-sign multisignature address to the wallet.\n"
+                          "Each key is a Dynamic address or hex-encoded public key.\n"
+                          "If 'account' is specified (DEPRECATED), assign address to that account.\n"
 
-            "\nArguments:\n"
-            "1. nrequired        (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keysobject\"   (string, required) A json array of dynamic addresses or hex-encoded public keys\n"
-            "     [\n"
-            "       \"address\"  (string) dynamic address or hex-encoded public key\n"
-            "       ...,\n"
-            "     ]\n"
-            "3. \"account\"      (string, optional) DEPRECATED. An account to assign the addresses to.\n"
+                          "\nArguments:\n"
+                          "1. nrequired        (numeric, required) The number of required signatures out of the n keys or addresses.\n"
+                          "2. \"keysobject\"   (string, required) A json array of dynamic addresses or hex-encoded public keys\n"
+                          "     [\n"
+                          "       \"address\"  (string) dynamic address or hex-encoded public key\n"
+                          "       ...,\n"
+                          "     ]\n"
+                          "3. \"account\"      (string, optional) DEPRECATED. An account to assign the addresses to.\n"
 
-            "\nResult:\n"
-            "\"dynamicaddress\"  (string) A dynamic address associated with the keys.\n"
+                          "\nResult:\n"
+                          "\"dynamicaddress\"  (string) A dynamic address associated with the keys.\n"
 
-            "\nExamples:\n"
-            "\nAdd a multisig address from 2 addresses\n"
-            + HelpExampleCli("addmultisigaddress", "2 \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"") +
-            "\nAs json rpc call\n"
-            + HelpExampleRpc("addmultisigaddress", "2, \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"")
-        ;
+                          "\nExamples:\n"
+                          "\nAdd a multisig address from 2 addresses\n"
+                          + HelpExampleCli("addmultisigaddress", "2 \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"") +
+                          "\nAs json rpc call\n"
+                          + HelpExampleRpc("addmultisigaddress", "2, \"[\\\"D8RHNF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\",\\\"D2sMrF9Tf7Zsef8gMGL2fhWA9ZslrP4K5tf\\\"]\"")
+                          ;
         throw std::runtime_error(msg);
     }
 
@@ -1297,7 +1297,7 @@ UniValue listreceivedbyaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 3)
         throw std::runtime_error(
             "listreceivedbyaddress ( minconf includeempty includeWatchonly)\n"
@@ -1336,7 +1336,7 @@ UniValue listreceivedbyaccount(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 3)
         throw std::runtime_error(
             "listreceivedbyaccount ( minconf includeempty includeWatchonly)\n"
@@ -1474,7 +1474,7 @@ UniValue listtransactions(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 4)
         throw std::runtime_error(
             "listtransactions ( \"account\" count from includeWatchonly)\n"
@@ -1603,7 +1603,7 @@ UniValue listaccounts(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 2)
         throw std::runtime_error(
             "listaccounts ( minconf includeWatchonly)\n"
@@ -1656,20 +1656,20 @@ UniValue listaccounts(const UniValue& params, bool fHelp)
         wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount, includeWatchonly);
         mapAccountBalances[strSentAccount] -= nFee;
         BOOST_FOREACH(const COutputEntry& s, listSent)
-            mapAccountBalances[strSentAccount] -= s.amount;
+        mapAccountBalances[strSentAccount] -= s.amount;
         if (nDepth >= nMinDepth)
         {
             BOOST_FOREACH(const COutputEntry& r, listReceived)
-                if (pwalletMain->mapAddressBook.count(r.destination))
-                    mapAccountBalances[pwalletMain->mapAddressBook[r.destination].name] += r.amount;
-                else
-                    mapAccountBalances[""] += r.amount;
+            if (pwalletMain->mapAddressBook.count(r.destination))
+                mapAccountBalances[pwalletMain->mapAddressBook[r.destination].name] += r.amount;
+            else
+                mapAccountBalances[""] += r.amount;
         }
     }
 
     const std::list<CAccountingEntry> & acentries = pwalletMain->laccentries;
     BOOST_FOREACH(const CAccountingEntry& entry, acentries)
-        mapAccountBalances[entry.strAccount] += entry.nCreditDebit;
+    mapAccountBalances[entry.strAccount] += entry.nCreditDebit;
 
     UniValue ret(UniValue::VOBJ);
     BOOST_FOREACH(const PAIRTYPE(std::string, CAmount)& accountBalance, mapAccountBalances) {
@@ -1682,7 +1682,7 @@ UniValue listsinceblock(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp)
         throw std::runtime_error(
             "listsinceblock ( \"blockhash\" target-confirmations includeWatchonly)\n"
@@ -1712,7 +1712,7 @@ UniValue listsinceblock(const UniValue& params, bool fHelp)
             "    \"comment\": \"...\",       (string) If a comment is associated with the transaction.\n"
             "    \"label\" : \"label\"       (string) A comment for the address/transaction, if any\n"
             "    \"to\": \"...\",            (string) If a comment to is associated with the transaction.\n"
-             "  ],\n"
+            "  ],\n"
             "  \"lastblock\": \"lastblockhash\"     (string) The hash of the last block\n"
             "}\n"
             "\nExamples:\n"
@@ -1777,7 +1777,7 @@ UniValue gettransaction(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw std::runtime_error(
             "gettransaction \"txid\" ( includeWatchonly )\n"
@@ -1893,7 +1893,7 @@ UniValue backupwallet(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "backupwallet \"destination\"\n"
@@ -1919,7 +1919,7 @@ UniValue keypoolrefill(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "keypoolrefill ( newsize )\n"
@@ -1963,7 +1963,7 @@ UniValue walletpassphrase(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (pwalletMain->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 3))
         throw std::runtime_error(
             "walletpassphrase \"passphrase\" timeout ( mixingonly )\n"
@@ -2030,7 +2030,7 @@ UniValue walletpassphrasechange(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (pwalletMain->IsCrypted() && (fHelp || params.size() != 2))
         throw std::runtime_error(
             "walletpassphrasechange \"oldpassphrase\" \"newpassphrase\"\n"
@@ -2076,7 +2076,7 @@ UniValue walletlock(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (pwalletMain->IsCrypted() && (fHelp || params.size() != 0))
         throw std::runtime_error(
             "walletlock\n"
@@ -2115,7 +2115,7 @@ UniValue encryptwallet(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (!pwalletMain->IsCrypted() && (fHelp || params.size() != 1))
         throw std::runtime_error(
             "encryptwallet \"passphrase\"\n"
@@ -2172,7 +2172,7 @@ UniValue lockunspent(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw std::runtime_error(
             "lockunspent unlock [{\"txid\":\"txid\",\"vout\":n},...]\n"
@@ -2256,7 +2256,7 @@ UniValue listlockunspent(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 0)
         throw std::runtime_error(
             "listlockunspent\n"
@@ -2305,7 +2305,7 @@ UniValue settxfee(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 1)
         throw std::runtime_error(
             "settxfee amount\n"
@@ -2332,7 +2332,7 @@ UniValue getwalletinfo(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 0)
         throw std::runtime_error(
             "getwalletinfo\n"
@@ -2407,7 +2407,7 @@ UniValue getwalletinfo(const UniValue& params, bool fHelp)
     return obj;
 }
 
-UniValue keepass(const UniValue& params, bool fHelp) 
+UniValue keepass(const UniValue& params, bool fHelp)
 {
     std::string strCommand;
 
@@ -2415,7 +2415,7 @@ UniValue keepass(const UniValue& params, bool fHelp)
         strCommand = params[0].get_str();
 
     if (fHelp  ||
-        (strCommand != "genkey" && strCommand != "init" && strCommand != "setpassphrase"))
+            (strCommand != "genkey" && strCommand != "init" && strCommand != "setpassphrase"))
         throw std::runtime_error(
             "keepass <genkey|init|setpassphrase>\n");
 
@@ -2462,7 +2462,7 @@ UniValue resendwallettransactions(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 0)
         throw std::runtime_error(
             "resendwallettransactions\n"
@@ -2470,7 +2470,7 @@ UniValue resendwallettransactions(const UniValue& params, bool fHelp)
             "Intended only for testing; the wallet code periodically re-broadcasts\n"
             "automatically.\n"
             "Returns array of transaction ids that were re-broadcast.\n"
-            );
+        );
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
@@ -2487,7 +2487,7 @@ UniValue listunspent(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() > 4)
         throw std::runtime_error(
             "listunspent ( minconf maxconf  [\"address\",...] [include_unsafe] ))\n"
@@ -2534,12 +2534,12 @@ UniValue listunspent(const UniValue& params, bool fHelp)
     if (params.size() > 0 && !params[0].isNull()) {
         RPCTypeCheckArgument(params[0], UniValue::VNUM);
         nMinDepth = params[0].get_int();
-	}
+    }
     int nMaxDepth = 9999999;
-	if (params.size() > 1 && !params[1].isNull()) {
+    if (params.size() > 1 && !params[1].isNull()) {
         RPCTypeCheckArgument(params[1], UniValue::VNUM);
         nMaxDepth = params[1].get_int();
-	}
+    }
     std::set<CDynamicAddress> setAddress;
     if (params.size() > 2 && !params[2].isNull()) {
         RPCTypeCheckArgument(params[2], UniValue::VARR);
@@ -2551,7 +2551,7 @@ UniValue listunspent(const UniValue& params, bool fHelp)
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Dynamic address: ")+input.get_str());
             if (setAddress.count(address))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ")+input.get_str());
-           setAddress.insert(address);
+            setAddress.insert(address);
         }
     }
 
@@ -2617,35 +2617,35 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw std::runtime_error(
-                            "fundrawtransaction \"hexstring\" includeWatching\n"
-                            "\nAdd inputs to a transaction until it has enough in value to meet its out value.\n"
-                            "This will not modify existing inputs, and will add one change output to the outputs.\n"
-                            "Note that inputs which were signed may need to be resigned after completion since in/outputs have been added.\n"
-                            "The inputs added will not be signed, use signrawtransaction for that.\n"
-                            "Note that all existing inputs must have their previous output transaction be in the wallet.\n"
-                            "Note that all inputs selected must be of standard form and P2SH scripts must be"
-                            "in the wallet using importaddress or addmultisigaddress (to calculate fees).\n"
-                            "Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only\n"
-                            "\nArguments:\n"
-                            "1. \"hexstring\"     (string, required) The hex string of the raw transaction\n"
-                            "2. includeWatching (boolean, optional, default false) Also select inputs which are watch only\n"
-                            "\nResult:\n"
-                            "{\n"
-                            "  \"hex\":       \"value\", (string)  The resulting raw transaction (hex-encoded string)\n"
-                            "  \"fee\":       n,         (numeric) Fee the resulting transaction pays\n"
-                            "  \"changepos\": n          (numeric) The position of the added change output, or -1\n"
-                            "}\n"
-                            "\"hex\"             \n"
-                            "\nExamples:\n"
-                            "\nCreate a transaction with no inputs\n"
-                            + HelpExampleCli("createrawtransaction", "\"[]\" \"{\\\"myaddress\\\":0.01}\"") +
-                            "\nAdd sufficient unsigned inputs to meet the output value\n"
-                            + HelpExampleCli("fundrawtransaction", "\"rawtransactionhex\"") +
-                            "\nSign the transaction\n"
-                            + HelpExampleCli("signrawtransaction", "\"fundedtransactionhex\"") +
-                            "\nSend the transaction\n"
-                            + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\"")
-                            );
+            "fundrawtransaction \"hexstring\" includeWatching\n"
+            "\nAdd inputs to a transaction until it has enough in value to meet its out value.\n"
+            "This will not modify existing inputs, and will add one change output to the outputs.\n"
+            "Note that inputs which were signed may need to be resigned after completion since in/outputs have been added.\n"
+            "The inputs added will not be signed, use signrawtransaction for that.\n"
+            "Note that all existing inputs must have their previous output transaction be in the wallet.\n"
+            "Note that all inputs selected must be of standard form and P2SH scripts must be"
+            "in the wallet using importaddress or addmultisigaddress (to calculate fees).\n"
+            "Only pay-to-pubkey, multisig, and P2SH versions thereof are currently supported for watch-only\n"
+            "\nArguments:\n"
+            "1. \"hexstring\"     (string, required) The hex string of the raw transaction\n"
+            "2. includeWatching (boolean, optional, default false) Also select inputs which are watch only\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"hex\":       \"value\", (string)  The resulting raw transaction (hex-encoded string)\n"
+            "  \"fee\":       n,         (numeric) Fee the resulting transaction pays\n"
+            "  \"changepos\": n          (numeric) The position of the added change output, or -1\n"
+            "}\n"
+            "\"hex\"             \n"
+            "\nExamples:\n"
+            "\nCreate a transaction with no inputs\n"
+            + HelpExampleCli("createrawtransaction", "\"[]\" \"{\\\"myaddress\\\":0.01}\"") +
+            "\nAdd sufficient unsigned inputs to meet the output value\n"
+            + HelpExampleCli("fundrawtransaction", "\"rawtransactionhex\"") +
+            "\nSign the transaction\n"
+            + HelpExampleCli("signrawtransaction", "\"fundedtransactionhex\"") +
+            "\nSend the transaction\n"
+            + HelpExampleCli("sendrawtransaction", "\"signedtransactionhex\"")
+        );
 
     RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VBOOL));
 
@@ -2678,267 +2678,267 @@ UniValue fundrawtransaction(const UniValue& params, bool fHelp)
 
 UniValue bumpfee(const UniValue& params, bool fHelp)
 {
-	if (true) {
-		throw std::runtime_error (
-			"Feature currently disabled!"
-		);
-	} else {
-		if (fHelp || params.size() < 1 || params.size() > 2) {
-			throw std::runtime_error(
-				"bumpfee \"txid\" ( options ) \n"
-				"\nBumps the fee of an opt-in-RBF transaction T, replacing it with a new transaction B.\n"
-				"An opt-in RBF transaction with the given txid must be in the wallet.\n"
-				"The command will pay the additional fee by decreasing (or perhaps removing) its change output.\n"
-				"If the change output is not big enough to cover the increased fee, the command will currently fail\n"
-				"instead of adding new inputs to compensate. (A future implementation could improve this.)\n"
-				"The command will fail if the wallet or mempool contains a transaction that spends one of T's outputs.\n"
-				"By default, the new fee will be calculated automatically using estimatefee.\n"
-				"The user can specify a confirmation target for estimatefee.\n"
-				"Alternatively, the user can specify totalFee, or use RPC setpaytxfee to set a higher fee rate.\n"
-				"At a minimum, the new fee rate must be high enough to pay an additional new relay fee (incrementalfee\n"
-				"returned by getnetworkinfo) to enter the node's mempool.\n"
-				"\nArguments:\n"
-				"1. txid                  (string, required) The txid to be bumped\n"
-				"2. options               (object, optional)\n"
-				"   {\n"
-				"     \"confTarget\"        (numeric, optional) Confirmation target (in blocks)\n"
-				"     \"totalFee\"          (numeric, optional) Total fee (NOT feerate) to pay, in satoshis.\n"
-				"                         In rare cases, the actual fee paid might be slightly higher than the specified\n"
-				"                         totalFee if the tx change output has to be removed because it is too close to\n"
-				"                         the dust threshold.\n"
-				"     \"replaceable\"       (boolean, optional, default true) Whether the new transaction should still be\n"
-				"                         marked bip-125 replaceable. If true, the sequence numbers in the transaction will\n"
-				"                         be left unchanged from the original. If false, any input sequence numbers in the\n"
-				"                         original transaction that were less than 0xfffffffe will be increased to 0xfffffffe\n"
-				"                         so the new transaction will not be explicitly bip-125 replaceable (though it may\n"
-				"                         still be replacable in practice, for example if it has unconfirmed ancestors which\n"
-				"                         are replaceable).\n"
-				"   }\n"
-				"\nResult:\n"
-				"{\n"
-				"  \"txid\":    \"value\",   (string)  The id of the new transaction\n"
-				"  \"oldfee\":  n,         (numeric) Fee of the replaced transaction\n"
-				"  \"fee\":     n,         (numeric) Fee of the new transaction\n"
-				"}\n"
-				"\nExamples:\n"
-				"\nBump the fee, get the new transaction\'s txid\n" +
-				HelpExampleCli("bumpfee", "<txid>"));
-		}
-		/*
-		RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VOBJ));
-		uint256 hash;
-		hash.SetHex(params[0].get_str());
+    if (true) {
+        throw std::runtime_error (
+            "Feature currently disabled!"
+        );
+    } else {
+        if (fHelp || params.size() < 1 || params.size() > 2) {
+            throw std::runtime_error(
+                "bumpfee \"txid\" ( options ) \n"
+                "\nBumps the fee of an opt-in-RBF transaction T, replacing it with a new transaction B.\n"
+                "An opt-in RBF transaction with the given txid must be in the wallet.\n"
+                "The command will pay the additional fee by decreasing (or perhaps removing) its change output.\n"
+                "If the change output is not big enough to cover the increased fee, the command will currently fail\n"
+                "instead of adding new inputs to compensate. (A future implementation could improve this.)\n"
+                "The command will fail if the wallet or mempool contains a transaction that spends one of T's outputs.\n"
+                "By default, the new fee will be calculated automatically using estimatefee.\n"
+                "The user can specify a confirmation target for estimatefee.\n"
+                "Alternatively, the user can specify totalFee, or use RPC setpaytxfee to set a higher fee rate.\n"
+                "At a minimum, the new fee rate must be high enough to pay an additional new relay fee (incrementalfee\n"
+                "returned by getnetworkinfo) to enter the node's mempool.\n"
+                "\nArguments:\n"
+                "1. txid                  (string, required) The txid to be bumped\n"
+                "2. options               (object, optional)\n"
+                "   {\n"
+                "     \"confTarget\"        (numeric, optional) Confirmation target (in blocks)\n"
+                "     \"totalFee\"          (numeric, optional) Total fee (NOT feerate) to pay, in satoshis.\n"
+                "                         In rare cases, the actual fee paid might be slightly higher than the specified\n"
+                "                         totalFee if the tx change output has to be removed because it is too close to\n"
+                "                         the dust threshold.\n"
+                "     \"replaceable\"       (boolean, optional, default true) Whether the new transaction should still be\n"
+                "                         marked bip-125 replaceable. If true, the sequence numbers in the transaction will\n"
+                "                         be left unchanged from the original. If false, any input sequence numbers in the\n"
+                "                         original transaction that were less than 0xfffffffe will be increased to 0xfffffffe\n"
+                "                         so the new transaction will not be explicitly bip-125 replaceable (though it may\n"
+                "                         still be replacable in practice, for example if it has unconfirmed ancestors which\n"
+                "                         are replaceable).\n"
+                "   }\n"
+                "\nResult:\n"
+                "{\n"
+                "  \"txid\":    \"value\",   (string)  The id of the new transaction\n"
+                "  \"oldfee\":  n,         (numeric) Fee of the replaced transaction\n"
+                "  \"fee\":     n,         (numeric) Fee of the new transaction\n"
+                "}\n"
+                "\nExamples:\n"
+                "\nBump the fee, get the new transaction\'s txid\n" +
+                HelpExampleCli("bumpfee", "<txid>"));
+        }
+        /*
+        RPCTypeCheck(params, boost::assign::list_of(UniValue::VSTR)(UniValue::VOBJ));
+        uint256 hash;
+        hash.SetHex(params[0].get_str());
 
-		// retrieve the original tx from the wallet
-		LOCK2(cs_main, pwalletMain->cs_wallet);
-		EnsureWalletIsUnlocked();
-		if (!pwalletMain->mapWallet.count(hash)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
-		}
-		CWalletTx& wtx = pwalletMain->mapWallet[hash];
+        // retrieve the original tx from the wallet
+        LOCK2(cs_main, pwalletMain->cs_wallet);
+        EnsureWalletIsUnlocked();
+        if (!pwalletMain->mapWallet.count(hash)) {
+        	throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid or non-wallet transaction id");
+        }
+        CWalletTx& wtx = pwalletMain->mapWallet[hash];
 
-		if (pwalletMain->HasWalletSpend(hash)) {
-			throw JSONRPCError(RPC_MISC_ERROR, "Transaction has descendants in the wallet");
-		}
+        if (pwalletMain->HasWalletSpend(hash)) {
+        	throw JSONRPCError(RPC_MISC_ERROR, "Transaction has descendants in the wallet");
+        }
 
-		{
-			LOCK(mempool.cs);
-			auto it = mempool.mapTx.find(hash);
-			if (it != mempool.mapTx.end() && it->GetCountWithDescendants() > 1) {
-				throw JSONRPCError(RPC_MISC_ERROR, "Transaction has descendants in the mempool");
-			}
-		}
+        {
+        	LOCK(mempool.cs);
+        	auto it = mempool.mapTx.find(hash);
+        	if (it != mempool.mapTx.end() && it->GetCountWithDescendants() > 1) {
+        		throw JSONRPCError(RPC_MISC_ERROR, "Transaction has descendants in the mempool");
+        	}
+        }
 
-		if (wtx.GetDepthInMainChain() != 0) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction has been mined, or is conflicted with a mined transaction");
-		}
+        if (wtx.GetDepthInMainChain() != 0) {
+        	throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction has been mined, or is conflicted with a mined transaction");
+        }
 
-		if (!SignalsOptInRBF(wtx)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction is not BIP 125 replaceable");
-		}
+        if (!SignalsOptInRBF(wtx)) {
+        	throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction is not BIP 125 replaceable");
+        }
 
-		if (wtx.mapValue.count("replaced_by_txid")) {
-			throw JSONRPCError(RPC_INVALID_REQUEST, strprintf("Cannot bump transaction %s which was already bumped by transaction %s", hash.ToString(), wtx.mapValue.at("replaced_by_txid")));
-		}
+        if (wtx.mapValue.count("replaced_by_txid")) {
+        	throw JSONRPCError(RPC_INVALID_REQUEST, strprintf("Cannot bump transaction %s which was already bumped by transaction %s", hash.ToString(), wtx.mapValue.at("replaced_by_txid")));
+        }
 
-		// check that original tx consists entirely of our inputs
-		// if not, we can't bump the fee, because the wallet has no way of knowing the value of the other inputs (thus the fee)
-		if (!pwalletMain->IsAllFromMe(wtx, ISMINE_SPENDABLE)) {
-			throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction contains inputs that don't belong to this wallet");
-		}
+        // check that original tx consists entirely of our inputs
+        // if not, we can't bump the fee, because the wallet has no way of knowing the value of the other inputs (thus the fee)
+        if (!pwalletMain->IsAllFromMe(wtx, ISMINE_SPENDABLE)) {
+        	throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction contains inputs that don't belong to this wallet");
+        }
 
-		// figure out which output was change
-		// if there was no change output or multiple change outputs, fail
-		int nOutput = -1;
-		for (size_t i = 0; i < wtx.vout.size(); ++i) {
-			if (pwalletMain->IsChange(wtx.vout[i])) {
-				if (nOutput != -1) {
-					throw JSONRPCError(RPC_MISC_ERROR, "Transaction has multiple change outputs");
-				}
-				nOutput = i;
-			}
-		}
-		if (nOutput == -1) {
-			throw JSONRPCError(RPC_MISC_ERROR, "Transaction does not have a change output");
-		}
+        // figure out which output was change
+        // if there was no change output or multiple change outputs, fail
+        int nOutput = -1;
+        for (size_t i = 0; i < wtx.vout.size(); ++i) {
+        	if (pwalletMain->IsChange(wtx.vout[i])) {
+        		if (nOutput != -1) {
+        			throw JSONRPCError(RPC_MISC_ERROR, "Transaction has multiple change outputs");
+        		}
+        		nOutput = i;
+        	}
+        }
+        if (nOutput == -1) {
+        	throw JSONRPCError(RPC_MISC_ERROR, "Transaction does not have a change output");
+        }
 
-		// signature sizes can vary by a byte, so add 1 for each input when calculating the new fee
-		int64_t txSize = GetVirtualTransactionSize(*(wtx.tx));
-		const int64_t maxNewTxSize = txSize + wtx.vin.size();
+        // signature sizes can vary by a byte, so add 1 for each input when calculating the new fee
+        int64_t txSize = GetVirtualTransactionSize(*(wtx.tx));
+        const int64_t maxNewTxSize = txSize + wtx.vin.size();
 
-		// optional parameters
-		bool specifiedConfirmTarget = false;
-		int newConfirmTarget = nTxConfirmTarget;
-		CAmount totalFee = 0;
-		bool replaceable = true;
-		if (params.size() > 1) {
-			UniValue options = params[1];
-			RPCTypeCheckObj(options,
-				{
-					{"confTarget", UniValueType(UniValue::VNUM)},
-					{"totalFee", UniValueType(UniValue::VNUM)},
-					{"replaceable", UniValueType(UniValue::VBOOL)},
-				},
-				true, true);
+        // optional parameters
+        bool specifiedConfirmTarget = false;
+        int newConfirmTarget = nTxConfirmTarget;
+        CAmount totalFee = 0;
+        bool replaceable = true;
+        if (params.size() > 1) {
+        	UniValue options = params[1];
+        	RPCTypeCheckObj(options,
+        		{
+        			{"confTarget", UniValueType(UniValue::VNUM)},
+        			{"totalFee", UniValueType(UniValue::VNUM)},
+        			{"replaceable", UniValueType(UniValue::VBOOL)},
+        		},
+        		true, true);
 
-			if (options.exists("confTarget") && options.exists("totalFee")) {
-				throw JSONRPCError(RPC_INVALID_PARAMETER, "confTarget and totalFee options should not both be set. Please provide either a confirmation target for fee estimation or an explicit total fee for the transaction.");
-			} else if (options.exists("confTarget")) {
-				specifiedConfirmTarget = true;
-				newConfirmTarget = options["confTarget"].get_int();
-				if (newConfirmTarget <= 0) { // upper-bound will be checked by estimatefee/smartfee
-					throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid confTarget (cannot be <= 0)");
-				}
-			} else if (options.exists("totalFee")) {
-				totalFee = options["totalFee"].get_int64();
-				CAmount requiredFee = CWallet::GetRequiredFee(maxNewTxSize);
-				if (totalFee < requiredFee ) {
-					throw JSONRPCError(RPC_INVALID_PARAMETER,
-									   strprintf("Insufficient totalFee (cannot be less than required fee %s)",
-												 FormatMoney(requiredFee)));
-				}
-			}
+        	if (options.exists("confTarget") && options.exists("totalFee")) {
+        		throw JSONRPCError(RPC_INVALID_PARAMETER, "confTarget and totalFee options should not both be set. Please provide either a confirmation target for fee estimation or an explicit total fee for the transaction.");
+        	} else if (options.exists("confTarget")) {
+        		specifiedConfirmTarget = true;
+        		newConfirmTarget = options["confTarget"].get_int();
+        		if (newConfirmTarget <= 0) { // upper-bound will be checked by estimatefee/smartfee
+        			throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid confTarget (cannot be <= 0)");
+        		}
+        	} else if (options.exists("totalFee")) {
+        		totalFee = options["totalFee"].get_int64();
+        		CAmount requiredFee = CWallet::GetRequiredFee(maxNewTxSize);
+        		if (totalFee < requiredFee ) {
+        			throw JSONRPCError(RPC_INVALID_PARAMETER,
+        							   strprintf("Insufficient totalFee (cannot be less than required fee %s)",
+        										 FormatMoney(requiredFee)));
+        		}
+        	}
 
-			if (options.exists("replaceable")) {
-				replaceable = options["replaceable"].get_bool();
-			}
-		}
+        	if (options.exists("replaceable")) {
+        		replaceable = options["replaceable"].get_bool();
+        	}
+        }
 
-		// calculate the old fee and fee-rate
-		CAmount nOldFee = wtx.GetDebit(ISMINE_SPENDABLE) - wtx.GetValueOut();
-		CFeeRate nOldFeeRate(nOldFee, txSize);
-		CAmount nNewFee;
-		CFeeRate nNewFeeRate;
+        // calculate the old fee and fee-rate
+        CAmount nOldFee = wtx.GetDebit(ISMINE_SPENDABLE) - wtx.GetValueOut();
+        CFeeRate nOldFeeRate(nOldFee, txSize);
+        CAmount nNewFee;
+        CFeeRate nNewFeeRate;
 
-		if (totalFee > 0) {
-			CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + ::incrementalRelayFee.GetFee(maxNewTxSize);
-			if (totalFee < minTotalFee) {
-				throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid totalFee, must be at least %s (oldFee %s + relayFee %s)", FormatMoney(minTotalFee), nOldFeeRate.GetFee(maxNewTxSize), ::incrementalRelayFee.GetFee(maxNewTxSize)));
-			}
-			nNewFee = totalFee;
-			nNewFeeRate = CFeeRate(totalFee, maxNewTxSize);
-		} else {
-			// if user specified a confirm target then don't consider any global payTxFee
-			if (specifiedConfirmTarget) {
-				nNewFee = CWallet::GetMinimumFee(maxNewTxSize, newConfirmTarget, mempool, CAmount(0));
-			}
-			// otherwise use the regular wallet logic to select payTxFee or default confirm target
-			else {
-				nNewFee = CWallet::GetMinimumFee(maxNewTxSize, newConfirmTarget, mempool);
-			}
+        if (totalFee > 0) {
+        	CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + ::incrementalRelayFee.GetFee(maxNewTxSize);
+        	if (totalFee < minTotalFee) {
+        		throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid totalFee, must be at least %s (oldFee %s + relayFee %s)", FormatMoney(minTotalFee), nOldFeeRate.GetFee(maxNewTxSize), ::incrementalRelayFee.GetFee(maxNewTxSize)));
+        	}
+        	nNewFee = totalFee;
+        	nNewFeeRate = CFeeRate(totalFee, maxNewTxSize);
+        } else {
+        	// if user specified a confirm target then don't consider any global payTxFee
+        	if (specifiedConfirmTarget) {
+        		nNewFee = CWallet::GetMinimumFee(maxNewTxSize, newConfirmTarget, mempool, CAmount(0));
+        	}
+        	// otherwise use the regular wallet logic to select payTxFee or default confirm target
+        	else {
+        		nNewFee = CWallet::GetMinimumFee(maxNewTxSize, newConfirmTarget, mempool);
+        	}
 
-			nNewFeeRate = CFeeRate(nNewFee, maxNewTxSize);
+        	nNewFeeRate = CFeeRate(nNewFee, maxNewTxSize);
 
-			// new fee rate must be at least old rate + minimum incremental relay rate
-			if (nNewFeeRate.GetFeePerK() < nOldFeeRate.GetFeePerK() + ::incrementalRelayFee.GetFeePerK()) {
-				nNewFeeRate = CFeeRate(nOldFeeRate.GetFeePerK() + ::incrementalRelayFee.GetFeePerK());
-				nNewFee = nNewFeeRate.GetFee(maxNewTxSize);
-			}
-		}
+        	// new fee rate must be at least old rate + minimum incremental relay rate
+        	if (nNewFeeRate.GetFeePerK() < nOldFeeRate.GetFeePerK() + ::incrementalRelayFee.GetFeePerK()) {
+        		nNewFeeRate = CFeeRate(nOldFeeRate.GetFeePerK() + ::incrementalRelayFee.GetFeePerK());
+        		nNewFee = nNewFeeRate.GetFee(maxNewTxSize);
+        	}
+        }
 
-		// Check that in all cases the new fee doesn't violate maxTxFee
-		 if (nNewFee > maxTxFee) {
-			 throw JSONRPCError(RPC_MISC_ERROR,
-								strprintf("Specified or calculated fee %s is too high (cannot be higher than maxTxFee %s)",
-										  FormatMoney(nNewFee), FormatMoney(maxTxFee)));
-		 }
+        // Check that in all cases the new fee doesn't violate maxTxFee
+         if (nNewFee > maxTxFee) {
+        	 throw JSONRPCError(RPC_MISC_ERROR,
+        						strprintf("Specified or calculated fee %s is too high (cannot be higher than maxTxFee %s)",
+        								  FormatMoney(nNewFee), FormatMoney(maxTxFee)));
+         }
 
-		// check that fee rate is higher than mempool's minimum fee
-		// (no point in bumping fee if we know that the new tx won't be accepted to the mempool)
-		// This may occur if the user set TotalFee or paytxfee too low, if fallbackfee is too low, or, perhaps,
-		// in a rare situation where the mempool minimum fee increased significantly since the fee estimation just a
-		// moment earlier. In this case, we report an error to the user, who may use totalFee to make an adjustment.
-		CFeeRate minMempoolFeeRate = mempool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);
-		if (nNewFeeRate.GetFeePerK() < minMempoolFeeRate.GetFeePerK()) {
-			throw JSONRPCError(RPC_MISC_ERROR, strprintf("New fee rate (%s) is less than the minimum fee rate (%s) to get into the mempool. totalFee value should to be at least %s or settxfee value should be at least %s to add transaction.", FormatMoney(nNewFeeRate.GetFeePerK()), FormatMoney(minMempoolFeeRate.GetFeePerK()), FormatMoney(minMempoolFeeRate.GetFee(maxNewTxSize)), FormatMoney(minMempoolFeeRate.GetFeePerK())));
-		}
+        // check that fee rate is higher than mempool's minimum fee
+        // (no point in bumping fee if we know that the new tx won't be accepted to the mempool)
+        // This may occur if the user set TotalFee or paytxfee too low, if fallbackfee is too low, or, perhaps,
+        // in a rare situation where the mempool minimum fee increased significantly since the fee estimation just a
+        // moment earlier. In this case, we report an error to the user, who may use totalFee to make an adjustment.
+        CFeeRate minMempoolFeeRate = mempool.GetMinFee(GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000);
+        if (nNewFeeRate.GetFeePerK() < minMempoolFeeRate.GetFeePerK()) {
+        	throw JSONRPCError(RPC_MISC_ERROR, strprintf("New fee rate (%s) is less than the minimum fee rate (%s) to get into the mempool. totalFee value should to be at least %s or settxfee value should be at least %s to add transaction.", FormatMoney(nNewFeeRate.GetFeePerK()), FormatMoney(minMempoolFeeRate.GetFeePerK()), FormatMoney(minMempoolFeeRate.GetFee(maxNewTxSize)), FormatMoney(minMempoolFeeRate.GetFeePerK())));
+        }
 
-		// Now modify the output to increase the fee.
-		// If the output is not large enough to pay the fee, fail.
-		CAmount nDelta = nNewFee - nOldFee;
-		assert(nDelta > 0);
-		CMutableTransaction tx(*(wtx.tx));
-		CTxOut* poutput = &(tx.vout[nOutput]);
-		if (poutput->nValue < nDelta) {
-			throw JSONRPCError(RPC_MISC_ERROR, "Change output is too small to bump the fee");
-		}
+        // Now modify the output to increase the fee.
+        // If the output is not large enough to pay the fee, fail.
+        CAmount nDelta = nNewFee - nOldFee;
+        assert(nDelta > 0);
+        CMutableTransaction tx(*(wtx.tx));
+        CTxOut* poutput = &(tx.vout[nOutput]);
+        if (poutput->nValue < nDelta) {
+        	throw JSONRPCError(RPC_MISC_ERROR, "Change output is too small to bump the fee");
+        }
 
-		// If the output would become dust, discard it (converting the dust to fee)
-		poutput->nValue -= nDelta;
-		if (poutput->nValue <= poutput->GetDustThreshold(::dustRelayFee)) {
-			LogPrint(DYNLog::RPC, "Bumping fee and discarding dust output\n");
-			nNewFee += poutput->nValue;
-			tx.vout.erase(tx.vout.begin() + nOutput);
-		}
+        // If the output would become dust, discard it (converting the dust to fee)
+        poutput->nValue -= nDelta;
+        if (poutput->nValue <= poutput->GetDustThreshold(::dustRelayFee)) {
+        	LogPrint(DYNLog::RPC, "Bumping fee and discarding dust output\n");
+        	nNewFee += poutput->nValue;
+        	tx.vout.erase(tx.vout.begin() + nOutput);
+        }
 
-		// Mark new tx not replaceable, if requested.
-		if (!replaceable) {
-			for (auto& input : tx.vin) {
-				if (input.nSequence < 0xfffffffe) input.nSequence = 0xfffffffe;
-			}
-		}
+        // Mark new tx not replaceable, if requested.
+        if (!replaceable) {
+        	for (auto& input : tx.vin) {
+        		if (input.nSequence < 0xfffffffe) input.nSequence = 0xfffffffe;
+        	}
+        }
 
-		// sign the new tx
-		CTransaction txNewConst(tx);
-		int nIn = 0;
-		for (auto& input : tx.vin) {
-			std::map<uint256, CWalletTx>::const_iterator mi = pwalletMain->mapWallet.find(input.prevout.hash);
-			assert(mi != pwalletMain->mapWallet.end() && input.prevout.n < mi->second.tx->vout.size());
-			const CScript& scriptPubKey = mi->second.tx->vout[input.prevout.n].scriptPubKey;
-			const CAmount& amount = mi->second.tx->vout[input.prevout.n].nValue;
-			SignatureData sigdata;
-			if (!ProduceSignature(TransactionSignatureCreator(pwalletMain, &txNewConst, nIn, amount, SIGHASH_ALL), scriptPubKey, sigdata)) {
-				throw JSONRPCError(RPC_WALLET_ERROR, "Can't sign transaction.");
-			}
-			UpdateTransaction(tx, nIn, sigdata);
-			nIn++;
-		}
+        // sign the new tx
+        CTransaction txNewConst(tx);
+        int nIn = 0;
+        for (auto& input : tx.vin) {
+        	std::map<uint256, CWalletTx>::const_iterator mi = pwalletMain->mapWallet.find(input.prevout.hash);
+        	assert(mi != pwalletMain->mapWallet.end() && input.prevout.n < mi->second.tx->vout.size());
+        	const CScript& scriptPubKey = mi->second.tx->vout[input.prevout.n].scriptPubKey;
+        	const CAmount& amount = mi->second.tx->vout[input.prevout.n].nValue;
+        	SignatureData sigdata;
+        	if (!ProduceSignature(TransactionSignatureCreator(pwalletMain, &txNewConst, nIn, amount, SIGHASH_ALL), scriptPubKey, sigdata)) {
+        		throw JSONRPCError(RPC_WALLET_ERROR, "Can't sign transaction.");
+        	}
+        	UpdateTransaction(tx, nIn, sigdata);
+        	nIn++;
+        }
 
-		// commit/broadcast the tx
-		CReserveKey reservekey(pwalletMain);
-		CWalletTx wtxBumped(pwalletMain, MakeTransactionRef(std::move(tx)));
-		wtxBumped.mapValue["replaces_txid"] = hash.ToString();
-		CValidationState state;
-		if (!pwalletMain->CommitTransaction(wtxBumped, reservekey, g_connman.get(), state) || !state.IsValid()) {
-			throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Error: The transaction was rejected! Reason given: %s", state.GetRejectReason()));
-		}
+        // commit/broadcast the tx
+        CReserveKey reservekey(pwalletMain);
+        CWalletTx wtxBumped(pwalletMain, MakeTransactionRef(std::move(tx)));
+        wtxBumped.mapValue["replaces_txid"] = hash.ToString();
+        CValidationState state;
+        if (!pwalletMain->CommitTransaction(wtxBumped, reservekey, g_connman.get(), state) || !state.IsValid()) {
+        	throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Error: The transaction was rejected! Reason given: %s", state.GetRejectReason()));
+        }
 
-		// mark the original tx as bumped
-		if (!pwalletMain->MarkReplaced(wtx.GetHash(), wtxBumped.GetHash())) {
-			// TODO: see if JSON-RPC has a standard way of returning a response
-			// along with an exception. It would be good to return information about
-			// wtxBumped to the caller even if marking the original transaction
-			// replaced does not succeed for some reason.
-			throw JSONRPCError(RPC_WALLET_ERROR, "Error: Created new bumpfee transaction but could not mark the original transaction as replaced.");
-		}
+        // mark the original tx as bumped
+        if (!pwalletMain->MarkReplaced(wtx.GetHash(), wtxBumped.GetHash())) {
+        	// TODO: see if JSON-RPC has a standard way of returning a response
+        	// along with an exception. It would be good to return information about
+        	// wtxBumped to the caller even if marking the original transaction
+        	// replaced does not succeed for some reason.
+        	throw JSONRPCError(RPC_WALLET_ERROR, "Error: Created new bumpfee transaction but could not mark the original transaction as replaced.");
+        }
 
-		UniValue result(UniValue::VOBJ);
-		result.push_back(Pair("txid", wtxBumped.GetHash().GetHex()));
-		result.push_back(Pair("oldfee", ValueFromAmount(nOldFee)));
-		result.push_back(Pair("fee", ValueFromAmount(nNewFee)));
+        UniValue result(UniValue::VOBJ);
+        result.push_back(Pair("txid", wtxBumped.GetHash().GetHex()));
+        result.push_back(Pair("oldfee", ValueFromAmount(nOldFee)));
+        result.push_back(Pair("fee", ValueFromAmount(nNewFee)));
 
-		return result;*/
-	}
+        return result;*/
+    }
 }
 
 UniValue makekeypair(const UniValue& params, bool fHelp)

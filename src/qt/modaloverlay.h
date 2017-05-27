@@ -12,7 +12,7 @@
 static constexpr int HEADER_HEIGHT_DELTA_SYNC = 24;
 
 namespace Ui {
-    class ModalOverlay;
+class ModalOverlay;
 }
 
 /** Modal overlay to display information about the chain-sync state */
@@ -32,7 +32,9 @@ public Q_SLOTS:
     // will show or hide the modal layer
     void showHide(bool hide = false, bool userRequested = false);
     void closeClicked();
-    bool isLayerVisible() { return layerIsVisible; }
+    bool isLayerVisible() {
+        return layerIsVisible;
+    }
 
 protected:
     bool eventFilter(QObject * obj, QEvent * ev);

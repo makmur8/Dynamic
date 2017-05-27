@@ -13,8 +13,12 @@
 
 BOOST_FIXTURE_TEST_SUITE(main_tests, TestingSetup)
 
-bool ReturnFalse() { return false; }
-bool ReturnTrue() { return true; }
+bool ReturnFalse() {
+    return false;
+}
+bool ReturnTrue() {
+    return true;
+}
 
 BOOST_AUTO_TEST_CASE(test_combiner_all)
 {

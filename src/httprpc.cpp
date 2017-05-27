@@ -91,7 +91,7 @@ static void JSONErrorReply(HTTPRequest* req, const UniValue& objError, const Uni
 //This function checks username and password against -rpcauth
 //entries from config file.
 static bool multiUserAuthorized(std::string strUserPass)
-{    
+{
     if (strUserPass.find(":") == std::string::npos) {
         return false;
     }
@@ -119,7 +119,7 @@ static bool multiUserAuthorized(std::string strUserPass)
 
             static const unsigned int KEY_SIZE = 32;
             unsigned char out[KEY_SIZE];
-            
+
             CHMAC_SHA256(reinterpret_cast<const unsigned char*>(strSalt.c_str()), strSalt.size()).Write(reinterpret_cast<const unsigned char*>(strPass.c_str()), strPass.size()).Finalize(out);
             std::vector<unsigned char> hexvec(out, out+KEY_SIZE);
             std::string strHashFromPass = HexStr(hexvec);
@@ -141,7 +141,7 @@ static bool RPCAuthorized(const std::string& strAuth)
     std::string strUserPass64 = strAuth.substr(6);
     boost::trim(strUserPass64);
     std::string strUserPass = DecodeBase64(strUserPass64);
-    
+
     //Check if authorized under single-user field
     if (TimingResistantEqual(strUserPass, strRPCUserColonPass)) {
         return true;
@@ -181,7 +181,7 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
     try {
         // Parse request
         UniValue valRequest;
-        if (!valRequest.read(req->ReadBody()))     
+        if (!valRequest.read(req->ReadBody()))
             throw JSONRPCError(RPC_PARSE_ERROR, "Parse error");
 
         std::string strReply;
@@ -194,7 +194,7 @@ static bool HTTPReq_JSONRPC(HTTPRequest* req, const std::string &)
             // Send reply
             strReply = JSONRPCReply(result, NullUniValue, jreq.id);
 
-        // array of requests
+            // array of requests
         } else if (valRequest.isArray())
             strReply = JSONRPCExecBatch(valRequest.get_array());
         else

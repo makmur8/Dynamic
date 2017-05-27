@@ -198,7 +198,7 @@ void DynodeList::updateMyDynodeInfo(QString strAlias, QString strAddr, dynode_in
     QTableWidgetItem *statusItem = new QTableWidgetItem(QString::fromStdString(infoDn.fInfoValid ? CDynode::StateToString(infoDn.nActiveState) : "MISSING"));
     QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(infoDn.fInfoValid ? (infoDn.nTimeLastPing - infoDn.sigTime) : 0)));
     QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M",
-                                                                                                   infoDn.fInfoValid ? infoDn.nTimeLastPing + QDateTime::currentDateTime().offsetFromUtc() : 0)));
+            infoDn.fInfoValid ? infoDn.nTimeLastPing + QDateTime::currentDateTime().offsetFromUtc() : 0)));
     QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(infoDn.fInfoValid ? CDynamicAddress(infoDn.pubKeyCollateralAddress.GetID()).ToString() : ""));
 
     ui->tableWidgetMyDynodes->setItem(nNewRow, 0, aliasItem);
@@ -258,8 +258,8 @@ void DynodeList::updateNodeList()
     // to prevent high cpu usage update only once in DYNODELIST_UPDATE_SECONDS seconds
     // or DYNODELIST_FILTER_COOLDOWN_SECONDS seconds after filter was last changed
     int64_t nSecondsToWait = fFilterUpdated
-                            ? nTimeFilterUpdated - GetTime() + DYNODELIST_FILTER_COOLDOWN_SECONDS
-                            : nTimeListUpdated - GetTime() + DYNODELIST_UPDATE_SECONDS;
+                             ? nTimeFilterUpdated - GetTime() + DYNODELIST_FILTER_COOLDOWN_SECONDS
+                             : nTimeListUpdated - GetTime() + DYNODELIST_UPDATE_SECONDS;
 
     if(fFilterUpdated) ui->countLabel->setText(QString::fromStdString(strprintf("Please wait... %d", nSecondsToWait)));
     if(nSecondsToWait > 0) return;
@@ -335,9 +335,9 @@ void DynodeList::on_startButton_clicked()
 
     // Display message box
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm Dynode start"),
-        tr("Are you sure you want to start Dynode %1?").arg(QString::fromStdString(strAlias)),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+                                         tr("Are you sure you want to start Dynode %1?").arg(QString::fromStdString(strAlias)),
+                                         QMessageBox::Yes | QMessageBox::Cancel,
+                                         QMessageBox::Cancel);
 
     if(retval != QMessageBox::Yes) return;
 
@@ -359,9 +359,9 @@ void DynodeList::on_startAllButton_clicked()
 {
     // Display message box
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm all Dynodes start"),
-        tr("Are you sure you want to start ALL Dynodes?"),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+                                         tr("Are you sure you want to start ALL Dynodes?"),
+                                         QMessageBox::Yes | QMessageBox::Cancel,
+                                         QMessageBox::Cancel);
 
     if(retval != QMessageBox::Yes) return;
 
@@ -384,16 +384,16 @@ void DynodeList::on_startMissingButton_clicked()
 
     if(!dynodeSync.IsDynodeListSynced()) {
         QMessageBox::critical(this, tr("Command is not available right now"),
-            tr("You can't use this command until Dynode list is synced"));
+                              tr("You can't use this command until Dynode list is synced"));
         return;
     }
 
     // Display message box
     QMessageBox::StandardButton retval = QMessageBox::question(this,
-        tr("Confirm missing Dynodes start"),
-        tr("Are you sure you want to start MISSING Dynodes?"),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+                                         tr("Confirm missing Dynodes start"),
+                                         tr("Are you sure you want to start MISSING Dynodes?"),
+                                         QMessageBox::Yes | QMessageBox::Cancel,
+                                         QMessageBox::Cancel);
 
     if(retval != QMessageBox::Yes) return;
 

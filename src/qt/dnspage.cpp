@@ -65,8 +65,8 @@ bool NameFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &so
 
     Qt::CaseSensitivity case_sens = filterCaseSensitivity();
     return name.contains(nameSearch, case_sens)
-        && value.contains(valueSearch, case_sens)
-        && address.startsWith(addressSearch, Qt::CaseSensitive);   // Address is always case-sensitive
+           && value.contains(valueSearch, case_sens)
+           && address.startsWith(addressSearch, Qt::CaseSensitive);   // Address is always case-sensitive
 }
 
 bool NameFilterProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
@@ -194,18 +194,18 @@ void DNSPage::setModel(WalletModel *walletModel)
 
     // Set column widths
     ui->tableView->horizontalHeader()->resizeSection(
-            NameTableModel::Name, COLUMN_WIDTH_NAME);
+        NameTableModel::Name, COLUMN_WIDTH_NAME);
 #if QT_VERSION < 0x050000
     ui->tableView->horizontalHeader()->setResizeMode(
-            NameTableModel::Value, QHeaderView::Stretch);
+        NameTableModel::Value, QHeaderView::Stretch);
 #else
     ui->tableView->horizontalHeader()->setSectionResizeMode(
-            NameTableModel::Value, QHeaderView::Stretch);
+        NameTableModel::Value, QHeaderView::Stretch);
 #endif
     ui->tableView->horizontalHeader()->resizeSection(
-            NameTableModel::Address, COLUMN_WIDTH_ADDRESS);
+        NameTableModel::Address, COLUMN_WIDTH_ADDRESS);
     ui->tableView->horizontalHeader()->resizeSection(
-            NameTableModel::ExpiresIn, COLUMN_WIDTH_EXPIRES_IN);
+        NameTableModel::ExpiresIn, COLUMN_WIDTH_EXPIRES_IN);
 
     connect(ui->tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
             this, SLOT(selectionChanged()));
@@ -292,9 +292,9 @@ void DNSPage::on_submitNameButton_clicked()
     if (qsName != qsName.simplified() || qsName.contains(" "))
     {
         if (QMessageBox::Yes != QMessageBox::warning(this, tr("Name registration warning"),
-              tr("The name you entered contains whitespace characters. Are you sure you want to use this name?"),
-              QMessageBox::Yes | QMessageBox::Cancel,
-              QMessageBox::Cancel))
+                tr("The name you entered contains whitespace characters. Are you sure you want to use this name?"),
+                QMessageBox::Yes | QMessageBox::Cancel,
+                QMessageBox::Cancel))
         {
             return;
         }
@@ -313,9 +313,9 @@ void DNSPage::on_submitNameButton_clicked()
     }
 
     if (QMessageBox::Yes != QMessageBox::question(this, tr("Confirm name registration"),
-          tr("This will issue a %1. Tx fee is at least %2 DYN.").arg(txType).arg(txFee / (float)COIN, 0, 'f', 2),
-          QMessageBox::Yes | QMessageBox::Cancel,
-          QMessageBox::Cancel))
+            tr("This will issue a %1. Tx fee is at least %2 DYN.").arg(txType).arg(txFee / (float)COIN, 0, 'f', 2),
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel))
     {
         return;
     }
@@ -486,7 +486,7 @@ void DNSPage::onSaveValueAsBinaryAction()
 
     QDataStream in(&file);
     BOOST_FOREACH(const unsigned char& uch, value)
-        in << uch;
+    in << uch;
     file.close();
 }
 
@@ -494,9 +494,9 @@ void DNSPage::exportClicked()
 {
     // CSV is currently the only supported format
     QString filename = GUIUtil::getSaveFileName(
-            this,
-            tr("Export Registered Names Data"), QString(),
-            tr("Comma separated file (*.csv)"), NULL);
+                           this,
+                           tr("Export Registered Names Data"), QString(),
+                           tr("Comma separated file (*.csv)"), NULL);
 
     if (filename.isNull())
         return;
@@ -601,10 +601,10 @@ void DNSPage::on_importValueButton_clicked()
 
     ui->registerValue->setDisabled(true);
     ui->registerValue->setPlainText(tr(
-        "Currently file %1 is imported as binary (byte by byte) into name value. "
-        "If you import a file as unicode string format, then click on the Import buttton again. "
-        "If you import a file as unicode string format, its data may weigh more than the original file did."
-        ).arg(fileName));
+                                        "Currently file %1 is imported as binary (byte by byte) into name value. "
+                                        "If you import a file as unicode string format, then click on the Import buttton again. "
+                                        "If you import a file as unicode string format, its data may weigh more than the original file did."
+                                    ).arg(fileName));
 }
 
 void DNSPage::on_registerValue_textChanged()

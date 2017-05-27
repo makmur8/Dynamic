@@ -18,11 +18,11 @@
 
 // ExpiresIn column is right-aligned as it contains numbers
 static int column_alignments[] = {
-        Qt::AlignLeft|Qt::AlignVCenter,     // Name
-        Qt::AlignLeft|Qt::AlignVCenter,     // Value
-        Qt::AlignLeft|Qt::AlignVCenter,     // Address
-        Qt::AlignRight|Qt::AlignVCenter     // Expires in
-    };
+    Qt::AlignLeft|Qt::AlignVCenter,     // Name
+    Qt::AlignLeft|Qt::AlignVCenter,     // Value
+    Qt::AlignLeft|Qt::AlignVCenter,     // Address
+    Qt::AlignRight|Qt::AlignVCenter     // Expires in
+};
 
 struct NameTableEntryLessThan
 {
@@ -113,9 +113,9 @@ public:
     {
         // Find name in model
         QList<NameTableEntry>::iterator lower = qLowerBound(
-            cachedNameTable.begin(), cachedNameTable.end(), name, NameTableEntryLessThan());
+                cachedNameTable.begin(), cachedNameTable.end(), name, NameTableEntryLessThan());
         QList<NameTableEntry>::iterator upper = qUpperBound(
-            cachedNameTable.begin(), cachedNameTable.end(), name, NameTableEntryLessThan());
+                cachedNameTable.begin(), cachedNameTable.end(), name, NameTableEntryLessThan());
         int lowerIndex = (lower - cachedNameTable.begin());
         int upperIndex = (upper - cachedNameTable.begin());
         bool inModel = (lower != upper);
@@ -257,7 +257,8 @@ QVariant NameTableModel::data(const QModelIndex &index, int role) const
             }
         }
         break;
-    case Qt::TextAlignmentRole: return column_alignments[index.column()];
+    case Qt::TextAlignmentRole:
+        return column_alignments[index.column()];
     case Qt::FontRole: {
         QFont font;
         if (index.column() == Address)

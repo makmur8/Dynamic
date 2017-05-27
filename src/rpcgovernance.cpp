@@ -31,25 +31,25 @@ UniValue gobject(const UniValue& params, bool fHelp)
         strCommand = params[0].get_str();
 
     if (fHelp  ||
-        (strCommand != "vote-many" && strCommand != "vote-conf" && strCommand != "vote-alias" && strCommand != "prepare" && strCommand != "submit" && strCommand != "count" &&
-         strCommand != "deserialize" && strCommand != "get" && strCommand != "getvotes" && strCommand != "getcurrentvotes" && strCommand != "list" && strCommand != "diff"))
+            (strCommand != "vote-many" && strCommand != "vote-conf" && strCommand != "vote-alias" && strCommand != "prepare" && strCommand != "submit" && strCommand != "count" &&
+             strCommand != "deserialize" && strCommand != "get" && strCommand != "getvotes" && strCommand != "getcurrentvotes" && strCommand != "list" && strCommand != "diff"))
         throw std::runtime_error(
-                "gobject \"command\"...\n"
-                "Manage governance objects\n"
-                "\nAvailable commands:\n"
-                "  prepare            - Prepare governance object by signing and creating tx\n"
-                "  submit             - Submit governance object to network\n"
-                "  deserialize        - Deserialize governance object from hex string to JSON\n"
-                "  count              - Count governance objects and votes\n"
-                "  get                - Get governance object by hash\n"
-                "  getvotes           - Get all votes for a governance object hash (including old votes)\n"
-                "  getcurrentvotes    - Get only current (tallying) votes for a governance object hash (does not include old votes)\n"
-                "  list               - List governance objects (can be filtered by signal and/or object type)\n"
-                "  diff               - List differences since last diff\n"
-                "  vote-alias         - Vote on a governance object by Dynode alias (using dynode.conf setup)\n"
-                "  vote-conf          - Vote on a governance object by Dynode configured in dynamic.conf\n"
-                "  vote-many          - Vote on a governance object by all Dynodes (using dynode.conf setup)\n"
-                );
+            "gobject \"command\"...\n"
+            "Manage governance objects\n"
+            "\nAvailable commands:\n"
+            "  prepare            - Prepare governance object by signing and creating tx\n"
+            "  submit             - Submit governance object to network\n"
+            "  deserialize        - Deserialize governance object from hex string to JSON\n"
+            "  count              - Count governance objects and votes\n"
+            "  get                - Get governance object by hash\n"
+            "  getvotes           - Get all votes for a governance object hash (including old votes)\n"
+            "  getcurrentvotes    - Get only current (tallying) votes for a governance object hash (does not include old votes)\n"
+            "  list               - List governance objects (can be filtered by signal and/or object type)\n"
+            "  diff               - List differences since last diff\n"
+            "  vote-alias         - Vote on a governance object by Dynode alias (using dynode.conf setup)\n"
+            "  vote-conf          - Vote on a governance object by Dynode configured in dynamic.conf\n"
+            "  vote-many          - Vote on a governance object by all Dynodes (using dynode.conf setup)\n"
+        );
 
     if(strCommand == "count")
         return governance.ToString();
@@ -106,7 +106,7 @@ UniValue gobject(const UniValue& params, bool fHelp)
         CGovernanceObject govobj(hashParent, nRevision, nTime, uint256(), strData);
 
         if((govobj.GetObjectType() == GOVERNANCE_OBJECT_TRIGGER) ||
-           (govobj.GetObjectType() == GOVERNANCE_OBJECT_WATCHDOG)) {
+                (govobj.GetObjectType() == GOVERNANCE_OBJECT_WATCHDOG)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Trigger and watchdog objects need not be prepared (however only Dynodes can create them)");
         }
 
@@ -184,7 +184,7 @@ UniValue gobject(const UniValue& params, bool fHelp)
 
         // Attempt to sign triggers if we are a DN
         if((govobj.GetObjectType() == GOVERNANCE_OBJECT_TRIGGER) ||
-           (govobj.GetObjectType() == GOVERNANCE_OBJECT_WATCHDOG)) {
+                (govobj.GetObjectType() == GOVERNANCE_OBJECT_WATCHDOG)) {
             if(fDnFound) {
                 govobj.SetDynodeInfo(dn.vin);
                 govobj.Sign(activeDynode.keyDynode, activeDynode.pubKeyDynode);
@@ -353,7 +353,7 @@ UniValue gobject(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if(!CMessageSigner::GetKeysFromSecret(dne.getPrivKey(), keyDynode, pubKeyDynode)){
+            if(!CMessageSigner::GetKeysFromSecret(dne.getPrivKey(), keyDynode, pubKeyDynode)) {
                 nFailed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Dynode signing error, could not set key correctly"));
@@ -383,7 +383,7 @@ UniValue gobject(const UniValue& params, bool fHelp)
             }
 
             CGovernanceVote vote(dn.vin, hash, eVoteSignal, eVoteOutcome);
-            if(!vote.Sign(keyDynode, pubKeyDynode)){
+            if(!vote.Sign(keyDynode, pubKeyDynode)) {
                 nFailed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Failure to sign."));
@@ -701,7 +701,7 @@ UniValue gobject(const UniValue& params, bool fHelp)
         if (params.size() != 2)
             throw std::runtime_error(
                 "Correct usage is 'gobject getvotes <governance-hash>'"
-                );
+            );
 
         // COLLECT PARAMETERS FROM USER
 
@@ -737,7 +737,7 @@ UniValue gobject(const UniValue& params, bool fHelp)
         if (params.size() < 2 || params.size() == 3 || params.size() > 4)
             throw std::runtime_error(
                 "Correct usage is 'gobject getcurrentvotes <governance-hash> [txid vout_index]'"
-                );
+            );
 
         // COLLECT PARAMETERS FROM USER
 
@@ -782,9 +782,9 @@ UniValue voteraw(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 7)
         throw std::runtime_error(
-                "voteraw <dynode-tx-hash> <dynode-tx-index> <governance-hash> <vote-signal> [yes|no|abstain] <time> <vote-sig>\n"
-                "Compile and relay a governance vote with provided external signature instead of signing vote internally\n"
-                );
+            "voteraw <dynode-tx-hash> <dynode-tx-index> <governance-hash> <vote-signal> [yes|no|abstain] <time> <vote-sig>\n"
+            "Compile and relay a governance vote with provided external signature instead of signing vote internally\n"
+        );
 
     uint256 hashDnTx = ParseHashV(params[0], "Dynode tx hash");
     int nDnTxIndex = params[1].get_int();
@@ -857,7 +857,7 @@ UniValue getgovernanceinfo(const UniValue& params, bool fHelp)
             "\nExamples:\n"
             + HelpExampleCli("getgovernanceinfo", "")
             + HelpExampleRpc("getgovernanceinfo", "")
-            );
+        );
     }
 
     // Compute last/next superblock
@@ -878,7 +878,7 @@ UniValue getgovernanceinfo(const UniValue& params, bool fHelp)
     int nFirstSuperblockOffset = (nSuperblockCycle - nSuperblockStartBlock % nSuperblockCycle) % nSuperblockCycle;
     int nFirstSuperblock = nSuperblockStartBlock + nFirstSuperblockOffset;
 
-    if(nBlockHeight < nFirstSuperblock){
+    if(nBlockHeight < nFirstSuperblock) {
         nLastSuperblock = 0;
         nNextSuperblock = nFirstSuperblock;
     } else {

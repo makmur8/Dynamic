@@ -119,7 +119,7 @@ public:
         catch(const std::exception& e)
         {
             LogPrintf("CGovernancePayment Payment not valid: addrIn = %s, nAmountIn = %d, what = %s\n",
-                     addrIn.ToString(), nAmountIn, e.what());
+                      addrIn.ToString(), nAmountIn, e.what());
         }
         catch(...)
         {
@@ -128,7 +128,9 @@ public:
         }
     }
 
-    bool IsValid() { return fValid; }
+    bool IsValid() {
+        return fValid;
+    }
 };
 
 
@@ -168,13 +170,21 @@ public:
     static bool IsValidBlockHeight(int nBlockHeight);
     static CAmount GetPaymentsLimit(int nBlockHeight);
 
-    int GetStatus() { return nStatus; }
-    void SetStatus(int nStatusIn) { nStatus = nStatusIn; }
+    int GetStatus() {
+        return nStatus;
+    }
+    void SetStatus(int nStatusIn) {
+        nStatus = nStatusIn;
+    }
 
     // IS THIS TRIGGER ALREADY EXECUTED?
-    bool IsExecuted() { return nStatus == SEEN_OBJECT_EXECUTED; }
+    bool IsExecuted() {
+        return nStatus == SEEN_OBJECT_EXECUTED;
+    }
     // TELL THE ENGINE WE EXECUTED THIS EVENT
-    void SetExecuted() { nStatus = SEEN_OBJECT_EXECUTED; }
+    void SetExecuted() {
+        nStatus = SEEN_OBJECT_EXECUTED;
+    }
 
     CGovernanceObject* GetGovernanceObject()
     {
@@ -183,7 +193,9 @@ public:
         return pObj;
     }
 
-    int CountPayments() { return (int)vecPayments.size(); }
+    int CountPayments() {
+        return (int)vecPayments.size();
+    }
     bool GetPayment(int nPaymentIndex, CGovernancePayment& paymentRet);
     CAmount GetPaymentsTotalAmount();
 

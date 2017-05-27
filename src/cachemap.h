@@ -24,8 +24,8 @@ struct CacheItem
     {}
 
     CacheItem(const K& keyIn, const V& valueIn)
-    : key(keyIn),
-      value(valueIn)
+        : key(keyIn),
+          value(valueIn)
     {}
 
     K key;

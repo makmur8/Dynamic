@@ -39,9 +39,9 @@
 
 MultisigDialog::MultisigDialog(const PlatformStyle *platformStyle, QWidget *parent) :
     QDialog(parent),
-	ui(new Ui::MultisigDialog), 
-	model(0),
-	platformStyle(platformStyle)
+    ui(new Ui::MultisigDialog),
+    model(0),
+    platformStyle(platformStyle)
 {
     ui->setupUi(this);
 
@@ -69,7 +69,7 @@ MultisigDialog::MultisigDialog(const PlatformStyle *platformStyle, QWidget *pare
 
     ui->signTransactionButton->setEnabled(false);
     ui->sendTransactionButton->setEnabled(false);
-	fSetTxString = false;
+    fSetTxString = false;
 }
 
 MultisigDialog::~MultisigDialog()
@@ -90,12 +90,12 @@ bool MultisigDialog::AdvertisePublicKeyForMultiSig(const std::string& address, c
     msgBox.setDefaultButton(QMessageBox::No);
     if(msgBox.exec() == QMessageBox::Yes)
     {
-        std::string strAddress = ""; 
+        std::string strAddress = "";
         CNameVal name = nameValFromString("address:" + address);
         CNameVal value = nameValFromString(publickey);
         std::string strValue = stringFromNameVal(value);
         int nRentalDays = 35;
-        
+
         NameTxReturn ret = name_operation(OP_NAME_MULTISIG, name, value, nRentalDays, address, strValue);
         if (!ret.ok)
         {
@@ -225,15 +225,15 @@ void MultisigDialog::on_createAddressButton_clicked()
     if (required < 1)
     {
         // Multisignature address requires 1 or more signatures.
-        QMessageBox::critical(this, tr("Multisig: Required Signatures Error!"), 
-            tr("A multisignature address requires at least one key to redeem. Currently set to %1.").arg(required));
+        QMessageBox::critical(this, tr("Multisig: Required Signatures Error!"),
+                              tr("A multisignature address requires at least one key to redeem. Currently set to %1.").arg(required));
         return;
     }
 
     if((required > countPublicKeyEntered))
     {
-        QMessageBox::critical(this, tr("Multisig: Required Signatures Too High"), 
-            tr("Required signatures(%1) can not be greater than the total amount of public key addresses(%2)").arg(required).arg(countPublicKeyEntered));
+        QMessageBox::critical(this, tr("Multisig: Required Signatures Too High"),
+                              tr("Required signatures(%1) can not be greater than the total amount of public key addresses(%2)").arg(required).arg(countPublicKeyEntered));
         return;
     }
 
@@ -273,7 +273,7 @@ void MultisigDialog::on_createAddressButton_clicked()
                     QMessageBox::critical(this, tr("Multisig: Invalid Public Key Entered!"), tr("%1  does not refer to a key").arg(strAddressEntered.c_str()));
                     fError = true;
                 }
-                
+
                 CPubKey vchPubKey;
                 if ((fError == false) && (!pwalletMain->GetPubKey(keyID, vchPubKey)))
                     vchPubKey = SearchForPubKeyByAddress(strAddressEntered);
@@ -362,7 +362,7 @@ void MultisigDialog::on_saveMultisigAddressButton_clicked()
 
     CDynamicAddress dynMultiSigAddress(address);
     if(!pwalletMain->mapAddressBook.count(dynMultiSigAddress.Get()))
-		pwalletMain->SetAddressBook(dynMultiSigAddress.Get(), label, "multisig address");
+        pwalletMain->SetAddressBook(dynMultiSigAddress.Get(), label, "multisig address");
 }
 
 void MultisigDialog::clear()
@@ -451,10 +451,10 @@ void MultisigDialog::on_createTransactionButton_clicked()
 }
 
 void MultisigDialog::on_transaction_textChanged()
-{ 
-	if (fSetTxString)		
-	        return;
-	        
+{
+    if (fSetTxString)
+        return;
+
     while(ui->inputs->count())
         delete ui->inputs->takeAt(0)->widget();
     while(ui->outputs->count())
@@ -470,13 +470,13 @@ void MultisigDialog::on_transaction_textChanged()
     CDataStream ss(txData, SER_NETWORK, PROTOCOL_VERSION);
     CTransaction tx;
     try
-   {
+    {
         ss >> tx;
     }
     catch(std::exception &e)
     {
         return;
-   }
+    }
 
     // Fill input list
     int index = -1;
@@ -518,7 +518,7 @@ void MultisigDialog::on_transaction_textChanged()
 
 void MultisigDialog::on_copyTransactionButton_clicked()
 {
-   QApplication::clipboard()->setText(ui->transaction->text());
+    QApplication::clipboard()->setText(ui->transaction->text());
 }
 
 void MultisigDialog::on_pasteTransactionButton_clicked()
@@ -528,7 +528,7 @@ void MultisigDialog::on_pasteTransactionButton_clicked()
 
 void MultisigDialog::on_signTransactionButton_clicked()
 {
-  ui->signedTransaction->clear();
+    ui->signedTransaction->clear();
 
     if(!model)
         return;
@@ -556,8 +556,8 @@ void MultisigDialog::on_signTransactionButton_clicked()
     }
 
     if (txVariants.empty())
-		QMessageBox::critical(this, tr("Multisig: Sign Button failed!"), tr("Missing transaction"));
-		
+        QMessageBox::critical(this, tr("Multisig: Sign Button failed!"), tr("Missing transaction"));
+
     // mergedTx will end up with all the signatures; it
     // starts as a clone of the rawtx:
     CMutableTransaction mergedTx(txVariants[0]);
@@ -572,7 +572,7 @@ void MultisigDialog::on_signTransactionButton_clicked()
         view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
         unsigned int x = 0;
         BOOST_FOREACH(const CTxIn& txin, mergedTx.vin) {
-            
+
             const uint256& prevHash = txin.prevout.hash;
             CCoins coins;
             view.AccessCoins(prevHash); // this is certainly allowed to fail
@@ -594,9 +594,9 @@ void MultisigDialog::on_signTransactionButton_clicked()
 
         view.SetBackend(viewDummy); // switch back to avoid locking mempool for too long
     }
-    
-	EnsureWalletIsUnlocked();
-	
+
+    EnsureWalletIsUnlocked();
+
     // Sign what we can
     const CKeyStore& keystore = *pwalletMain;
     int nHashType = SIGHASH_ALL;
@@ -657,7 +657,7 @@ void MultisigDialog::on_signTransactionButton_clicked()
     else
     {
         ui->statusLabel->setText(tr("Transaction is NOT completely signed"));
-	}
+    }
 }
 
 void MultisigDialog::on_copySignedTransactionButton_clicked()
@@ -703,7 +703,7 @@ void MultisigDialog::on_sendTransactionButton_clicked()
 
     // Check if the transaction is already in the blockchain
     CTransaction existingTx;
-uint256 blockHash = uint256S("0");
+    uint256 blockHash = uint256S("0");
     if(GetTransaction(txHash, existingTx, Params().GetConsensus(), blockHash))
     {
         if(blockHash != 0)
@@ -714,7 +714,7 @@ uint256 blockHash = uint256S("0");
     // Send the transaction to the local node
     //   CTxDB txdb("r");
     if(!cmt.AcceptToMemoryPool(false))
-    return;
+        return;
     SyncWithWallets(tx, NULL);
     //(CInv(MSG_TX, txHash), tx);
     RelayTransaction(tx);

@@ -66,14 +66,14 @@ void TrafficGraphWidget::paintPath(QPainterPath &path, const TrafficGraphData::S
 
 namespace
 {
-    float chooseIn(const TrafficSample& sample)
-    {
-        return sample.in;
-    }
-    float chooseOut(const TrafficSample& sample)
-    {
-        return sample.out;
-    }
+float chooseIn(const TrafficSample& sample)
+{
+    return sample.in;
+}
+float chooseOut(const TrafficSample& sample)
+{
+    return sample.out;
+}
 }
 
 void TrafficGraphWidget::paintEvent(QPaintEvent *)
@@ -94,7 +94,7 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *)
 
     const QString units     = tr("KB/s");
     const float yMarginText = 2.0;
-    
+
     // draw lines
     painter.setPen(axisCol);
     painter.drawText(XMARGIN, YMARGIN + h - h * val / fMax-yMarginText, QString("%1 %2").arg(val).arg(units));
@@ -141,7 +141,7 @@ void TrafficGraphWidget::updateRates()
 
     bool updated = trafficGraphData.update(clientModel->getTotalBytesRecv(),clientModel->getTotalBytesSent());
 
-    if (updated){
+    if (updated) {
         float tmax = DEFAULT_SAMPLE_HEIGHT;
         Q_FOREACH(const TrafficSample& sample, trafficGraphData.getCurrentRangeQueue()) {
             if(sample.in > tmax) tmax = sample.in;

@@ -41,7 +41,7 @@
 #ifdef ENABLE_DYNAMIC_DEBUG
 #define DBG( x ) x
 #else
-#define DBG( x ) 
+#define DBG( x )
 #endif
 
 // Dynamic only features
@@ -100,43 +100,43 @@ struct CLogCategoryActive
 };
 
 namespace DYNLog {
-    enum LogFlags : uint32_t {
-        NONE        = 0,
-        NET         = (1 <<  0),
-        TOR         = (1 <<  1),
-        MEMPOOL     = (1 <<  2),
-        HTTP        = (1 <<  3),
-        BENCH       = (1 <<  4),
-        ZMQ         = (1 <<  5),
-        DB          = (1 <<  6),
-        RPC         = (1 <<  7),
-        ESTIMATEFEE = (1 <<  8),
-        ADDRMAN     = (1 <<  9),
-        SELECTCOINS = (1 << 10),
-        REINDEX     = (1 << 11),
-        CMPCTBLOCK  = (1 << 12),
-        RAND        = (1 << 13),
-        PRUNE       = (1 << 14),
-        PROXY       = (1 << 15),
-        MEMPOOLREJ  = (1 << 16),
-        LIBEVENT    = (1 << 17),
-        COINDB      = (1 << 18),
-        QT          = (1 << 19),
-        LEVELDB     = (1 << 20),
-        ALERT       = (1 << 21),
-        // Dynamic-specific log flags
-        PRIVATESEND = (1 << 22),
-        INSTANTSEND = (1 << 23),
-        DYNODE     	= (1 << 24),
-        SPORK	    = (1 << 25),
-        KEEPASS     = (1 << 26),
-        DNPAYMENTS  = (1 << 27),
-        GOBJECT     = (1 << 28),
-		BLOCKGEN    = (1 << 29),
-        VERIFY		= (1 << 30),
-        
-        ALL         = ~(uint32_t)0,
-    };
+enum LogFlags : uint32_t {
+    NONE        = 0,
+    NET         = (1 <<  0),
+    TOR         = (1 <<  1),
+    MEMPOOL     = (1 <<  2),
+    HTTP        = (1 <<  3),
+    BENCH       = (1 <<  4),
+    ZMQ         = (1 <<  5),
+    DB          = (1 <<  6),
+    RPC         = (1 <<  7),
+    ESTIMATEFEE = (1 <<  8),
+    ADDRMAN     = (1 <<  9),
+    SELECTCOINS = (1 << 10),
+    REINDEX     = (1 << 11),
+    CMPCTBLOCK  = (1 << 12),
+    RAND        = (1 << 13),
+    PRUNE       = (1 << 14),
+    PROXY       = (1 << 15),
+    MEMPOOLREJ  = (1 << 16),
+    LIBEVENT    = (1 << 17),
+    COINDB      = (1 << 18),
+    QT          = (1 << 19),
+    LEVELDB     = (1 << 20),
+    ALERT       = (1 << 21),
+    // Dynamic-specific log flags
+    PRIVATESEND = (1 << 22),
+    INSTANTSEND = (1 << 23),
+    DYNODE     	= (1 << 24),
+    SPORK	    = (1 << 25),
+    KEEPASS     = (1 << 26),
+    DNPAYMENTS  = (1 << 27),
+    GOBJECT     = (1 << 28),
+    BLOCKGEN    = (1 << 29),
+    VERIFY		= (1 << 30),
+
+    ALL         = ~(uint32_t)0,
+};
 }
 /** Return true if log accepts specified category */
 static inline bool LogAcceptCategory(uint32_t category)
@@ -157,7 +157,9 @@ bool GetLogCategory(uint32_t *f, const std::string *str);
 int LogPrintStr(const std::string &str);
 
 /** Get format string from VA_ARGS for error reporting */
-template<typename... Args> std::string FormatStringFromLogArgs(const char *fmt, const Args&... args) { return fmt; }
+template<typename... Args> std::string FormatStringFromLogArgs(const char *fmt, const Args&... args) {
+    return fmt;
+}
 
 #define LogPrintf(...) do { \
     std::string _log_msg_; /* Unlikely name to avoid shadowing variables */ \
@@ -229,61 +231,61 @@ public:
     void ParseParameters(int argc, const char*const argv[]);
     void ReadConfigFile(const std::string& confPath);
     std::vector<std::string> GetArgs(const std::string& strArg);
-	/**
-	 * Return true if the given argument has been manually set
-	 *
-	 * @param strArg Argument to get (e.g. "-foo")
-	 * @return true if the argument has been set
-	 */
-	bool IsArgSet(const std::string& strArg);
+    /**
+     * Return true if the given argument has been manually set
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return true if the argument has been set
+     */
+    bool IsArgSet(const std::string& strArg);
 
-	/**
-	 * Return string argument or default value
-	 *
-	 * @param strArg Argument to get (e.g. "-foo")
-	 * @param default (e.g. "1")
-	 * @return command-line argument or default value
-	 */
-	std::string GetArg(const std::string& strArg, const std::string& strDefault);
+    /**
+     * Return string argument or default value
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @param default (e.g. "1")
+     * @return command-line argument or default value
+     */
+    std::string GetArg(const std::string& strArg, const std::string& strDefault);
 
-	/**
-	 * Return integer argument or default value
-	 *
-	 * @param strArg Argument to get (e.g. "-foo")
-	 * @param default (e.g. 1)
-	 * @return command-line argument (0 if invalid number) or default value
-	 */
-	int64_t GetArg(const std::string& strArg, int64_t nDefault);
+    /**
+     * Return integer argument or default value
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @param default (e.g. 1)
+     * @return command-line argument (0 if invalid number) or default value
+     */
+    int64_t GetArg(const std::string& strArg, int64_t nDefault);
 
-	/**
-	 * Return boolean argument or default value
-	 *
-	 * @param strArg Argument to get (e.g. "-foo")
-	 * @param default (true or false)
-	 * @return command-line argument or default value
-	 */
-	bool GetBoolArg(const std::string& strArg, bool fDefault);
+    /**
+     * Return boolean argument or default value
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @param default (true or false)
+     * @return command-line argument or default value
+     */
+    bool GetBoolArg(const std::string& strArg, bool fDefault);
 
-	/**
-	 * Set an argument if it doesn't already have a value
-	 *
-	 * @param strArg Argument to set (e.g. "-foo")
-	 * @param strValue Value (e.g. "1")
-	 * @return true if argument gets set, false if it already had a value
-	 */
-	bool SoftSetArg(const std::string& strArg, const std::string& strValue);
+    /**
+     * Set an argument if it doesn't already have a value
+     *
+     * @param strArg Argument to set (e.g. "-foo")
+     * @param strValue Value (e.g. "1")
+     * @return true if argument gets set, false if it already had a value
+     */
+    bool SoftSetArg(const std::string& strArg, const std::string& strValue);
 
-	/**
-	 * Set a boolean argument if it doesn't already have a value
-	 *
-	 * @param strArg Argument to set (e.g. "-foo")
-	 * @param fValue Value (e.g. false)
-	 * @return true if argument gets set, false if it already had a value
-	 */
-	bool SoftSetBoolArg(const std::string& strArg, bool fValue);
-	
-	/// Forces a arg setting, used only in testing
-	void ForceSetArg(const std::string& strArg, const std::string& strValue);
+    /**
+     * Set a boolean argument if it doesn't already have a value
+     *
+     * @param strArg Argument to set (e.g. "-foo")
+     * @param fValue Value (e.g. false)
+     * @return true if argument gets set, false if it already had a value
+     */
+    bool SoftSetBoolArg(const std::string& strArg, bool fValue);
+
+    /// Forces a arg setting, used only in testing
+    void ForceSetArg(const std::string& strArg, const std::string& strValue);
 };
 
 extern ArgsManager gArgs;

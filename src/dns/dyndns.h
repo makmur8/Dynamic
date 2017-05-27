@@ -25,31 +25,31 @@
 #define VERMASK_NOSRL (1 << 24)
 
 struct DNSHeader {
-  static const uint32_t QR_MASK = 0x8000;
-  static const uint32_t OPCODE_MASK = 0x7800; // shr 11
-  static const uint32_t AA_MASK = 0x0400;
-  static const uint32_t TC_MASK = 0x0200;
-  static const uint32_t RD_MASK = 0x0100;
-  static const uint32_t RA_MASK = 0x8000;
-  static const uint32_t RCODE_MASK = 0x000F;
+    static const uint32_t QR_MASK = 0x8000;
+    static const uint32_t OPCODE_MASK = 0x7800; // shr 11
+    static const uint32_t AA_MASK = 0x0400;
+    static const uint32_t TC_MASK = 0x0200;
+    static const uint32_t RD_MASK = 0x0100;
+    static const uint32_t RA_MASK = 0x8000;
+    static const uint32_t RCODE_MASK = 0x000F;
 
-  uint16_t msgID;
-  uint16_t Bits;
-  uint16_t QDCount;
-  uint16_t ANCount;
-  uint16_t NSCount;
-  uint16_t ARCount;
+    uint16_t msgID;
+    uint16_t Bits;
+    uint16_t QDCount;
+    uint16_t ANCount;
+    uint16_t NSCount;
+    uint16_t ARCount;
 
-  inline void Transcode() {
-    for(uint16_t *p = &msgID; p <= &ARCount; p++)
-      *p = ntohs(*p);
-  }
+    inline void Transcode() {
+        for(uint16_t *p = &msgID; p <= &ARCount; p++)
+            *p = ntohs(*p);
+    }
 } __attribute__((packed)); // struct DNSHeader
 
 
 struct DNSAP {    // DNS Amplifier Protector ExpDecay structure
-  uint16_t timestamp; // Time in 64s ticks
-  uint16_t ed_size; // ExpDecay output size in 64-byte units
+    uint16_t timestamp; // Time in 64s ticks
+    uint16_t ed_size; // ExpDecay output size in 64-byte units
 } __attribute__((packed));
 
 struct Verifier {
@@ -61,7 +61,7 @@ struct Verifier {
 
 struct TollFree {
     TollFree(const char *re) :
-  regex(boost::xpressive::sregex::compile(std::string(re))), regex_str(re)
+        regex(boost::xpressive::sregex::compile(std::string(re))), regex_str(re)
     {}
     boost::xpressive::sregex  regex;
     std::string      regex_str;
@@ -69,16 +69,16 @@ struct TollFree {
 };
 
 class DynDns {
-  public:
-     DynDns(const char *bind_ip, uint16_t port_no,
-     const char *gw_suffix, const char *allowed_suff,
-     const char *local_fname, const char *enums, const char *tollfree, 
-     uint8_t verbose);
+public:
+    DynDns(const char *bind_ip, uint16_t port_no,
+           const char *gw_suffix, const char *allowed_suff,
+           const char *local_fname, const char *enums, const char *tollfree,
+           uint8_t verbose);
     ~DynDns();
 
     void Run();
 
-  private:
+private:
     static void StatRun(void *p);
     void HandlePacket();
     uint16_t HandleQuery();
@@ -102,8 +102,16 @@ class DynDns {
     // Returns x = hash index to update size; x==NULL = disable;
     DNSAP  *CheckDAP(uint32_t ip_addr);
 
-    inline void Out2(uint16_t x) { x = htons(x); memcpy(m_snd, &x, 2); m_snd += 2; }
-    inline void Out4(uint32_t x) { x = htonl(x); memcpy(m_snd, &x, 4); m_snd += 4; }
+    inline void Out2(uint16_t x) {
+        x = htons(x);
+        memcpy(m_snd, &x, 2);
+        m_snd += 2;
+    }
+    inline void Out4(uint32_t x) {
+        x = htonl(x);
+        memcpy(m_snd, &x, 4);
+        m_snd += 4;
+    }
     void OutS(const char *p);
 
     DNSHeader *m_hdr; // 1st bzero element
@@ -126,7 +134,7 @@ class DynDns {
     uint8_t   m_gw_suf_dots;
     uint8_t   m_allowed_qty;
     uint8_t   m_verbose;  // LAST bzero element
-        
+
     int8_t    m_status;
     boost::thread m_thread;
     std::map<std::string, Verifier> m_verifiers;

@@ -80,7 +80,7 @@ inline uint256 Hash(const T1 pbegin, const T1 pend)
     static const unsigned char pblank[1] = {};
     uint256 result;
     CHash256().Write(pbegin == pend ? pblank : (const unsigned char*)&pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))
-              .Finalize((unsigned char*)&result);
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -91,8 +91,8 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
     static const unsigned char pblank[1] = {};
     uint256 result;
     CHash256().Write(p1begin == p1end ? pblank : (const unsigned char*)&p1begin[0], (p1end - p1begin) * sizeof(p1begin[0]))
-              .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
-              .Finalize((unsigned char*)&result);
+    .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -104,9 +104,9 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
     static const unsigned char pblank[1] = {};
     uint256 result;
     CHash256().Write(p1begin == p1end ? pblank : (const unsigned char*)&p1begin[0], (p1end - p1begin) * sizeof(p1begin[0]))
-              .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
-              .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
-              .Finalize((unsigned char*)&result);
+    .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
+    .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -119,10 +119,10 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
     static const unsigned char pblank[1] = {};
     uint256 result;
     CHash256().Write(p1begin == p1end ? pblank : (const unsigned char*)&p1begin[0], (p1end - p1begin) * sizeof(p1begin[0]))
-              .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
-              .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
-              .Write(p4begin == p4end ? pblank : (const unsigned char*)&p4begin[0], (p4end - p4begin) * sizeof(p4begin[0]))
-              .Finalize((unsigned char*)&result);
+    .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
+    .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
+    .Write(p4begin == p4end ? pblank : (const unsigned char*)&p4begin[0], (p4end - p4begin) * sizeof(p4begin[0]))
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -136,11 +136,11 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
     static const unsigned char pblank[1] = {};
     uint256 result;
     CHash256().Write(p1begin == p1end ? pblank : (const unsigned char*)&p1begin[0], (p1end - p1begin) * sizeof(p1begin[0]))
-              .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
-              .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
-              .Write(p4begin == p4end ? pblank : (const unsigned char*)&p4begin[0], (p4end - p4begin) * sizeof(p4begin[0]))
-              .Write(p5begin == p5end ? pblank : (const unsigned char*)&p5begin[0], (p5end - p5begin) * sizeof(p5begin[0]))
-              .Finalize((unsigned char*)&result);
+    .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
+    .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
+    .Write(p4begin == p4end ? pblank : (const unsigned char*)&p4begin[0], (p4end - p4begin) * sizeof(p4begin[0]))
+    .Write(p5begin == p5end ? pblank : (const unsigned char*)&p5begin[0], (p5end - p5begin) * sizeof(p5begin[0]))
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -155,12 +155,12 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
     static const unsigned char pblank[1] = {};
     uint256 result;
     CHash256().Write(p1begin == p1end ? pblank : (const unsigned char*)&p1begin[0], (p1end - p1begin) * sizeof(p1begin[0]))
-              .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
-              .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
-              .Write(p4begin == p4end ? pblank : (const unsigned char*)&p4begin[0], (p4end - p4begin) * sizeof(p4begin[0]))
-              .Write(p5begin == p5end ? pblank : (const unsigned char*)&p5begin[0], (p5end - p5begin) * sizeof(p5begin[0]))
-              .Write(p6begin == p6end ? pblank : (const unsigned char*)&p6begin[0], (p6end - p6begin) * sizeof(p6begin[0]))
-              .Finalize((unsigned char*)&result);
+    .Write(p2begin == p2end ? pblank : (const unsigned char*)&p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))
+    .Write(p3begin == p3end ? pblank : (const unsigned char*)&p3begin[0], (p3end - p3begin) * sizeof(p3begin[0]))
+    .Write(p4begin == p4end ? pblank : (const unsigned char*)&p4begin[0], (p4end - p4begin) * sizeof(p4begin[0]))
+    .Write(p5begin == p5end ? pblank : (const unsigned char*)&p5begin[0], (p5end - p5begin) * sizeof(p5begin[0]))
+    .Write(p6begin == p6end ? pblank : (const unsigned char*)&p6begin[0], (p6end - p6begin) * sizeof(p6begin[0]))
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -171,7 +171,7 @@ inline uint160 Hash160(const T1 pbegin, const T1 pend)
     static unsigned char pblank[1] = {};
     uint160 result;
     CHash160().Write(pbegin == pend ? pblank : (const unsigned char*)&pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))
-              .Finalize((unsigned char*)&result);
+    .Finalize((unsigned char*)&result);
     return result;
 }
 
@@ -227,27 +227,27 @@ unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char
 void BIP32Hash(const ChainCode &chainCode, unsigned int nChild, unsigned char header, const unsigned char data[32], unsigned char output[64]);
 
 
-    /* ----------- Dynamic Hash ------------------------------------------------ */
-    /// Argon2i, Argon2d, and Argon2id are parametrized by:
-    /// A time cost, which defines the amount of computation realized and therefore the execution time, given in number of iterations
-    /// A memory cost, which defines the memory usage, given in kibibytes (1 kibibytes = kilobytes 1.024)
-    /// A parallelism degree, which defines the number of parallel threads
+/* ----------- Dynamic Hash ------------------------------------------------ */
+/// Argon2i, Argon2d, and Argon2id are parametrized by:
+/// A time cost, which defines the amount of computation realized and therefore the execution time, given in number of iterations
+/// A memory cost, which defines the memory usage, given in kibibytes (1 kibibytes = kilobytes 1.024)
+/// A parallelism degree, which defines the number of parallel threads
 
-    /// Argon2d Phase 1 Hash parameters for the first 9 months - 12 month
-    /// Salt and password are the block header.
-    /// Output length: 32 bytes.
-    /// Input length (in the case of a block header): 80 bytes.
-    /// Salt length (same note as input length): 80 bytes.
-    /// Input: Block header
-    /// Salt: Block header (SAME AS INPUT)
-    /// Secret data: None
-    /// Secret length: 0
-    /// Associated data: None
-    /// Associated data length: 0
-    /// Memory cost: 250 kibibytes
-    /// Lanes: 4 parallel threads
-    /// Threads: 2 threads
-    /// Time Constraint: 1 iteration
+/// Argon2d Phase 1 Hash parameters for the first 9 months - 12 month
+/// Salt and password are the block header.
+/// Output length: 32 bytes.
+/// Input length (in the case of a block header): 80 bytes.
+/// Salt length (same note as input length): 80 bytes.
+/// Input: Block header
+/// Salt: Block header (SAME AS INPUT)
+/// Secret data: None
+/// Secret length: 0
+/// Associated data: None
+/// Associated data length: 0
+/// Memory cost: 250 kibibytes
+/// Lanes: 4 parallel threads
+/// Threads: 2 threads
+/// Time Constraint: 1 iteration
 inline int Argon2d_Phase1_Hash(const void *in, void *out) {
     argon2_context context;
     context.out = (uint8_t *)out;
@@ -272,21 +272,21 @@ inline int Argon2d_Phase1_Hash(const void *in, void *out) {
     return argon2_ctx(&context, Argon2_d);
 }
 
-    /// Argon2d Phase 2 Hash parameters for the next 5 years after phase 1
-    /// Salt and password are the block header.
-    /// Output length: 32 bytes.
-    /// Input length (in the case of a block header): 80 bytes.
-    /// Salt length (same note as input length): 80 bytes.
-    /// Input: Block header
-    /// Salt: Block header (SAME AS INPUT)
-    /// Secret data: None
-    /// Secret length: 0
-    /// Associated data: None
-    /// Associated data length: 0
-    /// Memory cost: 1000 kibibytes
-    /// Lanes: 64 parallel threads
-    /// Threads: 4 threads
-    /// Time Constraint: 8 iterations
+/// Argon2d Phase 2 Hash parameters for the next 5 years after phase 1
+/// Salt and password are the block header.
+/// Output length: 32 bytes.
+/// Input length (in the case of a block header): 80 bytes.
+/// Salt length (same note as input length): 80 bytes.
+/// Input: Block header
+/// Salt: Block header (SAME AS INPUT)
+/// Secret data: None
+/// Secret length: 0
+/// Associated data: None
+/// Associated data length: 0
+/// Memory cost: 1000 kibibytes
+/// Lanes: 64 parallel threads
+/// Threads: 4 threads
+/// Time Constraint: 8 iterations
 inline int Argon2d_Phase2_Hash(const void *in, void *out) {
     argon2_context context;
     context.out = (uint8_t *)out;
@@ -307,7 +307,7 @@ inline int Argon2d_Phase2_Hash(const void *in, void *out) {
     context.lanes = 64;    // Degree of Parallelism
     context.threads = 2;  // Threads
     context.t_cost = 1;    // Iterations
-    
+
     return argon2_ctx(&context, Argon2_d);
 }
 
@@ -317,7 +317,7 @@ inline uint256 hash_Argon2d(const void* input, const unsigned int& hashPhase) {
     if (INPUT_BYTES > MaxInt32 || OUTPUT_BYTES > MaxInt32) {
         return hashResult;
     }
-    
+
     if (hashPhase == 1) {
         Argon2d_Phase1_Hash((const uint8_t*)input, (uint8_t*)&hashResult);
     }

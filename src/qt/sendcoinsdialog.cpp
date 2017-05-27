@@ -81,7 +81,7 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle, QWidget *p
         CoinControlDialog::coinControl->fUsePrivateSend = false;
         CoinControlDialog::coinControl->fUseInstantSend = false;
     }
-    else{
+    else {
         ui->checkUsePrivateSend->setChecked(fUsePrivateSend);
         ui->checkUseInstantSend->setChecked(fUseInstantSend);
         CoinControlDialog::coinControl->fUsePrivateSend = fUsePrivateSend;
@@ -265,8 +265,8 @@ void SendCoinsDialog::on_sendButton_clicked()
             DynamicUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(), vecPrivateSendDenominations.back()));
         strFee = QString(tr(
-            "(privatesend requires this amount to be rounded up to the nearest %1)."
-        ).arg(strNearestAmount));
+                             "(privatesend requires this amount to be rounded up to the nearest %1)."
+                         ).arg(strNearestAmount));
     } else {
         recipients[0].inputType = ALL_COINS;
         strFunds = tr("using") + " <b>" + tr("any available funds (not anonymous)") + "</b>";
@@ -315,7 +315,7 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
 
     // process prepareStatus and on error generate message shown to user
     processSendCoinsReturn(prepareStatus,
-        DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), currentTransaction.getTransactionFee()));
+                           DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), currentTransaction.getTransactionFee()));
 
     if(prepareStatus.status != WalletModel::OK) {
         fNewRecipientAllowed = true;
@@ -391,18 +391,18 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
 
     // Show total amount + all alternative units
     questionString.append(tr("Total Amount = <b>%1</b><br />= %2")
-        .arg(DynamicUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount))
-        .arg(alternativeUnits.join("<br />= ")));
+                          .arg(DynamicUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount))
+                          .arg(alternativeUnits.join("<br />= ")));
 
     // Limit number of displayed entries
     int messageEntries = formatted.size();
     int displayedEntries = 0;
-    for(int i = 0; i < formatted.size(); i++){
-        if(i >= MAX_SEND_POPUP_ENTRIES){
+    for(int i = 0; i < formatted.size(); i++) {
+        if(i >= MAX_SEND_POPUP_ENTRIES) {
             formatted.removeLast();
             i--;
         }
-        else{
+        else {
             displayedEntries = i+1;
         }
     }
@@ -411,9 +411,9 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
 
     // Display message box
     QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm send coins"),
-        questionString.arg(formatted.join("<br />")),
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+                                         questionString.arg(formatted.join("<br />")),
+                                         QMessageBox::Yes | QMessageBox::Cancel,
+                                         QMessageBox::Cancel);
 
     if(retval != QMessageBox::Yes)
     {
@@ -578,14 +578,14 @@ void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& unconfir
 
     if(model && model->getOptionsModel())
     {
-	    uint64_t bal = 0;
+        uint64_t bal = 0;
         QSettings settings;
         settings.setValue("bUsePrivateSend", ui->checkUsePrivateSend->isChecked());
-	    if(ui->checkUsePrivateSend->isChecked()) {
-		    bal = anonymizedBalance;
-	    } else {
-		    bal = balance;
-	    }
+        if(ui->checkUsePrivateSend->isChecked()) {
+            bal = anonymizedBalance;
+        } else {
+            bal = balance;
+        }
 
         ui->labelBalance->setText(DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), bal));
     }
@@ -594,7 +594,7 @@ void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& unconfir
 void SendCoinsDialog::updateDisplayUnit()
 {
     setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getAnonymizedBalance(),
-                   model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
+               model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
     CoinControlDialog::coinControl->fUsePrivateSend = ui->checkUsePrivateSend->isChecked();
     coinControlUpdateLabels();
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
@@ -735,7 +735,7 @@ void SendCoinsDialog::updateFeeMinimizedLabel()
         ui->labelFeeMinimized->setText(ui->labelSmartFee->text());
     else {
         ui->labelFeeMinimized->setText(DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), ui->customFee->value()) +
-            ((ui->radioCustomPerKilobyte->isChecked()) ? "/kB" : ""));
+                                       ((ui->radioCustomPerKilobyte->isChecked()) ? "/kB" : ""));
     }
 }
 
@@ -743,8 +743,8 @@ void SendCoinsDialog::updateMinFeeLabel()
 {
     if (model && model->getOptionsModel())
         ui->checkBoxMinimumFee->setText(tr("Pay only the required fee of %1").arg(
-            DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), CWallet::GetRequiredFee(1000)) + "/kB")
-        );
+                                            DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), CWallet::GetRequiredFee(1000)) + "/kB")
+                                       );
 }
 
 void SendCoinsDialog::updateSmartFeeLabel()
@@ -758,14 +758,14 @@ void SendCoinsDialog::updateSmartFeeLabel()
     if (feeRate <= CFeeRate(0)) // not enough data => minfee
     {
         ui->labelSmartFee->setText(DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
-                                                                std::max(CWallet::fallbackFee.GetFeePerK(), CWallet::GetRequiredFee(1000))) + "/kB");
+                                   std::max(CWallet::fallbackFee.GetFeePerK(), CWallet::GetRequiredFee(1000))) + "/kB");
         ui->labelSmartFee2->show(); // (Smart fee not initialized yet. This usually takes a few blocks...)
         ui->labelFeeEstimation->setText("");
     }
     else
     {
         ui->labelSmartFee->setText(DynamicUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
-                                                                std::max(feeRate.GetFeePerK(), CWallet::GetRequiredFee(1000))) + "/kB");
+                                   std::max(feeRate.GetFeePerK(), CWallet::GetRequiredFee(1000))) + "/kB");
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(tr("Estimated to begin confirmation within %n block(s).", "", estimateFoundAtBlocks));
     }

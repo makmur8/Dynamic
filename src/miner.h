@@ -20,7 +20,9 @@ class CReserveKey;
 class CScript;
 class CWallet;
 
-namespace Consensus { struct Params; };
+namespace Consensus {
+struct Params;
+};
 
 static const bool DEFAULT_GENERATE = false;
 static const int DEFAULT_GENERATE_THREADS = 1;

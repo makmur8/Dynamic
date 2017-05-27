@@ -14,7 +14,7 @@ class PlatformStyle;
 class WalletModel;
 
 namespace Ui {
-    class SignVerifyMessageDialog;
+class SignVerifyMessageDialog;
 }
 
 class SignVerifyMessageDialog : public QDialog

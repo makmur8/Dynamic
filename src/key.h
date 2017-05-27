@@ -17,7 +17,7 @@
 #include <vector>
 
 
-/** 
+/**
  * secp256k1:
  * const unsigned int PRIVATE_KEY_SIZE = 279;
  * const unsigned int PUBLIC_KEY_SIZE  = 65;
@@ -62,12 +62,12 @@ public:
     ~CKey()
     {
     }
-    
+
     friend bool operator==(const CKey& a, const CKey& b)
     {
         return a.fCompressed == b.fCompressed &&
-            a.size() == b.size() &&
-            memcmp(a.keydata.data(), b.keydata.data(), a.size()) == 0;
+               a.size() == b.size() &&
+               memcmp(a.keydata.data(), b.keydata.data(), a.size()) == 0;
     }
 
     //! Initialize using begin and end iterators to byte data.
@@ -86,16 +86,26 @@ public:
     }
 
     //! Simple read-only vector-like interface.
-    unsigned int size() const { return (fValid ? keydata.size() : 0); }
-    const unsigned char* begin() const { return keydata.data(); }
-    const unsigned char* end() const { return keydata.data() + size(); }
+    unsigned int size() const {
+        return (fValid ? keydata.size() : 0);
+    }
+    const unsigned char* begin() const {
+        return keydata.data();
+    }
+    const unsigned char* end() const {
+        return keydata.data() + size();
+    }
 
 
     //! Check whether this private key is valid.
-    bool IsValid() const { return fValid; }
+    bool IsValid() const {
+        return fValid;
+    }
 
     //! Check whether the public key corresponding to this private key is (to be) compressed.
-    bool IsCompressed() const { return fCompressed; }
+    bool IsCompressed() const {
+        return fCompressed;
+    }
 
     //! Initialize from a CPrivKey (serialized OpenSSL private key data).
     bool SetPrivKey(const CPrivKey& vchPrivKey, bool fCompressed);
@@ -105,7 +115,7 @@ public:
 
     /**
      * Convert the private key to a CPrivKey (serialized OpenSSL private key data).
-     * This is expensive. 
+     * This is expensive.
      */
     CPrivKey GetPrivKey() const;
 
@@ -156,10 +166,10 @@ struct CExtKey {
     friend bool operator==(const CExtKey& a, const CExtKey& b)
     {
         return a.nDepth == b.nDepth &&
-            memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], sizeof(vchFingerprint)) == 0 &&
-            a.nChild == b.nChild &&
-            a.chaincode == b.chaincode &&
-            a.key == b.key;
+               memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], sizeof(vchFingerprint)) == 0 &&
+               a.nChild == b.nChild &&
+               a.chaincode == b.chaincode &&
+               a.key == b.key;
     }
 
 

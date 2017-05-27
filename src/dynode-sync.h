@@ -63,22 +63,42 @@ private:
     void ClearFulfilledRequests();
 
 public:
-    CDynodeSync() { Reset(); }
+    CDynodeSync() {
+        Reset();
+    }
 
-    void AddedDynodeList() { nTimeLastDynodeList = GetTime(); }
-    void AddedPaymentVote() { nTimeLastPaymentVote = GetTime(); }
-    void AddedGovernanceItem() { nTimeLastGovernanceItem = GetTime(); };
+    void AddedDynodeList() {
+        nTimeLastDynodeList = GetTime();
+    }
+    void AddedPaymentVote() {
+        nTimeLastPaymentVote = GetTime();
+    }
+    void AddedGovernanceItem() {
+        nTimeLastGovernanceItem = GetTime();
+    };
 
     void SendGovernanceSyncRequest(CNode* pnode);
 
-    bool IsFailed() { return nRequestedDynodeAssets == DYNODE_SYNC_FAILED; }
+    bool IsFailed() {
+        return nRequestedDynodeAssets == DYNODE_SYNC_FAILED;
+    }
     bool IsBlockchainSynced(bool fBlockAccepted = false);
-    bool IsDynodeListSynced() { return nRequestedDynodeAssets > DYNODE_SYNC_LIST; }
-    bool IsWinnersListSynced() { return nRequestedDynodeAssets > DYNODE_SYNC_DNW; }
-    bool IsSynced() { return nRequestedDynodeAssets == DYNODE_SYNC_FINISHED; }
+    bool IsDynodeListSynced() {
+        return nRequestedDynodeAssets > DYNODE_SYNC_LIST;
+    }
+    bool IsWinnersListSynced() {
+        return nRequestedDynodeAssets > DYNODE_SYNC_DNW;
+    }
+    bool IsSynced() {
+        return nRequestedDynodeAssets == DYNODE_SYNC_FINISHED;
+    }
 
-    int GetAssetID() { return nRequestedDynodeAssets; }
-    int GetAttempt() { return nRequestedDynodeAttempt; }
+    int GetAssetID() {
+        return nRequestedDynodeAssets;
+    }
+    int GetAttempt() {
+        return nRequestedDynodeAttempt;
+    }
     std::string GetAssetName();
     std::string GetSyncStatus();
 

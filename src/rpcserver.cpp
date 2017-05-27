@@ -74,21 +74,21 @@ void RPCTypeCheck(const UniValue& params,
             break;
 
         const UniValue& v = params[i];
-		if (!(fAllowNull && v.isNull())) {
-			RPCTypeCheckArgument(v, t);
+        if (!(fAllowNull && v.isNull())) {
+            RPCTypeCheckArgument(v, t);
         }
         i++;
     }
 }
-void RPCTypeCheckArgument(const UniValue& value, UniValue::VType typeExpected){
-	if (value.type() != typeExpected) {
-		throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Expected type %s, got %s", uvTypeName(typeExpected), uvTypeName(value.type())));
-	}
+void RPCTypeCheckArgument(const UniValue& value, UniValue::VType typeExpected) {
+    if (value.type() != typeExpected) {
+        throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Expected type %s, got %s", uvTypeName(typeExpected), uvTypeName(value.type())));
+    }
 }
 
 void RPCTypeCheckObj(const UniValue& o,
-                  const std::map<std::string, UniValue::VType>& typesExpected,
-                  bool fAllowNull)
+                     const std::map<std::string, UniValue::VType>& typesExpected,
+                     bool fAllowNull)
 {
     BOOST_FOREACH(const PAIRTYPE(std::string, UniValue::VType)& t, typesExpected)
     {
@@ -99,7 +99,7 @@ void RPCTypeCheckObj(const UniValue& o,
         if (!((v.type() == t.second) || (fAllowNull && (v.isNull()))))
         {
             std::string err = strprintf("Expected type %s for %s, got %s",
-                                   uvTypeName(t.second), t.first, uvTypeName(v.type()));
+                                        uvTypeName(t.second), t.first, uvTypeName(v.type()));
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
     }
@@ -124,7 +124,7 @@ UniValue ValueFromAmount(const CAmount& amount)
     int64_t quotient = n_abs / COIN;
     int64_t remainder = n_abs % COIN;
     return UniValue(UniValue::VNUM,
-            strprintf("%s%d.%08d", sign ? "-" : "", quotient, remainder));
+                    strprintf("%s%d.%08d", sign ? "-" : "", quotient, remainder));
 }
 
 uint256 ParseHashV(const UniValue& v, std::string strName)
@@ -253,8 +253,8 @@ UniValue stop(const UniValue& params, bool fHelp)
  * Call Table
  */
 static const CRPCCommand vRPCCommands[] =
-{ //  category              name                      actor (function)         okSafeMode
-  //  --------------------- ------------------------  -----------------------  ----------
+{   //  category              name                      actor (function)         okSafeMode
+    //  --------------------- ------------------------  -----------------------  ----------
     /* Overall control/query calls */
     { "Control",            "getinfo",                &getinfo,                true  }, /* uses wallet if enabled */
     { "Control",            "debug",                  &debug,                  true  },
@@ -294,7 +294,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        true  },
     { "Blockchain",         "verifychain",            &verifychain,            true  },
     { "Blockchain",         "getspentinfo",           &getspentinfo,           false },
-	{ "Blockchain",         "bumpfee",           	  &bumpfee,           	   true },
+    { "Blockchain",         "bumpfee",           	  &bumpfee,           	   true },
 
     /* Mining */
     { "Mining",             "getblocktemplate",       &getblocktemplate,       true  },
@@ -304,7 +304,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Mining",             "getpowrewardstart",      &getpowrewardstart,      true  },
     { "Mining",             "prioritisetransaction",  &prioritisetransaction,  true  },
     { "Mining",             "submitblock",            &submitblock,            true  },
-	
+
     /* Coin generation */
     { "Generating",         "getgenerate",            &getgenerate,            true  },
     { "Generating",         "setgenerate",            &setgenerate,            true  },
@@ -407,7 +407,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Wallet",             "walletlock",             &walletlock,             true  },
     { "Wallet",             "walletpassphrasechange", &walletpassphrasechange, true  },
     { "Wallet",             "walletpassphrase",       &walletpassphrase,       true  },
-     /* Decentralised DNS */
+    /* Decentralised DNS */
     { "DDNS",               "name_scan",              &name_scan,              true  },
     { "DDNS",               "name_filter",            &name_filter,            true  },
     { "DDNS",               "name_show",              &name_show,              true  },
@@ -550,7 +550,7 @@ std::string JSONRPCExecBatch(const UniValue& vReq)
     for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++)
         ret.push_back(JSONRPCExecOne(vReq[reqIdx]));
 
-    return ret.write() + "\n";     
+    return ret.write() + "\n";
 }
 
 UniValue CRPCTable::execute(const std::string &strMethod, const UniValue &params) const
@@ -588,8 +588,8 @@ std::vector<std::string> CRPCTable::listCommands() const
     typedef std::map<std::string, const CRPCCommand*> commandMap;
 
     std::transform( mapCommands.begin(), mapCommands.end(),
-                   std::back_inserter(commandList),
-                   boost::bind(&commandMap::value_type::first,_1) );
+                    std::back_inserter(commandList),
+                    boost::bind(&commandMap::value_type::first,_1) );
     return commandList;
 }
 
@@ -601,7 +601,7 @@ std::string HelpExampleCli(const std::string& methodname, const std::string& arg
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
 {
     return "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
-        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:31350/\n";
+           "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:31350/\n";
 }
 
 void RPCSetTimerInterfaceIfUnset(RPCTimerInterface *iface)

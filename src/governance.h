@@ -47,7 +47,7 @@ public:
           nDataStart(0),
           nDataEnd(0),
           fBufferEmpty(true)
-        {}
+    {}
 
     void AddTimestamp(int64_t nTimestamp)
     {
@@ -149,7 +149,7 @@ public: // Types
             : triggerBuffer(),
               watchdogBuffer(),
               fStatusOK(fStatusOKIn)
-            {}
+        {}
 
         ADD_SERIALIZE_METHODS;
 
@@ -294,7 +294,9 @@ public:
 
     void UpdateCachesAndClean();
 
-    void CheckAndRemove() {UpdateCachesAndClean();}
+    void CheckAndRemove() {
+        UpdateCachesAndClean();
+    }
 
     void Clear()
     {
@@ -334,7 +336,7 @@ public:
         READWRITE(mapWatchdogObjects);
         READWRITE(nHashWatchdogCurrent);
         READWRITE(nTimeWatchdogCurrent);
-         READWRITE(mapLastDynodeObject);
+        READWRITE(mapLastDynodeObject);
         if(ser_action.ForRead() && (strVersion != SERIALIZATION_VERSION_STRING)) {
             Clear();
             return;
@@ -342,10 +344,16 @@ public:
     }
 
     void UpdatedBlockTip(const CBlockIndex *pindex);
-    int64_t GetLastDiffTime() { return nTimeLastDiff; }
-    void UpdateLastDiffTime(int64_t nTimeIn) { nTimeLastDiff = nTimeIn; }
+    int64_t GetLastDiffTime() {
+        return nTimeLastDiff;
+    }
+    void UpdateLastDiffTime(int64_t nTimeIn) {
+        nTimeLastDiff = nTimeIn;
+    }
 
-    int GetCachedBlockHeight() { return nCachedBlockHeight; }
+    int GetCachedBlockHeight() {
+        return nCachedBlockHeight;
+    }
 
     // Accessors for thread-safe access to maps
     bool HaveObjectForHash(uint256 nHash);

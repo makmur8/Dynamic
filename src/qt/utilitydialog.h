@@ -15,7 +15,7 @@ class ClientModel;
 class DynamicGUI;
 
 namespace Ui {
-    class HelpMessageDialog;
+class HelpMessageDialog;
 }
 
 /** "Help message" dialog box */

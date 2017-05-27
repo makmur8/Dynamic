@@ -191,7 +191,9 @@ unsigned int GetNextWorkRequired(const INDEX_TYPE pindexLast, const BLOCK_TYPE b
 
         return GET_COMPACT(bnNew);
 
-    } else { return LegacyRetargetBlock(pindexLast, block, params); }
+    } else {
+        return LegacyRetargetBlock(pindexLast, block, params);
+    }
 }
 
 

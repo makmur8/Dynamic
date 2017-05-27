@@ -29,9 +29,9 @@ struct TrafficSample
 
     TrafficSample& operator+=(const TrafficSample& rhs)
     {
-          this->in += rhs.in;
-          this->out += rhs.out;
-          return *this;
+        this->in += rhs.in;
+        this->out += rhs.out;
+        return *this;
     }
 };
 

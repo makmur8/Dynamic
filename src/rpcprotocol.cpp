@@ -21,7 +21,7 @@
  * JSON-RPC protocol.  Dynamic speaks version 1.0 for maximum compatibility,
  * but uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were
  * unspecified (HTTP errors and contents of 'error').
- * 
+ *
  * 1.0 spec: http://json-rpc.org/wiki/specification
  * 1.2 spec: http://jsonrpc.org/historical/json-rpc-over-http.html
  */
@@ -32,7 +32,7 @@ std::string JSONRPCRequest(const std::string& strMethod, const UniValue& params,
     request.push_back(Pair("method", strMethod));
     request.push_back(Pair("params", params));
     request.push_back(Pair("id", id));
-    return request.write() + "\n";     
+    return request.write() + "\n";
 }
 
 UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const UniValue& id)
@@ -50,7 +50,7 @@ UniValue JSONRPCReplyObj(const UniValue& result, const UniValue& error, const Un
 std::string JSONRPCReply(const UniValue& result, const UniValue& error, const UniValue& id)
 {
     UniValue reply = JSONRPCReplyObj(result, error, id);
-    return reply.write() + "\n";       
+    return reply.write() + "\n";
 }
 
 UniValue JSONRPCError(int code, const std::string& message)

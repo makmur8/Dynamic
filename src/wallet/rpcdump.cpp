@@ -36,7 +36,7 @@ std::string static EncodeDumpTime(int64_t nTime) {
 int64_t static DecodeDumpTime(const std::string &str) {
     static const boost::posix_time::ptime epoch = boost::posix_time::from_time_t(0);
     static const std::locale loc(std::locale::classic(),
-        new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
+                                 new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
     std::istringstream iss(str);
     iss.imbue(loc);
     boost::posix_time::ptime ptime(boost::date_time::not_a_date_time);
@@ -76,7 +76,7 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 3)
         throw std::runtime_error(
             "importprivkey \"dynamicprivkey\" ( \"label\" rescan )\n"
@@ -181,7 +181,7 @@ UniValue importaddress(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() < 1 || params.size() > 4)
         throw std::runtime_error(
             "importaddress \"address\" ( \"label\" rescan p2sh )\n"
@@ -305,7 +305,7 @@ UniValue importwallet(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "importwallet \"filename\"\n"
@@ -412,7 +412,7 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "dumpprivkey \"dynamicaddress\"\n"
@@ -495,7 +495,7 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-    
+
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "dumpwallet \"filename\"\n"
@@ -580,7 +580,7 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
         }
     }
 
-for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
+    for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
         std::string strAddr = CDynamicAddress(keyid).ToString();

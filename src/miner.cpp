@@ -122,7 +122,7 @@ int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParam
 
 void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1)
 {
-    
+
     //
     // Pre-build hash buffers
     //
@@ -216,11 +216,11 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
 
 
     if (IsArgSet("-blockmintxfee")) {
-       CAmount n = 0;
-       ParseMoney(GetArg("-blockmintxfee", ""), n);
-       blockMinFeeRate = CFeeRate(n);
+        CAmount n = 0;
+        ParseMoney(GetArg("-blockmintxfee", ""), n);
+        blockMinFeeRate = CFeeRate(n);
     } else {
-       blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
+        blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
     }
 
     // Largest block you're willing to create:
@@ -275,15 +275,15 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
             pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
         int64_t nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
-                                ? nMedianTimePast
-                                : pblock->GetBlockTime();
+                                  ? nMedianTimePast
+                                  : pblock->GetBlockTime();
 
 
         bool fPriorityBlock = nBlockPrioritySize > 0;
         if (fPriorityBlock) {
             vecPriority.reserve(mempool.mapTx.size());
             for (CTxMemPool::indexed_transaction_set::iterator mi = mempool.mapTx.begin();
-                 mi != mempool.mapTx.end(); ++mi)
+                    mi != mempool.mapTx.end(); ++mi)
             {
                 double dPriority = mi->GetPriority(nHeight);
                 CAmount dummy;
@@ -338,12 +338,12 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
 
             unsigned int nTxSize = iter->GetTxSize();
             if (fPriorityBlock &&
-                (nBlockSize + nTxSize >= nBlockPrioritySize || !AllowFree(actualPriority))) {
+                    (nBlockSize + nTxSize >= nBlockPrioritySize || !AllowFree(actualPriority))) {
                 fPriorityBlock = false;
                 waitPriMap.clear();
             }
             if (!priorityTx &&
-                (iter->GetModifiedFee() < blockMinFeeRate.GetFee(nTxSize) && nBlockSize >= nBlockMinSize)) {
+                    (iter->GetModifiedFee() < blockMinFeeRate.GetFee(nTxSize) && nBlockSize >= nBlockMinSize)) {
                 break;
             }
             if (nBlockSize + nTxSize >= nBlockMaxSize) {
@@ -481,7 +481,7 @@ int64_t nHPSTimerStart = 0;
 //
 //bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phash)
 //{
-    // Write the first 76 bytes of the block header to a double-SHA256 state.
+// Write the first 76 bytes of the block header to a double-SHA256 state.
 //    CHash256 hasher;
 //    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
 //    ss << *pblock;
@@ -491,16 +491,16 @@ int64_t nHPSTimerStart = 0;
 //    while (true) {
 //        nNonce++;
 
-        // Write the last 4 bytes of the block header (the nonce) to a copy of
-        // the double-SHA256 state, and compute the result.
+// Write the last 4 bytes of the block header (the nonce) to a copy of
+// the double-SHA256 state, and compute the result.
 //        CHash256(hasher).Write((unsigned char*)&nNonce, 4).Finalize((unsigned char*)phash);
 
-        // Return the nonce if the hash has at least some zero bits,
-        // caller will check if it has enough to reach the target
+// Return the nonce if the hash has at least some zero bits,
+// caller will check if it has enough to reach the target
 //        if (((uint16_t*)phash)[15] == 0)
 //            return true;
 
-        // If nothing found after trying for a while, return -1
+// If nothing found after trying for a while, return -1
 //        if ((nNonce & 0xfff) == 0)
 //            return false;
 //    }/
@@ -572,7 +572,7 @@ void static DynamicMiner(const CChainParams& chainparams)
             CBlockIndex* pindexPrev = chainActive.Tip();
             std::unique_ptr<CBlockTemplate> pblocktemplate;
             if(!pindexPrev) break;
-            
+
 #ifdef ENABLE_WALLET
             pblocktemplate = std::unique_ptr<CBlockTemplate> (CreateNewBlock(chainparams, coinbaseScript->reserveScript));
 #else
@@ -587,8 +587,8 @@ void static DynamicMiner(const CChainParams& chainparams)
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
             LogPrintf("DynamicMiner -- Running miner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
-                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
-            
+                      ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
+
             //
             // Search
             //
@@ -626,7 +626,7 @@ void static DynamicMiner(const CChainParams& chainparams)
                     if ((pblock->nNonce & 0xFF) == 0)
                         break;
                 }
-                
+
                 // Meter hashes/seconds
                 static int64_t nHashCounter = 0;
                 static int64_t nLogTime = 0;
@@ -640,7 +640,7 @@ void static DynamicMiner(const CChainParams& chainparams)
                     nHashCounter += nHashesDone;
                 if (GetTimeMillis() - nHPSTimerStart > 4000)
                 {
-                    static CCriticalSection cs;        
+                    static CCriticalSection cs;
                     {
                         LOCK(cs);
                         if (GetTimeMillis() - nHPSTimerStart > 4000)
@@ -672,7 +672,7 @@ void static DynamicMiner(const CChainParams& chainparams)
                 // Update nTime every few seconds
                 if (UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev) < 0)
                     break; // Recreate the block if the clock has run backwards,
-                           // so that we can use the correct time.
+                // so that we can use the correct time.
                 if (chainparams.GetConsensus().fPowAllowMinDifficultyBlocks)
                 {
                     // Changing pblock->nTime can change work required on testnet:
@@ -699,8 +699,8 @@ void GenerateDynamics(bool fGenerate, int nThreads, const CChainParams& chainpar
 
     if (nThreads < 0)
         nThreads = GetNumCores(); // Uses std::thread::hardwareconcurrency to detect available cores
-                                  // Return the number of cores available on the current system.
-                                  // @note This does count virtual cores, such as those provided by HyperThreading.
+    // Return the number of cores available on the current system.
+    // @note This does count virtual cores, such as those provided by HyperThreading.
     if (minerThreads != NULL)
     {
         minerThreads->interrupt_all();

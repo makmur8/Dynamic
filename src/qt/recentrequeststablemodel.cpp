@@ -26,7 +26,7 @@ RecentRequestsTableModel::RecentRequestsTableModel(CWallet *wallet, WalletModel 
     std::vector<std::string> vReceiveRequests;
     parent->loadReceiveRequests(vReceiveRequests);
     BOOST_FOREACH(const std::string& request, vReceiveRequests)
-        addNewRequest(request);
+    addNewRequest(request);
 
     /* These columns must match the indices in the ColumnIndex enumeration */
     columns << tr("Date") << tr("Address") << tr("Label") << tr("Message") << getAmountTitle();
@@ -66,7 +66,7 @@ QVariant RecentRequestsTableModel::data(const QModelIndex &index, int role) cons
         {
         case Date:
             return GUIUtil::dateTimeStr(rec->date);
-         case Address:
+        case Address:
             if(rec->recipient.address.isEmpty() && role == Qt::DisplayRole)
             {
                 return tr("(no address)");

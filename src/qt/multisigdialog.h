@@ -18,37 +18,37 @@ class PlatformStyle;
 
 namespace Ui
 {
-    class MultisigDialog;
+class MultisigDialog;
 }
 
 class MultisigDialog : public QDialog
 {
     Q_OBJECT;
 
-  public:
+public:
     explicit MultisigDialog(const PlatformStyle *platformStyle, QWidget *parent = 0);
     ~MultisigDialog();
-    
+
     void setModel(WalletModel *model);
     bool AdvertisePublicKeyForMultiSig(const std::string& address, const std::string& publickey);
 
     typedef std::vector<CScript> redeemScripts;
     CPubKey SearchForPubKeyByAddress(const std::string& address);
 
-  public Q_SLOTS:
+public Q_SLOTS:
     MultisigAddressEntry * addPubKey();
     void clear();
     void updateRemoveEnabled();
     MultisigInputEntry * addInput();
     SendCoinsEntry * addOutput();
 
-  private:
+private:
     Ui::MultisigDialog *ui;
     WalletModel *model;
     bool fSetTxString;
     const PlatformStyle *platformStyle;
 
-  private Q_SLOTS:
+private Q_SLOTS:
     void on_createAddressButton_clicked();
     void on_copyMultisigAddressButton_clicked();
     void on_copyRedeemScriptButton_clicked();

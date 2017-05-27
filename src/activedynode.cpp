@@ -57,24 +57,36 @@ void CActiveDynode::ManageState()
 std::string CActiveDynode::GetStateString() const
 {
     switch (nState) {
-        case ACTIVE_DYNODE_INITIAL:         return "INITIAL";
-        case ACTIVE_DYNODE_SYNC_IN_PROCESS: return "SYNC_IN_PROCESS";
-        case ACTIVE_DYNODE_INPUT_TOO_NEW:   return "INPUT_TOO_NEW";
-        case ACTIVE_DYNODE_NOT_CAPABLE:     return "NOT_CAPABLE";
-        case ACTIVE_DYNODE_STARTED:         return "STARTED";
-        default:                               return "UNKNOWN";
+    case ACTIVE_DYNODE_INITIAL:
+        return "INITIAL";
+    case ACTIVE_DYNODE_SYNC_IN_PROCESS:
+        return "SYNC_IN_PROCESS";
+    case ACTIVE_DYNODE_INPUT_TOO_NEW:
+        return "INPUT_TOO_NEW";
+    case ACTIVE_DYNODE_NOT_CAPABLE:
+        return "NOT_CAPABLE";
+    case ACTIVE_DYNODE_STARTED:
+        return "STARTED";
+    default:
+        return "UNKNOWN";
     }
 }
 
 std::string CActiveDynode::GetStatus() const
 {
     switch (nState) {
-        case ACTIVE_DYNODE_INITIAL:         return "Node just started, not yet activated";
-        case ACTIVE_DYNODE_SYNC_IN_PROCESS: return "Sync in progress. Must wait until sync is complete to start Dynode";
-        case ACTIVE_DYNODE_INPUT_TOO_NEW:   return strprintf("Dynode input must have at least %d confirmations", Params().GetConsensus().nDynodeMinimumConfirmations);
-        case ACTIVE_DYNODE_NOT_CAPABLE:     return "Not capable Dynode: " + strNotCapableReason;
-        case ACTIVE_DYNODE_STARTED:         return "Dynode successfully started";
-        default:                                return "Unknown";
+    case ACTIVE_DYNODE_INITIAL:
+        return "Node just started, not yet activated";
+    case ACTIVE_DYNODE_SYNC_IN_PROCESS:
+        return "Sync in progress. Must wait until sync is complete to start Dynode";
+    case ACTIVE_DYNODE_INPUT_TOO_NEW:
+        return strprintf("Dynode input must have at least %d confirmations", Params().GetConsensus().nDynodeMinimumConfirmations);
+    case ACTIVE_DYNODE_NOT_CAPABLE:
+        return "Not capable Dynode: " + strNotCapableReason;
+    case ACTIVE_DYNODE_STARTED:
+        return "Dynode successfully started";
+    default:
+        return "Unknown";
     }
 }
 
@@ -147,10 +159,10 @@ void CActiveDynode::ManageStateInitial()
     LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
     // Check that our local network configuration is correct
     BOOST_FOREACH(CNode* pnode, vNodes) {
-    if (pnode->addr.IsIPv6()) {
-        // listen option is probably overwritten by smth else, no good
-        LogPrintf("Dynodes cannot use IPv6, you must use IPv4 for Dynode connectivity.");
-        return;
+        if (pnode->addr.IsIPv6()) {
+            // listen option is probably overwritten by smth else, no good
+            LogPrintf("Dynodes cannot use IPv6, you must use IPv4 for Dynode connectivity.");
+            return;
         }
     }
 
@@ -184,9 +196,9 @@ void CActiveDynode::ManageStateInitial()
         LogPrintf("CActiveDynode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
         return;
     }
-    
+
     int mainnetDefaultPort = Params(CBaseChainParams::MAIN).GetDefaultPort();
-    
+
     if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if(service.GetPort() != mainnetDefaultPort) {
             nState = ACTIVE_DYNODE_NOT_CAPABLE;
@@ -247,7 +259,7 @@ void CActiveDynode::ManageStateInitial()
 
 void CActiveDynode::ManageStateRemote()
 {
-    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyDynode.GetID() = %s\n", 
+    LogPrint(DYNLog::DYNODE, "CActiveDynode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyDynode.GetID() = %s\n",
              GetStatus(), fPingerEnabled, GetTypeString(), pubKeyDynode.GetID().ToString());
 
     dnodeman.CheckDynode(pubKeyDynode, true);
@@ -299,7 +311,7 @@ void CActiveDynode::ManageStateLocal()
 
     if(pwalletMain->GetDynodeVinAndKeys(vin, pubKeyCollateral, keyCollateral)) {
         int nInputAge = GetInputAge(vin);
-        if(nInputAge < Params().GetConsensus().nDynodeMinimumConfirmations){
+        if(nInputAge < Params().GetConsensus().nDynodeMinimumConfirmations) {
             nState = ACTIVE_DYNODE_INPUT_TOO_NEW;
             strNotCapableReason = strprintf(_("%s - %d confirmations"), GetStatus(), nInputAge);
             LogPrintf("CActiveDynode::ManageStateLocal -- %s: %s\n", GetStateString(), strNotCapableReason);

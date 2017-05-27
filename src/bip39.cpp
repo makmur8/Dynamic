@@ -93,7 +93,8 @@ int mnemonic_check(const char *mnemonic)
 
     uint32_t i, n;
 
-    i = 0; n = 0;
+    i = 0;
+    n = 0;
     while (mnemonic[i]) {
         if (mnemonic[i] == ' ') {
             n++;
@@ -110,7 +111,8 @@ int mnemonic_check(const char *mnemonic)
     uint32_t j, k, ki, bi;
     uint8_t bits[32 + 1];
     memset(bits, 0, sizeof(bits));
-    i = 0; bi = 0;
+    i = 0;
+    bi = 0;
     while (mnemonic[i]) {
         j = 0;
         while (mnemonic[i] != ' ' && mnemonic[i] != 0) {
@@ -118,7 +120,8 @@ int mnemonic_check(const char *mnemonic)
                 return 0;
             }
             current_word[j] = mnemonic[i];
-            i++; j++;
+            i++;
+            j++;
         }
         current_word[j] = 0;
         if (mnemonic[i] != 0) i++;
@@ -148,11 +151,9 @@ int mnemonic_check(const char *mnemonic)
 
     if (n == 12) {
         return (bits[0] & 0xF0) == (bits[32] & 0xF0); // compare first 4 bits
-    } else
-    if (n == 18) {
+    } else if (n == 18) {
         return (bits[0] & 0xFC) == (bits[32] & 0xFC); // compare first 6 bits
-    } else
-    if (n == 24) {
+    } else if (n == 24) {
         return bits[0] == bits[32]; // compare 8 bits
     }
     return 0;

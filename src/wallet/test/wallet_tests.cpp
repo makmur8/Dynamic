@@ -262,22 +262,22 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
 
         // test with many inputs
         for (CAmount amt=1500; amt < COIN; amt*=10) {
-             empty_wallet();
-             // Create 676 inputs (= MAX_STANDARD_TX_SIZE / 148 bytes per input)
-             for (uint16_t j = 0; j < 676; j++)
-                 add_coin(amt);
-             BOOST_CHECK(wallet.SelectCoinsMinConf(2000, 1, 1, vCoins, setCoinsRet, nValueRet));
-             if (amt - 2000 < MIN_CHANGE) {
-                 // needs more than one input:
-                 uint16_t returnSize = std::ceil((2000.0 + MIN_CHANGE)/amt);
-                 CAmount returnValue = amt * returnSize;
-                 BOOST_CHECK_EQUAL(nValueRet, returnValue);
-                 BOOST_CHECK_EQUAL(setCoinsRet.size(), returnSize);
-             } else {
-                 // one input is sufficient:
-                 BOOST_CHECK_EQUAL(nValueRet, amt);
-                 BOOST_CHECK_EQUAL(setCoinsRet.size(), 1U);
-             }
+            empty_wallet();
+            // Create 676 inputs (= MAX_STANDARD_TX_SIZE / 148 bytes per input)
+            for (uint16_t j = 0; j < 676; j++)
+                add_coin(amt);
+            BOOST_CHECK(wallet.SelectCoinsMinConf(2000, 1, 1, vCoins, setCoinsRet, nValueRet));
+            if (amt - 2000 < MIN_CHANGE) {
+                // needs more than one input:
+                uint16_t returnSize = std::ceil((2000.0 + MIN_CHANGE)/amt);
+                CAmount returnValue = amt * returnSize;
+                BOOST_CHECK_EQUAL(nValueRet, returnValue);
+                BOOST_CHECK_EQUAL(setCoinsRet.size(), returnSize);
+            } else {
+                // one input is sufficient:
+                BOOST_CHECK_EQUAL(nValueRet, amt);
+                BOOST_CHECK_EQUAL(setCoinsRet.size(), 1U);
+            }
         }
 
         // test randomness
@@ -307,7 +307,11 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
             // add 75 cents in small change.  not enough to make 90 cents,
             // then try making 90 cents.  there are multiple competing "smallest bigger" coins,
             // one of which should be picked at random
-            add_coin( 5*CENT); add_coin(10*CENT); add_coin(15*CENT); add_coin(20*CENT); add_coin(25*CENT);
+            add_coin( 5*CENT);
+            add_coin(10*CENT);
+            add_coin(15*CENT);
+            add_coin(20*CENT);
+            add_coin(25*CENT);
 
             fails = 0;
             for (int j = 0; j < RANDOM_REPEATS; j++)

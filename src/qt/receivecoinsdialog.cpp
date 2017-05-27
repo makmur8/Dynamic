@@ -33,7 +33,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
 {
     ui->setupUi(this);
     QString theme = GUIUtil::getThemeName();
-    
+
     if (!_platformStyle->getImagesOnButtons()) {
         ui->clearButton->setIcon(QIcon());
         ui->receiveButton->setIcon(QIcon());
@@ -47,7 +47,7 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     }
 
     // context menu actions
-    QAction *copyAddressAction = new QAction(tr("Copy Address"), this);    
+    QAction *copyAddressAction = new QAction(tr("Copy Address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyMessageAction = new QAction(tr("Copy message"), this);
     QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
@@ -92,8 +92,8 @@ void ReceiveCoinsDialog::setModel(WalletModel *_model)
         tableView->setColumnWidth(RecentRequestsTableModel::Label, LABEL_COLUMN_WIDTH);
 
         connect(tableView->selectionModel(),
-            SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this,
-            SLOT(recentRequestsView_selectionChanged(QItemSelection, QItemSelection)));
+                SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this,
+                SLOT(recentRequestsView_selectionChanged(QItemSelection, QItemSelection)));
         // Last 2 columns are set by the columnResizingFixer, when the table geometry is ready.
         columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(tableView, AMOUNT_MINIMUM_COLUMN_WIDTH, DATE_COLUMN_WIDTH);
     }
@@ -158,7 +158,7 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
         address = model->getAddressTableModel()->addRow(AddressTableModel::Receive, label, "");
     }
     SendCoinsRecipient info(address, label,
-        ui->reqAmount->value(), ui->reqMessage->text());
+                            ui->reqAmount->value(), ui->reqMessage->text());
     info.fUseInstantSend = ui->checkUseInstantSend->isChecked();
     ReceiveRequestDialog *dialog = new ReceiveRequestDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);

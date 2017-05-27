@@ -20,11 +20,11 @@
 #include <algorithm>
 
 enum ForkID {
-	DELTA_RETARGET = 1,
-	PRE_DELTA_RETARGET = 2,
-	START_DYNODE_PAYMENTS = 3,
-	FORK_SLOT_3 = 4,
-	FORK_SLOT_4 = 5
+    DELTA_RETARGET = 1,
+    PRE_DELTA_RETARGET = 2,
+    START_DYNODE_PAYMENTS = 3,
+    FORK_SLOT_3 = 4,
+    FORK_SLOT_4 = 5
 };
 
 bool CheckForkIsTrue(ForkID identifier, const CBlockIndex* pindexLast, bool fTableFlip=false);

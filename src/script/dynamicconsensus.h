@@ -10,23 +10,23 @@
 
 #if defined(BUILD_DYNAMIC_INTERNAL) && defined(HAVE_CONFIG_H)
 #include "config/dynamic-config.h"
-  #if defined(_WIN32)
-    #if defined(DLL_EXPORT)
-      #if defined(HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
-        #define EXPORT_SYMBOL __declspec(dllexport)
-      #else
-        #define EXPORT_SYMBOL
-      #endif
-    #endif
-  #elif defined(HAVE_FUNC_ATTRIBUTE_VISIBILITY)
-    #define EXPORT_SYMBOL __attribute__ ((visibility ("default")))
-  #endif
+#if defined(_WIN32)
+#if defined(DLL_EXPORT)
+#if defined(HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
+#define EXPORT_SYMBOL __declspec(dllexport)
+#else
+#define EXPORT_SYMBOL
+#endif
+#endif
+#elif defined(HAVE_FUNC_ATTRIBUTE_VISIBILITY)
+#define EXPORT_SYMBOL __attribute__ ((visibility ("default")))
+#endif
 #elif defined(MSC_VER) && !defined(STATIC_LIBDYNAMICCONSENSUS)
-  #define EXPORT_SYMBOL __declspec(dllimport)
+#define EXPORT_SYMBOL __declspec(dllimport)
 #endif
 
 #ifndef EXPORT_SYMBOL
-  #define EXPORT_SYMBOL
+#define EXPORT_SYMBOL
 #endif
 
 #ifdef __cplusplus
@@ -53,7 +53,7 @@ enum
     dynamicconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY = (1U << 9), // enable CHECKLOCKTIMEVERIFY (BIP65)
     dynamicconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY = (1U << 10), // enable CHECKSEQUENCEVERIFY (BIP112)
     dynamicconsensus_SCRIPT_FLAGS_VERIFY_ALL                 = dynamicconsensus_SCRIPT_FLAGS_VERIFY_P2SH | dynamicconsensus_SCRIPT_FLAGS_VERIFY_DERSIG |
-                                                               dynamicconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY | dynamicconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY
+            dynamicconsensus_SCRIPT_FLAGS_VERIFY_CHECKLOCKTIMEVERIFY | dynamicconsensus_SCRIPT_FLAGS_VERIFY_CHECKSEQUENCEVERIFY
 };
 
 /// Returns 1 if the input nIn of the serialized transaction pointed to by
@@ -61,8 +61,8 @@ enum
 /// the additional constraints specified by flags.
 /// If not NULL, err will contain an error/success code for the operation
 EXPORT_SYMBOL int dynamicconsensus_verify_script(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen,
-                                    const unsigned char *txTo        , unsigned int txToLen,
-                                    unsigned int nIn, unsigned int flags, dynamicconsensus_error* err);
+        const unsigned char *txTo        , unsigned int txToLen,
+        unsigned int nIn, unsigned int flags, dynamicconsensus_error* err);
 
 EXPORT_SYMBOL unsigned int dynamicconsensus_version();
 

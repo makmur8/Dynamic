@@ -47,7 +47,7 @@ enum DBErrors
 class CKeyMetadata
 {
 public:
-    static const int CURRENT_VERSION=1;        
+    static const int CURRENT_VERSION=1;
     int nVersion;
     int64_t nCreateTime; // 0 means unknown
 

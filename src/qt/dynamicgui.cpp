@@ -69,13 +69,13 @@
 
 const std::string DynamicGUI::DEFAULT_UIPLATFORM =
 #if defined(Q_OS_MAC)
-        "macosx"
+    "macosx"
 #elif defined(Q_OS_WIN)
-        "windows"
+    "windows"
 #else
-        "other"
+    "other"
 #endif
-        ;
+    ;
 
 const QString DynamicGUI::DEFAULT_WALLET = "~Default";
 
@@ -269,7 +269,7 @@ DynamicGUI::DynamicGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
         connect(walletFrame, SIGNAL(requestedSyncWarningInfo()), this, SLOT(showModalOverlay()));
         connect(labelBlocksIcon, SIGNAL(clicked(QPoint)), this, SLOT(showModalOverlay()));
         connect(progressBar, SIGNAL(clicked(QPoint)), this, SLOT(showModalOverlay()));
-        }
+    }
 #endif
 }
 
@@ -367,7 +367,7 @@ void DynamicGUI::createActions()
 #else
     dynodeAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
 #endif
-    tabGroup->addAction(dynodeAction);    
+    tabGroup->addAction(dynodeAction);
 
     dnsAction = new QAction(QIcon(":/icons/" + theme + "/decentralised"), tr("&dDNS"), this);
     dnsAction->setStatusTip(tr("Manage values registered via Dynamic"));
@@ -450,7 +450,7 @@ void DynamicGUI::createActions()
     openConfEditorAction = new QAction(QIcon(":/icons/" + theme + "/edit"), tr("Open Wallet &Configuration File"), this);
     openConfEditorAction->setStatusTip(tr("Open configuration file"));
     openSNConfEditorAction = new QAction(QIcon(":/icons/" + theme + "/edit"), tr("Open &Dynode Configuration File"), this);
-    openSNConfEditorAction->setStatusTip(tr("Open Dynode configuration file"));    
+    openSNConfEditorAction->setStatusTip(tr("Open Dynode configuration file"));
     showBackupsAction = new QAction(QIcon(":/icons/" + theme + "/browse"), tr("Show Automatic &Backups"), this);
     showBackupsAction->setStatusTip(tr("Show automatically created wallet backups"));
     // initially disable the debug window menu items
@@ -498,7 +498,7 @@ void DynamicGUI::createActions()
 
     // Get restart command-line parameters and handle restart
     connect(rpcConsole, SIGNAL(handleRestart(QStringList)), this, SLOT(handleRestart(QStringList)));
-    
+
     // prevents an open debug window from becoming stuck/unusable on client shutdown
     connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
 
@@ -596,7 +596,7 @@ void DynamicGUI::createToolBars()
         toolbar->addAction(multiSigAction);
         toolbar->addAction(dynodeAction);
         toolbar->addAction(dnsAction);
- 
+
         /** Create additional container for toolbar and walletFrame and make it the central widget.
             This is a workaround mostly for toolbar styling on Mac OS but should work fine for every other OSes too.
         */
@@ -627,7 +627,7 @@ void DynamicGUI::setClientModel(ClientModel *_clientModel)
 #ifndef Q_OS_MAC
             // Show main window on tray icon click
             // Note: ignore this on Mac - this is not the way tray should work there
-             connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+            connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
                     this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
 #else
             // Note: On Mac, the dock icon is also used to provide menu functionality
@@ -635,7 +635,7 @@ void DynamicGUI::setClientModel(ClientModel *_clientModel)
             MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
             dockIconHandler->setMainWindow((QMainWindow *)this);
             dockIconMenu = dockIconHandler->dockMenu();
- 
+
             createIconMenu(dockIconMenu);
 #endif
         }
@@ -756,7 +756,7 @@ void DynamicGUI::createIconMenu(QMenu *pmenu)
     pmenu->addAction(multiSigAction);
     pmenu->addAction(dynodeAction);
     pmenu->addAction(dnsAction);
-	pmenu->addSeparator();
+    pmenu->addSeparator();
     pmenu->addAction(optionsAction);
     pmenu->addAction(openInfoAction);
     pmenu->addAction(openRPCConsoleAction);
@@ -920,7 +920,7 @@ void DynamicGUI::gotoDNSPage()
 {
     dnsAction->setChecked(true);
     if (walletFrame) walletFrame->gotoDNSPage();
-} 
+}
 
 void DynamicGUI::gotoSignMessageTab(QString addr)
 {
@@ -939,11 +939,27 @@ void DynamicGUI::setNumConnections(int count)
     QString theme = GUIUtil::getThemeName();
     switch(count)
     {
-    case 0: icon = ":/icons/" + theme + "/connect_0"; break;
-    case 1: case 2: case 3: icon = ":/icons/" + theme + "/connect_1"; break;
-    case 4: case 5: case 6: icon = ":/icons/" + theme + "/connect_2"; break;
-    case 7: case 8: case 9: icon = ":/icons/" + theme + "/connect_3"; break;
-    default: icon = ":/icons/" + theme + "/connect_4"; break;
+    case 0:
+        icon = ":/icons/" + theme + "/connect_0";
+        break;
+    case 1:
+    case 2:
+    case 3:
+        icon = ":/icons/" + theme + "/connect_1";
+        break;
+    case 4:
+    case 5:
+    case 6:
+        icon = ":/icons/" + theme + "/connect_2";
+        break;
+    case 7:
+    case 8:
+    case 9:
+        icon = ":/icons/" + theme + "/connect_3";
+        break;
+    default:
+        icon = ":/icons/" + theme + "/connect_4";
+        break;
     }
     QIcon connectionItem = QIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE);
     labelConnectionsIcon->setIcon(connectionItem);
@@ -977,27 +993,27 @@ void DynamicGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
     // Acquire current block source
     enum BlockSource blockSource = clientModel->getBlockSource();
     switch (blockSource) {
-        case BLOCK_SOURCE_NETWORK:
-            if (header) {
-                updateHeadersSyncProgressLabel();
-                return;
-            }
-            progressBarLabel->setText(tr("Synchronizing with network..."));
+    case BLOCK_SOURCE_NETWORK:
+        if (header) {
             updateHeadersSyncProgressLabel();
-            break;
-        case BLOCK_SOURCE_DISK:
-            if (header)
-                progressBarLabel->setText(tr("Importing blocks on disk..."));
-            break;
-        case BLOCK_SOURCE_REINDEX:
-            progressBarLabel->setText(tr("Reindexing blocks on disk..."));
-            break;
-        case BLOCK_SOURCE_NONE:
-            if (header) {
-                return;
-            }
-            progressBarLabel->setText(tr("Connecting to peers..."));
-            break;
+            return;
+        }
+        progressBarLabel->setText(tr("Synchronizing with network..."));
+        updateHeadersSyncProgressLabel();
+        break;
+    case BLOCK_SOURCE_DISK:
+        if (header)
+            progressBarLabel->setText(tr("Importing blocks on disk..."));
+        break;
+    case BLOCK_SOURCE_REINDEX:
+        progressBarLabel->setText(tr("Reindexing blocks on disk..."));
+        break;
+    case BLOCK_SOURCE_NONE:
+        if (header) {
+            return;
+        }
+        progressBarLabel->setText(tr("Connecting to peers..."));
+        break;
     }
 
     QString tooltip;
@@ -1045,8 +1061,8 @@ void DynamicGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
         if(count != prevBlocks)
         {
             labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(QString(
-                ":/movies/spinner-%1").arg(spinnerFrame, 3, 10, QChar('0')))
-                .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+                                           ":/movies/spinner-%1").arg(spinnerFrame, 3, 10, QChar('0')))
+                                       .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
             spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES;
         }
         prevBlocks = count;
@@ -1098,16 +1114,16 @@ void DynamicGUI::setAdditionalDataSyncProgress(double nSyncProgress)
         } else {
 
             labelBlocksIcon->setPixmap(platformStyle->SingleColorIcon(QString(
-                ":/movies/spinner-%1").arg(spinnerFrame, 3, 10, QChar('0')))
-                .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+                                           ":/movies/spinner-%1").arg(spinnerFrame, 3, 10, QChar('0')))
+                                       .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
             spinnerFrame = (spinnerFrame + 1) % SPINNER_FRAMES;
 
 #ifdef ENABLE_WALLET
             if(walletFrame)
-        {
-            walletFrame->showOutOfSyncWarning(false);
-            modalOverlay->showHide(true, true);
-        }
+            {
+                walletFrame->showOutOfSyncWarning(false);
+                modalOverlay->showHide(true, true);
+            }
 #endif // ENABLE_WALLET
 
             progressBar->setFormat(tr("Synchronizing additional data: %p%"));
@@ -1247,7 +1263,7 @@ void DynamicGUI::incomingTransaction(const QString& date, int unit, const CAmoun
     else if (!address.isEmpty())
         msg += tr("Address: %1\n").arg(address);
     message((amount)<0 ? tr("Sent transaction") : tr("Incoming transaction"),
-             msg, CClientUIInterface::MSG_INFORMATION);
+            msg, CClientUIInterface::MSG_INFORMATION);
 }
 #endif // ENABLE_WALLET
 
@@ -1295,7 +1311,7 @@ bool DynamicGUI::handlePaymentRequest(const SendCoinsRecipient& recipient)
     return false;
 }
 
- 
+
 void DynamicGUI::setHDStatus(int hdEnabled)
 {
     QString theme = GUIUtil::getThemeName();
@@ -1432,11 +1448,11 @@ static bool ThreadSafeMessageBox(DynamicGUI *gui, const std::string& message, co
     bool ret = false;
     // In case of modal message, use blocking connection to wait for user to click a button
     QMetaObject::invokeMethod(gui, "message",
-                               modal ? GUIUtil::blockingGUIThreadConnection() : Qt::QueuedConnection,
-                               Q_ARG(QString, QString::fromStdString(caption)),
-                               Q_ARG(QString, QString::fromStdString(message)),
-                               Q_ARG(unsigned int, style),
-                               Q_ARG(bool*, &ret));
+                              modal ? GUIUtil::blockingGUIThreadConnection() : Qt::QueuedConnection,
+                              Q_ARG(QString, QString::fromStdString(caption)),
+                              Q_ARG(QString, QString::fromStdString(message)),
+                              Q_ARG(unsigned int, style),
+                              Q_ARG(bool*, &ret));
     return ret;
 }
 

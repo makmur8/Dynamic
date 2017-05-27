@@ -12,7 +12,7 @@
 #include <QSortFilterProxyModel>
 
 namespace Ui {
-    class DNSPage;
+class DNSPage;
 }
 class NameTableModel;
 class WalletModel;

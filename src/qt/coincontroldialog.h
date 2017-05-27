@@ -26,7 +26,7 @@ class CCoinControl;
 class CTxMemPool;
 
 namespace Ui {
-    class CoinControlDialog;
+class CoinControlDialog;
 }
 
 #define ASYMP_UTF8 "\xE2\x89\x88"

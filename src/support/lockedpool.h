@@ -83,7 +83,9 @@ public:
      * This returns base <= ptr < (base+size) so only use it for (inclusive)
      * chunk starting addresses.
      */
-    bool addressInArena(void *ptr) const { return ptr >= base && ptr < end; }
+    bool addressInArena(void *ptr) const {
+        return ptr >= base && ptr < end;
+    }
 private:
     Arena(const Arena& other) = delete; // non construction-copyable
     Arena& operator=(const Arena&) = delete; // non copyable

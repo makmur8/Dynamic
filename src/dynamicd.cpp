@@ -87,7 +87,7 @@ bool AppInit(int argc, char* argv[])
         else
         {
             strUsage += "\n" + _("Usage:") + "\n" +
-                  "  dynamicd [options]                     " + _("Start Dynamic Daemon") + "\n";
+                        "  dynamicd [options]                     " + _("Start Dynamic Daemon") + "\n";
 
             strUsage += "\n" + HelpMessage(HMM_DYNAMICD);
         }

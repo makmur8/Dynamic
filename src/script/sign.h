@@ -23,7 +23,9 @@ protected:
 
 public:
     BaseSignatureCreator(const CKeyStore* keystoreIn) : keystore(keystoreIn) {}
-    const CKeyStore& KeyStore() const { return *keystore; };
+    const CKeyStore& KeyStore() const {
+        return *keystore;
+    };
     virtual ~BaseSignatureCreator() {}
     virtual const BaseSignatureChecker& Checker() const =0;
 
@@ -40,7 +42,9 @@ class TransactionSignatureCreator : public BaseSignatureCreator {
 
 public:
     TransactionSignatureCreator(const CKeyStore* keystoreIn, const CTransaction* txToIn, unsigned int nInIn, int nHashTypeIn=SIGHASH_ALL);
-    const BaseSignatureChecker& Checker() const { return checker; }
+    const BaseSignatureChecker& Checker() const {
+        return checker;
+    }
     bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode) const;
 };
 
@@ -66,6 +70,6 @@ CScript CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecke
 CScript CombineSignatures(const CScript& scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
 bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash, int nHashType,
-                  CScript& scriptSigRet, txnouttype& whichTypeRet);
+            CScript& scriptSigRet, txnouttype& whichTypeRet);
 
 #endif // DYNAMIC_SCRIPT_SIGN_H

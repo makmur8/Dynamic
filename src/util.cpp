@@ -532,10 +532,10 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
 #endif
     if (pex)
         return strprintf(
-            "EXCEPTION: %s       \n%s       \n%s in %s       \n", typeid(*pex).name(), pex->what(), pszModule, pszThread);
+                   "EXCEPTION: %s       \n%s       \n%s in %s       \n", typeid(*pex).name(), pex->what(), pszModule, pszThread);
     else
         return strprintf(
-            "UNKNOWN EXCEPTION       \n%s in %s       \n", pszModule, pszThread);
+                   "UNKNOWN EXCEPTION       \n%s in %s       \n", pszModule, pszThread);
 }
 
 void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
@@ -593,8 +593,8 @@ static std::string GenerateRandomString(unsigned int len) {
 
 static unsigned int RandomIntegerRange(unsigned int nMin, unsigned int nMax)
 {
-  srand(time(NULL) + nMax); //seed srand before using
-  return nMin + rand() % (nMax - nMin) + 1;
+    srand(time(NULL) + nMax); //seed srand before using
+    return nMin + rand() % (nMax - nMin) + 1;
 }
 
 static void WriteConfigFile(FILE* configFile)
@@ -692,8 +692,8 @@ fs::path GetDynodeConfigFile()
 void ArgsManager::ReadConfigFile(const std::string& confPath)
 {
     fs::ifstream streamConfig(GetConfigFile());
-    
-    if (!streamConfig.good()){
+
+    if (!streamConfig.good()) {
         // Create dynamic.conf if it does not exist
         FILE* configFile = fsbridge::fopen(GetConfigFile(), "a");
         if (configFile != NULL) {
@@ -719,7 +719,7 @@ void ArgsManager::ReadConfigFile(const std::string& confPath)
             mapMultiArgs[strKey].push_back(strValue);
         }
     }
-    
+
     // If datadir is changed in .conf file:
     ClearDatadirCache();
 }
@@ -780,13 +780,13 @@ void FileCommit(FILE *file)
     HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
     FlushFileBuffers(hFile);
 #else
-    #if defined(__linux__) || defined(__NetBSD__)
+#if defined(__linux__) || defined(__NetBSD__)
     fdatasync(fileno(file));
-    #elif defined(__APPLE__) && defined(F_FULLFSYNC)
+#elif defined(__APPLE__) && defined(F_FULLFSYNC)
     fcntl(fileno(file), F_FULLFSYNC, 0);
-    #else
+#else
     fsync(fileno(file));
-    #endif
+#endif
 #endif
 }
 
