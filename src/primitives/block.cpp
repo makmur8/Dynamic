@@ -27,8 +27,3 @@ std::string CBlock::ToString() const
     }
     return s.str();
 }
-
-uint256 CBlockHeader::GetHash() const
-{
-	return Hash(BEGIN(nVersion), END(nNonce));
-}

@@ -29,7 +29,6 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
-	bool fRougeTesting; // Parameter used for switching algorithm
 
     CBlockHeader()
     {
@@ -64,7 +63,15 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetHash() const;
+    uint256 GetHash() const
+    {
+        return hash_Argon2d(UVOIDBEGIN(nVersion), 1);
+    }
+    
+    uint256 GetHashWithCtx(void *Matrix) const
+    {
+		return(hash_Argon2d_ctx(UVOIDBEGIN(nVersion), Matrix, 1));
+	}
 
     int64_t GetBlockTime() const
     {
