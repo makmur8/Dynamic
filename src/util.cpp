@@ -422,7 +422,11 @@ int LogPrintStr(const std::string &str)
             if (fReopenDebugLog) {
                 fReopenDebugLog = false;
                 fs::path pathDebug = GetDataDir() / "debug.log";
+<<<<<<< HEAD
                 if (fsbridge::freopen(pathDebug,"a",fileout) != NULL)
+=======
+                if (fsbridge::freopen(pathDebug, "a", fileout) != NULL)
+>>>>>>> 2fc1c3b... [Abstraction] Use fsbridge for fopen and freopen
                     setbuf(fileout, NULL); // unbuffered
             }
 
