@@ -170,12 +170,11 @@ public:
         }
 
         consensus.hashGenesisBlock = genesis.GetHash();
-		printf("Genesis Hash: 0x%s\n", consensus.hashGenesisBlock.GetHex().c_str());
-		
-        if(!startNewChain) {
-            assert(consensus.hashGenesisBlock == uint256S("0x000000ebd2a79307f501648b41e2ba60cb6f721b1f6fca322ac32d66f8c005e6"));
+        		
+		if(!startNewChain) {
+            assert(consensus.hashGenesisBlock == uint256S("0x00000ce9ce63ee661a41dd01fccaa4407e28e684cf925c58c87374082f07806d"));
             assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
-        }
+		}
 
         vSeeds.push_back(CDNSSeedData("dnsseeder.io", "dyn.dnsseeder.io"));
         vSeeds.push_back(CDNSSeedData("dnsseeder.com", "dyn.dnsseeder.com"));
