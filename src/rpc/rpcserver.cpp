@@ -319,7 +319,8 @@ static const CRPCCommand vRPCCommands[] =
     { "Raw Transactions",    "decodescript",           &decodescript,           true  },
     { "Raw Transactions",    "getrawtransaction",      &getrawtransaction,      true  },
     { "Raw Transactions",    "sendrawtransaction",     &sendrawtransaction,     false },
-    { "Raw Transactions",    "signrawtransaction",     &signrawtransaction,     false }, /* uses wallet if enabled */
+    { "Raw Transactions",    "signrawtransaction",     &signrawtransaction,     false }, 
+    /* uses wallet if enabled */
 #ifdef ENABLE_WALLET
     { "Raw Transactions",    "fundrawtransaction",     &fundrawtransaction,     false },
 #endif
@@ -330,6 +331,12 @@ static const CRPCCommand vRPCCommands[] =
     { "Address Index",       "getaddressdeltas",       &getaddressdeltas,       false },
     { "Address Index",       "getaddresstxids",        &getaddresstxids,        false },
     { "Address Index",       "getaddressbalance",      &getaddressbalance,      false },
+    
+    /* Encryption */
+    { "Encryption",       "encryptdata",      		   &encryptdata,      		false },
+    { "Encryption",       "decryptdata",      		   &decryptdata,      		false },
+    { "Encryption",       "encryptmessage",      	   &encryptmessage,      	false },
+    { "Encryption",       "decryptmessage",     	   &decryptmessage,      	false },
 
     /* Utility functions */
     { "Utility Function",               "createmultisig",         &createmultisig,         true  },
@@ -347,7 +354,9 @@ static const CRPCCommand vRPCCommands[] =
 #ifdef ENABLE_WALLET
     { "Hidden",                 "resendwallettransactions", &resendwallettransactions, true},
 #endif
-
+    /* Not shown in help */
+    { "Hidden", 			"name_debug", 			  &name_debug, 				false },
+    
     /* Dynamic features */
     { "Dynamic",                "dynode",                 &dynode,                 true  },
     { "Dynamic",                "dynodelist",             &dynodelist,             true  },
@@ -420,8 +429,6 @@ static const CRPCCommand vRPCCommands[] =
     { "DDNS",               "name_delete",            &name_delete,            true  },
     { "DDNS",               "name_list",              &name_list,              true  },
 #endif // ENABLE_WALLET
-    /* Not shown in help */
-    { "Hidden", "name_debug", &name_debug, false },
 };
 
 CRPCTable::CRPCTable()

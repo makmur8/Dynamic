@@ -326,6 +326,11 @@ extern UniValue getspentinfo(const UniValue& params, bool fHelp);
 extern UniValue getblockdeltas(const UniValue& params, bool fHelp);
 extern UniValue dumpbootstrap(const UniValue& params, bool fHelp);
 
+extern UniValue encryptdata(const UniValue& params, bool fHelp); // in rpc/rpccrypt.cpp
+extern UniValue decryptdata(const UniValue& params, bool fHelp);
+extern UniValue encryptmessage(const UniValue& params, bool fHelp);
+extern UniValue decryptmessage(const UniValue& params, bool fHelp);
+
 bool StartRPC();
 void InterruptRPC();
 void StopRPC();

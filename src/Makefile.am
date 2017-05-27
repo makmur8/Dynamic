@@ -245,6 +245,7 @@ libdynamic_server_a_SOURCES = \
 	rpc/rpcnet.cpp \
 	rpc/rpcrawtransaction.cpp \
 	rpc/rpcserver.cpp \
+	rpc/rpccrypt.cpp \
 	script/sigcache.cpp \
 	sendalert.cpp \
 	timedata.cpp \
