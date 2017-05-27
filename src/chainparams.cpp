@@ -44,6 +44,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     genesis.vtx.push_back(txNew);
     genesis.hashPrevBlock.SetNull();
     genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
+
     return genesis;
 }
 
@@ -171,7 +172,7 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
 
         if(!startNewChain) {
-            assert(consensus.hashGenesisBlock == uint256S("0x00000ce9ce63ee661a41dd01fccaa4407e28e684cf925c58c87374082f07806d"));
+            assert(consensus.hashGenesisBlock == uint256S("0x000000ebd2a79307f501648b41e2ba60cb6f721b1f6fca322ac32d66f8c005e6"));
             assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
         }
 
@@ -288,11 +289,16 @@ public:
         }
 
         consensus.hashGenesisBlock = genesis.GetHash();
-
+/*
         if(!startNewChain)
             assert(consensus.hashGenesisBlock == uint256S("0x0000e20f2438413d8fc19ee8b45c4a89c8ab01a2bbc5a62ae1626e394278d1be"));
+<<<<<<< HEAD
         assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
 
+=======
+            assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
+*/
+>>>>>>> c5cc961... [?]
         vFixedSeeds.clear();
         vSeeds.clear();
         //vSeeds.push_back(CDNSSeedData("",  ""));
@@ -391,11 +397,16 @@ public:
         }
 
         consensus.hashGenesisBlock = genesis.GetHash();
-
+/*
         if(!startNewChain)
             assert(consensus.hashGenesisBlock == uint256S("0x0009b505c91e7c59933702b91115fb3da25b31983924655b84bcfed62b04bd9c"));
+<<<<<<< HEAD
         assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
 
+=======
+            assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
+*/
+>>>>>>> c5cc961... [?]
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();  //! Regtest mode doesn't have any DNS seeds.
 

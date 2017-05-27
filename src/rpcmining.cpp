@@ -697,15 +697,6 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         }
     }
 
-    if (strMode != "template")
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
-
-    if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Dynamic is not connected!");
-
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Dynamic is downloading blocks...");
-
     static unsigned int nTransactionsUpdatedLast;
 
     if (!lpval.isNull())
