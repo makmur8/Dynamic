@@ -13,6 +13,7 @@
 #include "script/script.h"
 #include "serialize.h"
 #include "uint256.h"
+#include "policy/feerate.h"
 
 // DNS standard information released in 1987.
 // https://tools.ietf.org/html/rfc1035
@@ -354,7 +355,6 @@ struct CMutableTransaction
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(this->nVersion);
-        nVersion = this->nVersion;
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
