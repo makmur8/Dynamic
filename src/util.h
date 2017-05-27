@@ -44,8 +44,7 @@
 #define DBG( x ) 
 #endif
 
-//Dynamic only features
-
+// Dynamic only features
 extern bool fDyNode;
 extern bool fLiteMode;
 extern int nWalletBackups;
@@ -63,8 +62,8 @@ public:
     boost::signals2::signal<std::string (const char* psz)> Translate;
 };
 
-extern std::map<std::string, std::string> mapArgs;
-extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
+extern CTranslationInterface translationInterface;
+
 extern bool fDebug;
 extern bool fPrintToConsole;
 extern bool fPrintToDebugLog;
@@ -75,7 +74,6 @@ extern bool fLogTimeMicros;
 extern bool fLogThreadNames;
 extern bool fLogIPs;
 extern volatile bool fReopenDebugLog;
-extern CTranslationInterface translationInterface;
 
 extern const char * const DYNAMIC_CONF_FILENAME;
 extern const char * const DYNAMIC_PID_FILENAME;
@@ -203,7 +201,6 @@ fs::path GetDynodeConfigFile();
 fs::path GetPidFile();
 void CreatePidFile(const fs::path &path, pid_t pid);
 #endif
-void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
 #ifdef WIN32
 fs::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
@@ -284,8 +281,8 @@ public:
 	 * @return true if argument gets set, false if it already had a value
 	 */
 	bool SoftSetBoolArg(const std::string& strArg, bool fValue);
-
-	// Forces a arg setting, used only in testing
+	
+	/// Forces a arg setting, used only in testing
 	void ForceSetArg(const std::string& strArg, const std::string& strValue);
 };
 
@@ -369,7 +366,7 @@ std::string GetThreadName();
  */
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
-    std::string s = strprintf("dynamic-%s", name);
+    std::string s = strprintf("bitcoin-%s", name);
     RenameThread(s.c_str());
     try
     {

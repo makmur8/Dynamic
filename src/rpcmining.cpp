@@ -279,9 +279,9 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
         if (nGenProcLimit == 0)
             fGenerate = false;
     }
-
-    mapArgs["-gen"] = (fGenerate ? "1" : "0");
-    mapArgs ["-genproclimit"] = itostr(nGenProcLimit);
+	ForceSetArg("-gen", (fGenerate ? "1" : "0"));
+	ForceSetArg("-genproclimit", itostr(nGenProcLimit));
+    
     GenerateDynamics(fGenerate, nGenProcLimit, Params());
 
     return NullUniValue;

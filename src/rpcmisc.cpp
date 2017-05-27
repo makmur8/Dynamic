@@ -133,13 +133,13 @@ UniValue debug(const UniValue& params, bool fHelp)
         );
 
     std::string strMode = params[0].get_str();
+/*
+    gArgs.mapMultiArgs["-debug"].clear();
+    boost::split(gArgs.mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
+    gArgs.mapArgs["-debug"] = gArgs.mapMultiArgs["-debug"][gArgs.mapMultiArgs["-debug"].size() - 1];
 
-    mapMultiArgs["-debug"].clear();
-    boost::split(mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
-    mapArgs["-debug"] = mapMultiArgs["-debug"][mapMultiArgs["-debug"].size() - 1];
-
-    fDebug = mapArgs["-debug"] != "0";
-
+    fDebug = gArgs.mapArgs["-debug"] != "0";
+*/
     return "Debug mode: " + (fDebug ? strMode : "off");
 }
 

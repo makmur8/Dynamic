@@ -107,9 +107,6 @@ int nWalletBackups = 10;
 const char * const DYNAMIC_CONF_FILENAME = "dynamic.conf";
 const char * const DYNAMIC_PID_FILENAME = "dynamicd.pid";
 
-ArgsManager gArgs;
-std::map<std::string, std::string> mapArgs;
-std::map<std::string, std::vector<std::string> > mapMultiArgs;
 bool fDebug = false;
 bool fPrintToConsole = false;
 bool fPrintToDebugLog = true;
@@ -121,6 +118,8 @@ bool fLogTimeMicros = DEFAULT_LOGTIMEMICROS;
 bool fLogThreadNames = DEFAULT_LOGTHREADNAMES;
 bool fLogIPs = DEFAULT_LOGIPS;
 volatile bool fReopenDebugLog = false;
+
+ArgsManager gArgs;
 CTranslationInterface translationInterface;
 
 /** Log categories bitfield. */
@@ -321,49 +320,8 @@ std::vector<CLogCategoryActive> ListActiveLogCategories()
 /**
  * fStartedNewLine is a state variable held by the calling context that will
  * suppress printing of the timestamp when multiple calls are made that don't
- * end in a newline. Initialize it to true, and hold/manage it, in the calling context.
+ * end in a newline. Initialize it to true, and hold it, in the calling context.
  */
-static std::string LogTimestampStr(const std::string &str, bool *fStartedNewLine)
-{
-    std::string strStamped;
-
-    if (!fLogTimestamps)
-        return str;
-
-    if (*fStartedNewLine) {
-        int64_t nTimeMicros = GetLogTimeMicros();
-        strStamped = DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros/1000000);
-        if (fLogTimeMicros)
-            strStamped += strprintf(".%06d", nTimeMicros%1000000);
-        strStamped += ' ' + str;
-    } else
-        strStamped = str;
-
-    return strStamped;
-}
-
-/**
- * fStartedNewLine is a state variable held by the calling context that will
- * suppress printing of the thread name when multiple calls are made that don't
- * end in a newline. Initialize it to true, and hold/manage it, in the calling context.
- */
-static std::string LogThreadNameStr(const std::string &str, bool *fStartedNewLine)
-{
-    std::string strThreadLogged;
-
-    if (!fLogThreadNames)
-        return str;
-
-    std::string strThreadName = GetThreadName();
-
-    if (*fStartedNewLine)
-        strThreadLogged = strprintf("%16s | %s", strThreadName.c_str(), str.c_str());
-    else
-        strThreadLogged = str;
-
-    return strThreadLogged;
-}
-
 static std::string LogTimestampStr(const std::string &str, std::atomic_bool *fStartedNewLine)
 {
     std::string strStamped;
@@ -422,11 +380,7 @@ int LogPrintStr(const std::string &str)
             if (fReopenDebugLog) {
                 fReopenDebugLog = false;
                 fs::path pathDebug = GetDataDir() / "debug.log";
-<<<<<<< HEAD
                 if (fsbridge::freopen(pathDebug,"a",fileout) != NULL)
-=======
-                if (fsbridge::freopen(pathDebug, "a", fileout) != NULL)
->>>>>>> 2fc1c3b... [Abstraction] Use fsbridge for fopen and freopen
                     setbuf(fileout, NULL); // unbuffered
             }
 
@@ -623,22 +577,18 @@ static fs::path pathCachedNetSpecific;
 static CCriticalSection csPathCached;
 
 static std::string GenerateRandomString(unsigned int len) {
-    if (len == 0){
-        len = 24;
-    }
-    srand(time(NULL) + len); //seed srand before using
-    char s[len];
-    static const char alphanum[] =
+    auto randchar = []() -> char
+    {
+        const char charset[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
-
-    for (unsigned int i = 0; i < len; ++i) {
-        s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-    s[len] = 0;
-    std::string sPassword(s);
-    return sPassword;
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[ rand() % max_index ];
+    };
+    std::string str(len,0);
+    std::generate_n( str.begin(), len, randchar );
+    return str;
 }
 
 static unsigned int RandomIntegerRange(unsigned int nMin, unsigned int nMax)
@@ -657,13 +607,12 @@ static void WriteConfigFile(FILE* configFile)
     fputs ("rpcport=31350\n", configFile);
     fputs ("port=31300\n",configFile);
     fclose(configFile);
-    ReadConfigFile(mapArgs, mapMultiArgs);
+    gArgs.ReadConfigFile(GetArg("-conf", DYNAMIC_CONF_FILENAME));
 }
+
 
 const fs::path &GetDataDir(bool fNetSpecific)
 {
-    namespace fs = fs;
-
     LOCK(csPathCached);
 
     fs::path &path = fNetSpecific ? pathCachedNetSpecific : pathCached;
@@ -673,8 +622,8 @@ const fs::path &GetDataDir(bool fNetSpecific)
     if (!path.empty())
         return path;
 
-    if (mapArgs.count("-datadir")) {
-        path = fs::system_complete(mapArgs["-datadir"]);
+    if (IsArgSet("-datadir")) {
+        path = fs::system_complete(GetArg("-datadir", ""));
         if (!fs::is_directory(path)) {
             path = "";
             return path;
@@ -704,8 +653,8 @@ const fs::path &GetBackupsDir()
     if (!backupsDir.empty())
         return backupsDir;
 
-    if (mapArgs.count("-walletbackupsdir")) {
-        backupsDir = fs::absolute(mapArgs["-walletbackupsdir"]);
+    if (IsArgSet("-walletbackupsdir")) {
+        backupsDir = fs::absolute(GetArg("-walletbackupsdir", ""));
         // Path must exist
         if (fs::is_directory(backupsDir)) return backupsDir;
         // Fallback to default path if it doesn't
@@ -740,11 +689,10 @@ fs::path GetDynodeConfigFile()
     return pathConfigFile;
 }
 
-void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet,
-                    std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet)
+void ArgsManager::ReadConfigFile(const std::string& confPath)
 {
     fs::ifstream streamConfig(GetConfigFile());
-
+    
     if (!streamConfig.good()){
         // Create dynamic.conf if it does not exist
         FILE* configFile = fsbridge::fopen(GetConfigFile(), "a");
@@ -755,19 +703,23 @@ void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet,
         }
     }
 
-    std::set<std::string> setOptions;
-    setOptions.insert("*");
-
-    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it)
     {
-        // Don't overwrite existing settings so command line settings override dynamic.conf
-        std::string strKey = std::string("-") + it->string_key;
-        std::string strValue = it->value[0];
-        InterpretNegativeSetting(strKey, strValue);
-        if (mapSettingsRet.count(strKey) == 0)
-            mapSettingsRet[strKey] = strValue;
-        mapMultiSettingsRet[strKey].push_back(strValue);
+        LOCK(cs_args);
+        std::set<std::string> setOptions;
+        setOptions.insert("*");
+
+        for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it)
+        {
+            // Don't overwrite existing settings so command line settings override dynamic.conf
+            std::string strKey = std::string("-") + it->string_key;
+            std::string strValue = it->value[0];
+            InterpretNegativeSetting(strKey, strValue);
+            if (mapArgs.count(strKey) == 0)
+                mapArgs[strKey] = strValue;
+            mapMultiArgs[strKey].push_back(strValue);
+        }
     }
+    
     // If datadir is changed in .conf file:
     ClearDatadirCache();
 }
@@ -869,6 +821,10 @@ int RaiseFileDescriptorLimit(int nMinFD) {
 #endif
 }
 
+/**
+ * this function tries to make a particular range of a file allocated (corresponding to disk space)
+ * it is advisory, and the range specified in the arguments will never contain live data
+ */
 /**
  * this function tries to make a particular range of a file allocated (corresponding to disk space)
  * it is advisory, and the range specified in the arguments will never contain live data
