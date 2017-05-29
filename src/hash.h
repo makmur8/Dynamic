@@ -341,6 +341,7 @@ inline int Argon2d_Phase1_Hash_Ctx(const void *in, void *Matrix, void *out) {
 /// Lanes: 64 parallel threads
 /// Threads: 4 threads
 /// Time Constraint: 8 iterations
+
 inline int Argon2d_Phase2_Hash(const void *in, void *out) {
     argon2_context context;
     context.out = (uint8_t *)out;
