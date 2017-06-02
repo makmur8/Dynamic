@@ -32,6 +32,9 @@
 
 #include <stdint.h>
 
+#include <iostream>
+#include <boost/thread.hpp>
+
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry);
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fIncludeHex);
 
