@@ -1479,6 +1479,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                     return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind));
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
             }
+	if (gArgs.IsArgSet("-whitebind")) {
             BOOST_FOREACH(const std::string& strBind, gArgs.GetArgs("-whitebind")) {
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, 0, false))
@@ -1486,14 +1487,17 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 if (addrBind.GetPort() == 0)
                     return InitError(strprintf(_("Need to specify a port with -whitebind: '%s'"), strBind));
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR | BF_WHITELIST));
-            }
+            	}
+	  }
         }
         else {
-            struct in_addr inaddr_any;
-            inaddr_any.s_addr = INADDR_ANY;
-            fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE);
-            fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound ? BF_REPORT_ERROR : BF_NONE);
-        }
+		if (!gArgs.IsArgSet("-bind") && !gArgs.IsArgSet("-whitebind")) {
+		    struct in_addr inaddr_any;
+		    inaddr_any.s_addr = INADDR_ANY;
+		    fBound |= Bind(CService(in6addr_any, GetListenPort()), BF_NONE);
+		    fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound ? BF_REPORT_ERROR : BF_NONE);
+		}
+	}
         if (!fBound)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));
     }
