@@ -8,6 +8,7 @@
 #include "miner.h"
 
 #include "amount.h"
+#include "base58.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "coins.h"
@@ -29,6 +30,7 @@
 #include "consensus/validation.h"
 #include "validationinterface.h"
 #include "wallet/wallet.h"
+#include "duality/fluid/fluidtoken.h" // Hi! I'm a duck!
 
 #include <queue>
 #include <utility>
@@ -37,6 +39,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/assign/list_of.hpp>
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -206,12 +209,12 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
         return nullptr;
     CBlock *pblock = &pblocktemplate->block; // pointer for convenience
 
-    // Create coinbase tx
+    // Create coinbase tx with fluid issuance
+    // TODO: Can this be made any more elegant?
     CMutableTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
-    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -400,12 +403,28 @@ std::unique_ptr<CBlockTemplate> CreateNewBlock(const CChainParams& chainparams, 
             }
         }
 
-
-        CAmount blockReward = GetPoWBlockPayment(nHeight, nFees);
+		CDynamicAddress address;        
+		CAmount blockReward = GetPoWBlockPayment(nHeight, nFees);
+		CAmount fluidIssuance = FluidTokenIssuanceAmount(pblock->nTime, address);
 
         // Compute regular coinbase transaction.
-        txNew.vout[0].nValue = blockReward;
+        txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+        txNew.vout[0].nValue = blockReward + fluidIssuance;
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
+
+        // Ensure that we aren't doing this before fork and fluid to be issued isn't zero, else this is pointless
+        // and minusing zero is kind of pointless
+        if (pblock->Version5Activated(pblock->nTime) && (fluidIssuance != (0*COIN))) {
+            // Pick out the amount of issuance
+            txNew.vout[0].nValue -= fluidIssuance;
+
+			assert(address.IsValid());
+			assert(address.IsScript());
+			CScriptID scriptID = boost::get<CScriptID>(address.Get()); // Get() returns a boost variant
+			CScript script = CScript() << OP_HASH160 << ToByteVector(scriptID) << OP_EQUAL;
+
+            txNew.vout.push_back(CTxOut(fluidIssuance, script));
+		}
 
         // Update coinbase transaction with additional info about dynode and governance payments,
         // get some info back to pass to getblocktemplate

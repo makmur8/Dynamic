@@ -16,11 +16,11 @@
 #include <stdint.h>
 #include <string>
 
-class CAlert;
+class CBroadcast;
 class CNode;
 class uint256;
 
-extern std::map<uint256, CAlert> mapAlerts;
+extern std::map<uint256, CBroadcast> mapAlerts;
 extern CCriticalSection cs_mapAlerts;
 
 /** Alerts are for notifying old versions if they become too obsolete and
@@ -29,7 +29,7 @@ extern CCriticalSection cs_mapAlerts;
  * not read the entire buffer if the alert is for a newer version, but older
  * versions can still relay the original data.
  */
-class CUnsignedAlert
+class CUnsignedBroadcast
 {
 public:
     int nVersion;
@@ -74,14 +74,14 @@ public:
     std::string ToString() const;
 };
 
-/** An alert is a combination of a serialized CUnsignedAlert and a signature. */
-class CAlert : public CUnsignedAlert
+/** An alert is a combination of a serialized CUnsignedBroadcast and a signature. */
+class CBroadcast : public CUnsignedBroadcast
 {
 public:
     std::vector<unsigned char> vchMsg;
     std::vector<unsigned char> vchSig;
 
-    CAlert()
+    CBroadcast()
     {
         SetNull();
     }
@@ -98,7 +98,7 @@ public:
     bool IsNull() const;
     uint256 GetHash() const;
     bool IsInEffect() const;
-    bool Cancels(const CAlert& alert) const;
+    bool Cancels(const CBroadcast& alert) const;
     bool AppliesTo(int nVersion, const std::string& strSubVerIn) const;
     bool AppliesToMe() const;
     bool RelayTo(CNode* pnode) const;
@@ -110,7 +110,7 @@ public:
     /*
      * Get copy of (active) alert object by hash. Returns a null alert if it is not found.
      */
-    static CAlert getAlertByHash(const uint256 &hash);
+    static CBroadcast getAlertByHash(const uint256 &hash);
 };
 
 #endif // DYNAMIC_ALERT_H

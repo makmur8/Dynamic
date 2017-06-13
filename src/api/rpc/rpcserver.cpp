@@ -325,6 +325,11 @@ static const CRPCCommand vRPCCommands[] =
     { "Address Index",       "getaddressdeltas",       &getaddressdeltas,       false },
     { "Address Index",       "getaddresstxids",        &getaddresstxids,        false },
     { "Address Index",       "getaddressbalance",      &getaddressbalance,      false },
+    
+    /* Fluid Protocol */
+    { "Fluid",       "broadcastfluidtoken",      		&broadcastfluidtoken,	false },
+    { "Fluid",       "sendcoinstovaccum",      			&sendcoinstovaccum,     false },
+    { "Fluid",       "generatefluidissuetoken",   		&generatefluidissuetoken,     false },
 
     /* Utility functions */
     { "Utility Function",               "createmultisig",         &createmultisig,         true  },
@@ -340,7 +345,7 @@ static const CRPCCommand vRPCCommands[] =
     { "Hidden",             "reconsiderblock",        &reconsiderblock,        true  },
     { "Hidden",             "setmocktime",            &setmocktime,            true  },
 #ifdef ENABLE_WALLET
-    { "Hidden",                 "resendwallettransactions", &resendwallettransactions, true},
+    { "Hidden",             "resendwallettransactions", &resendwallettransactions, true},
 #endif
 
     /* Dynamic features */

@@ -23,13 +23,20 @@
 #ifndef FLUID_TOKENS
 #define FLUID_TOKENS
 
-class FluidToken, public FluidParameters FluidVerification {
-private:
-	SecureString PrepareIssuanceAnnouncement(int64_t tokenMintAmt, CDynamicAddress tokenDelivery);
-	
-public:
-	bool AnnounceIssuance(std::string preparedString, CDynamicAddress tokenDelivery);
-	CMutableTransaction CreateTokenIssuanceTransaction();
-}
+#include <string>
+#include "support/allocators/secure.h"
+#include "base58.h"
+
+extern std::string GetWarnings(const std::string& strFor, bool isItToken);
+
+int64_t FluidTokenIssuanceAmount(int64_t nTime, CDynamicAddress &destination, std::string broadcastMessage = GetWarnings("tokens", true));
+bool GenerateFluidToken(CDynamicAddress sendToward, 
+						CAmount tokenMintAmt, std::string &issuanceString);
+bool VerifyAlertToken(std::string uniqueIdentifier);
+
+bool IsFluidParametersSane();
+bool InitiateFluidVerify(CDynamicAddress dynamicAddress);
+bool DerivePrivateKey(CDynamicAddress universalKey, SecureString &magicKey);
+bool VerifyTokenNullification(const CTxOut& txout);
 
 #endif // FLUID_TOKENS

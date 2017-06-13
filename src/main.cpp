@@ -1895,7 +1895,7 @@ void CheckForkWarningConditions()
             if(pindexBestForkBase->phashBlock){
                 std::string warning = std::string("'Warning: Large-work fork detected, forking after block ") +
                     pindexBestForkBase->phashBlock->ToString() + std::string("'");
-                CAlert::Notify(warning, true);
+                CBroadcast::Notify(warning, true);
             }
         }
         if (pindexBestForkTip && pindexBestForkBase)
@@ -2522,7 +2522,7 @@ void PartitionCheck(bool (*initialDownloadCheck)(), CCriticalSection& cs, const 
     if (!strWarning.empty())
     {
         strMiscWarning = strWarning;
-        CAlert::Notify(strWarning, true);
+        CBroadcast::Notify(strWarning, true);
         lastAlertTime = now;
     }
 }
@@ -3117,7 +3117,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
                 if (state == THRESHOLD_ACTIVE) {
                     strMiscWarning = strprintf(_("Warning: unknown new rules activated (versionbit %i)"), bit);
                     if (!fWarned) {
-                        CAlert::Notify(strMiscWarning, true);
+                        CBroadcast::Notify(strMiscWarning, true);
                         fWarned = true;
                     }
                 } else {
@@ -3140,7 +3140,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: Unknown block versions being mined! It's possible unknown rules are in effect");
             if (!fWarned) {
-                CAlert::Notify(strMiscWarning, true);
+                CBroadcast::Notify(strMiscWarning, true);
                 fWarned = true;
             }
         }
@@ -4979,66 +4979,72 @@ void static CheckBlockIndex(const Consensus::Params& consensusParams)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// CAlert
+// CBroadcast
 //
 
-std::string GetWarnings(const std::string& strFor)
+std::string GetWarnings(const std::string& strFor, bool isItToken)
 {
     int nPriority = 0;
-    std::string strStatusBar;
-    std::string strRPC;
-    std::string strGUI;
+    std::string strStatusBar, strRPC, strGUI, strBroadcast;
 
-    if (!CLIENT_VERSION_IS_RELEASE) {
-        strStatusBar = "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications";
-        strGUI = _("This is a pre-release test build - use at your own risk - do not use for mining or merchant applications");
-    }
+	if(!isItToken) {
+		if (!CLIENT_VERSION_IS_RELEASE) {
+			strStatusBar = "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications";
+			strGUI = _("This is a pre-release test build - use at your own risk - do not use for mining or merchant applications");
+		}
 
-    if (GetBoolArg("-testsafemode", DEFAULT_TESTSAFEMODE))
-        strStatusBar = strRPC = strGUI = "testsafemode enabled";
+		if (GetBoolArg("-testsafemode", DEFAULT_TESTSAFEMODE))
+			strStatusBar = strRPC = strGUI = "testsafemode enabled";
 
-    // Misc warnings like out of disk space and clock is wrong
-    if (strMiscWarning != "")
-    {
-        nPriority = 1000;
-        strStatusBar = strGUI = strMiscWarning;
-    }
+		// Misc warnings like out of disk space and clock is wrong
+		if (strMiscWarning != "")
+		{
+			nPriority = 1000;
+			strStatusBar = strGUI = strMiscWarning;
+		}
 
-    if (fLargeWorkForkFound)
-    {
-        nPriority = 2000;
-        strStatusBar = strRPC = "Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.";
-        strGUI = _("Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.");
-    }
-    else if (fLargeWorkInvalidChainFound)
-    {
-        nPriority = 2000;
-        strStatusBar = strRPC = "Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.";
-        strGUI = _("Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.");
-    }
+		if (fLargeWorkForkFound)
+		{
+			nPriority = 2000;
+			strStatusBar = strRPC = "Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.";
+			strGUI = _("Warning: The network does not appear to fully agree! Some miners appear to be experiencing issues.");
+		}
+		else if (fLargeWorkInvalidChainFound)
+		{
+			nPriority = 2000;
+			strStatusBar = strRPC = "Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.";
+			strGUI = _("Warning: We do not appear to fully agree with our peers! You may need to upgrade, or other nodes may need to upgrade.");
+		}
 
-    // Alerts
-    {
-        LOCK(cs_mapAlerts);
-        BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts)
-        {
-            const CAlert& alert = item.second;
-            if (alert.AppliesToMe() && alert.nPriority > nPriority)
-            {
-                nPriority = alert.nPriority;
-                strStatusBar = strGUI = alert.strStatusBar;
-            }
-        }
-    }
-
-    if (strFor == "gui")
-        return strGUI;
-    else if (strFor == "statusbar")
-        return strStatusBar;
-    else if (strFor == "rpc")
-        return strRPC;
-    assert(!"GetWarnings(): invalid parameter");
-    return "error";
+		if (strFor == "gui")
+			return strGUI;
+		else if (strFor == "statusbar")
+			return strStatusBar;
+		else if (strFor == "rpc")
+			return strRPC;
+		
+		assert(!"GetWarnings(): invalid parameter");
+		
+		return "error";
+	} else {
+		{
+			LOCK(cs_mapAlerts);
+			BOOST_FOREACH(PAIRTYPE(const uint256, CBroadcast)& item, mapAlerts)
+			{
+				const CBroadcast& alert = item.second;
+				if (alert.AppliesToMe() && alert.nPriority > nPriority)
+				{
+					nPriority = alert.nPriority;
+					strBroadcast = alert.strStatusBar;
+				}
+			}
+		}
+		
+		if (!IsHex(strBroadcast))
+			return "IncorrectData";
+		else
+			return strBroadcast;
+	}
 }
 
 
@@ -5559,7 +5565,7 @@ bool static ProcessMessage(CNode* pfrom, std::string strCommand, CDataStream& vR
         // Relay alerts
         {
             LOCK(cs_mapAlerts);
-            BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts)
+            BOOST_FOREACH(PAIRTYPE(const uint256, CBroadcast)& item, mapAlerts)
                 item.second.RelayTo(pfrom);
         }
 
@@ -6432,7 +6438,7 @@ bool static ProcessMessage(CNode* pfrom, std::string strCommand, CDataStream& vR
 
     else if (fAlerts && strCommand == NetMsgType::ALERT)
     {
-        CAlert alert;
+        CBroadcast alert;
         vRecv >> alert;
 
         uint256 alertHash = alert.GetHash();

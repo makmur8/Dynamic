@@ -12,107 +12,104 @@
 #include "net.h"
 #include "utilstrencodings.h"
 #include "utiltime.h"
+#include "support/allocators/secure.h"
+#include "key.h"
+#include "fluidkeys.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
-/*
-	If you need to broadcast an alert, here's what to do:
-
-	1. Modify alert parameters below, see alert.* and comments in the code
-	   for what does what.
-
-	2. run dynamicd with -printalert or -sendalert like this:
-	   /path/to/dynamicd -printalert
-
-	One minute after starting up the alert will be broadcast. It is then
-	flooded through the network until the nRelayUntil time, and will be
-	active until nExpiration OR the alert is cancelled.
-
-	If you screw up something, send another alert with nCancel set to cancel
-	the bad alert.
-*/
-
-void ThreadSendAlert()
+void InitiateFluidIssuanceAlert(std::string issuanceToken)
 {
-    // Wait one minute so we get well connected. If we only need to print
-    // but not to broadcast - do this right away.
-    if (mapArgs.count("-sendalert"))
-        MilliSleep(60*1000);
-
     //
     // Alerts are relayed around the network until nRelayUntil, flood
     // filling to every node.
     // After the relay time is past, new nodes are told about alerts
     // when they connect to peers, until either nExpiration or
-    // the alert is cancelled by a newer alert.
+    // the alert is cancelled by a newer broadcast.
     // Nodes never save alerts to disk, they are in-memory-only.
     //
-    CAlert alert;
-    alert.nRelayUntil   = GetTime() + 15 * 60;
-    alert.nExpiration   = GetTime() + 30 * 60 * 60;
-    alert.nID           = 1;  // keep track of alert IDs somewhere
-    alert.nCancel       = 0;   // cancels previous messages up to this ID number
+    CBroadcast broadcast;
+    broadcast.nRelayUntil   = GetTime() + 20 * 60;
+    broadcast.nExpiration   = GetTime() + 30 * 60;
+    broadcast.nID           = GetTime();  // keep track of alert IDs somewhere
+    broadcast.nCancel       = GetTime() - 30 * 60;   // cancels previous messages up to this ID number
 
     // These versions are protocol versions
-    alert.nMinVer       = 60800;
-    alert.nMaxVer       = 60800;
+    broadcast.nMinVer       = 60800;
+    broadcast.nMaxVer       = 60800;
 
     //
     //  1000 for Misc warnings like out of disk space and clock is wrong
     //  2000 for longer invalid proof-of-work chain
     //  Higher numbers mean higher priority
-    alert.nPriority     = 5000;
-    alert.strComment    = "";
-    alert.strStatusBar  = "URGENT: Upgrade required: see https://www.duality.solutions";
-
-    // Set specific client version/versions here. If setSubVer is empty, no filtering on subver is done:
-    // alert.setSubVer.insert(std::string("/Dynamic:1.3.0.0/"));
+    broadcast.nPriority     = 5000;
+    broadcast.strComment    = broadcast.strStatusBar = issuanceToken;
 
     // Sign
-    if(!alert.Sign())
+    CDataStream sMsg(SER_NETWORK, CLIENT_VERSION);
+    sMsg << *(CUnsignedBroadcast*)&broadcast;
+    broadcast.vchMsg = std::vector<unsigned char>(sMsg.begin(), sMsg.end());
+   
+	CDynamicAddress addr(fluidCore.sovreignAddress);
+
+    CKeyID keyID;
+    if (!addr.GetKeyID(keyID))
     {
-        LogPrintf("ThreadSendAlert() : could not sign alert\n");
+        LogPrintf("InitiateFluidIssuanceAlert() : addr.GetKeyID failed\n");
+        return;
+    }
+    
+	CKey key;
+    if (!pwalletMain->GetKey(keyID, key))
+    {
+        LogPrintf("InitiateFluidIssuanceAlert() : pwalletMain->GetKey failed\n");
+        return;
+    }
+    
+    std::vector<unsigned char> vchSig;
+    if (!key.SignCompact(Hash(broadcast.vchMsg.begin(), broadcast.vchMsg.end()), broadcast.vchSig))
+    {
+        LogPrintf("InitiateFluidIssuanceAlert() : key.SignCompact failed\n");
         return;
     }
 
     // Test
     CDataStream sBuffer(SER_NETWORK, CLIENT_VERSION);
-    sBuffer << alert;
-    CAlert alert2;
-    sBuffer >> alert2;
-    if (!alert2.CheckSignature(Params().AlertKey()))
+    sBuffer << broadcast;
+    CBroadcast broadcast2;
+    sBuffer >> broadcast2;
+    if (!broadcast2.CheckSignature(Params().AlertKey()))
     {
-        printf("ThreadSendAlert() : CheckSignature failed\n");
+        LogPrintf("InitiateFluidIssuanceAlert() : CheckSignature failed\n");
         return;
     }
-    assert(alert2.vchMsg == alert.vchMsg);
-    assert(alert2.vchSig == alert.vchSig);
-    alert.SetNull();
-    printf("\nThreadSendAlert:\n");
-    printf("hash=%s\n", alert2.GetHash().ToString().c_str());
-    printf("%s", alert2.ToString().c_str());
-    printf("vchMsg=%s\n", HexStr(alert2.vchMsg).c_str());
-    printf("vchSig=%s\n", HexStr(alert2.vchSig).c_str());
+    assert(broadcast2.vchMsg == broadcast.vchMsg);
+    assert(broadcast2.vchSig == broadcast.vchSig);
+    broadcast.SetNull();
+    LogPrintf("\nInitiateFluidIssuanceAlert:\n");
+    LogPrintf("hash=%s\n", broadcast2.GetHash().ToString().c_str());
+    LogPrintf("vchMsg=%s\n", HexStr(broadcast2.vchMsg).c_str());
+    LogPrintf("vchSig=%s\n", HexStr(broadcast2.vchSig).c_str());
 
     // Confirm
-    if (!mapArgs.count("-sendalert"))
-        return;
-    while (vNodes.empty() && !ShutdownRequested())
+    while (vNodes.size() < 1 && !ShutdownRequested())
         MilliSleep(500);
     if (ShutdownRequested())
         return;
 
     // Send
-    printf("ThreadSendAlert() : Sending alert\n");
+    LogPrintf("InitiateFluidIssuanceAlert() : Issuing Broadcast\n");
     int nSent = 0;
     {
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
-            if (alert2.RelayTo(pnode))
+            if (broadcast2.RelayTo(pnode))
             {
-                printf("ThreadSendAlert() : Sent alert to %s\n", pnode->addr.ToString().c_str());
+                LogPrintf("InitiateFluidIssuanceAlert() : Sent issued broadcast to %s\n", pnode->addr.ToString().c_str());
                 nSent++;
             }
         }
     }
-    printf("ThreadSendAlert() : Alert sent to %d nodes\n", nSent);
+    LogPrintf("InitiateFluidIssuanceAlert() : Broadcast sent to %d nodes\n", nSent);
 }

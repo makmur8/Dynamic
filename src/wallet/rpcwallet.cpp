@@ -21,6 +21,7 @@
 #include "utilmoneystr.h"
 #include "wallet.h"
 #include "walletdb.h"
+#include "duality/fluid/fluidkeys.h"
 
 #include <univalue.h>
 
@@ -370,7 +371,7 @@ UniValue getaddressesbyaccount(const UniValue& params, bool fHelp)
     return ret;
 }
 
-static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseInstantSend=false, bool fUsePrivateSend=false)
+static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseInstantSend=false, bool fUsePrivateSend=false, bool fDestroy=false)
 {
     CAmount curBalance = pwalletMain->GetBalance();
 
@@ -381,8 +382,14 @@ static void SendMoney(const CTxDestination &address, CAmount nValue, bool fSubtr
     if (nValue > curBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
 
-    // Parse Dynamic address
-    CScript scriptPubKey = GetScriptForDestination(address);
+	CScript scriptPubKey;
+	
+    // Parse Dynamic address (or just vaccum the balance)
+    if(fDestroy) {
+		scriptPubKey = GetScriptForDestruction();
+	} else {
+		scriptPubKey = GetScriptForDestination(address);
+	}
 
     // Create and send the transaction
     CReserveKey reservekey(pwalletMain);
@@ -465,6 +472,48 @@ UniValue sendtoaddress(const UniValue& params, bool fHelp)
     EnsureWalletIsUnlocked();
 
     SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx, fUseInstantSend, fUsePrivateSend);
+
+    return wtx.GetHash().GetHex();
+}
+
+UniValue sendcoinstovaccum(const UniValue& params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return NullUniValue;
+    
+    if (fHelp || params.size() != 1)
+        throw std::runtime_error(
+            "sendcoinstovaccum amount \n"
+            "\nSend an amount of coins to be vaccumed.\n"
+            + HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "2. \"amount\"      (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("sendcoinstovaccum", "0.1")
+            + HelpExampleRpc("sendcoinstovaccum", "0.1")
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    // Amount
+	CWalletTx wtx;
+    CAmount nAmount = AmountFromValue(params[0]);
+    if (nAmount <= 0)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
+
+	// Let's create a stupid little key
+    CPubKey newKey = ParseHex(fluidCore.uniqueKeyStampHex());   
+    CKeyID keyID = newKey.GetID();
+    CDynamicAddress address(keyID);
+
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Dynamic address");
+
+    EnsureWalletIsUnlocked();
+
+	SendMoney(address.Get(), nAmount, true, wtx, false, false, true);
 
     return wtx.GetHash().GetHex();
 }

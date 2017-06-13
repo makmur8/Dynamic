@@ -22,103 +22,204 @@
 
 #include "fluidtoken.h"
 
-SecureString PrepareIssuanceAnnouncement(int64_t tokenMintAmt, CDynamicAddress tokenDelivery) {
+#include "amount.h"
+#include "base58.h"
+#include "chain.h"
+#include "core_io.h"
+#include "util.h"
+#include "utilmoneystr.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
+#include "main.h"
+#include "init.h"
+#include "duality/keepass.h"
+#include "main.h"
+#include "net.h"
+#include "netbase.h"
+#include "policy/rbf.h"
+#include "api/rpc/rpcserver.h"
+#include "timedata.h"
+#include "fluidkeys.h"
+
+#include <boost/algorithm/string.hpp>
+
+int64_t FluidTokenIssuanceAmount(int64_t nTime, CDynamicAddress &destination, std::string broadcastMessage) {
+		
+	// Don't even bother with data that isn't even valid!
+	if (broadcastMessage == "IncorrectData")
+		return 0 * COIN;
 	
-	CDynamicAddress addr(flParams.uniqueAddressKey);
-	SecureString processMessage = tokenMintAmt + "::" + tokenDelivery;
+	if (!IsHex(broadcastMessage))
+		return 0 * COIN;
+
+	int len = broadcastMessage.length();
+	std::string decodedString;
 	
-    CHashWriter ss(SER_GETHASH, 0);
+	for(int i=0; i< len; i+=2)
+	{
+		std::string byte = broadcastMessage.substr(i,2);
+		char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+		decodedString.push_back(chr);
+	}
+	
+	if(!VerifyAlertToken(decodedString))
+		return 0 * COIN;
+	
+	std::vector<std::string> strs, ptrs;
+	std::string::size_type size, sizeX;
+	boost::split(strs, decodedString, boost::is_any_of(" "));
+	boost::split(ptrs, strs.at(0), boost::is_any_of("::"));
+	
+	CAmount coinAmount = std::stoi (ptrs.at(0),&size);
+	int64_t issuanceTime = std::stoi (ptrs.at(2),&sizeX);
+	std::string recipientAddress = ptrs.at(4);
+	
+	destination.SetString(recipientAddress);
+	
+	// if (GetTime() + 15 * 60 < issuanceTime || GetTime() - 15 * 60 > issuanceTime)
+	//	return 0 * COIN;
+		
+	if(!destination.IsValid())
+		return 0 * COIN;
+	
+	if(coinAmount < fluidCore.fluidMintingMinimum)
+		return 0 * COIN;
+	
+	return coinAmount;
+}
+
+bool GenerateFluidToken(CDynamicAddress sendToward, 
+						CAmount tokenMintAmt, std::string &issuanceString) {
+	
+	if(!sendToward.IsValid())
+		return false;
+	
+	std::string unsignedMessage;
+	unsignedMessage = std::to_string(tokenMintAmt) + "::" + std::to_string(GetTime()) + "::" + sendToward.ToString();
+
+	CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
-    ss << processMessage;
+    ss << unsignedMessage;
+    
+   	CDynamicAddress addr(fluidCore.sovreignAddress);
+
+    CKeyID keyID;
+    if (!addr.GetKeyID(keyID))
+		return false;
+
+	CKey key;
+    if (!pwalletMain->GetKey(keyID, key))
+		return false;
 
     std::vector<unsigned char> vchSig;
     if (!key.SignCompact(ss.GetHash(), vchSig))
-		return "";
-
-    return processMessage + ":::" + EncodeBase64(&vchSig[0], vchSig.size());
-}
-
-
-bool AnnounceIssuance(std::string preparedString, CDynamicAddress tokenDelivery) {
+		return false;
+	else
+		issuanceString = unsignedMessage + " " + EncodeBase64(&vchSig[0], vchSig.size());
 	
-	CDynamicAddress addr(tokenDelivery);
+	if(tokenMintAmt < fluidCore.fluidMintingMinimum)
+		return 0 * COIN;
+	
+	fluidCore.ConvertToHex(issuanceString);
 		
-    CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
-		return error("Does not refer to a key");
-
-    CKey vchSecret;
-    if (!pwalletMain->GetKey(keyID, vchSecret))
-		return error("Private Key Unavailable");
-		
-	if (!BroadcastMintingOperation(preparedString, CDynamicSecret(vchSecret).ToString()));
-		return error("Alert Sending Failed!");
-	
-	return true;
+    return true;
 }
 
-CMutableTransaction FluidToken::CreateTokenIssuanceTransaction(int64_t StandardValue) {
-	// Create coinbase tx
-	CMutableTransaction txNew;
-	txNew.vin.resize(1);
-	txNew.vin[0].prevout.SetNull();
-	txNew.vout.resize(1);
-	txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-	txNew.vout[0].nValue = 0 * COIN; /* GetBlockSubsidy(nHeight, chainparams.GetConsensus()); */
-	
-	// Thanks ZCash :)
-	
-	if (fForked) {
-		// Founders reward is 20% of the block subsidy
-		auto vFoundersReward = txNew.vout[0].nValue / 5;
-		// Take some reward away from us
-		txNew.vout[0].nValue -= vFoundersReward;
-
-		auto rewardScript = ParseHex(something);
-
-		// And give it to the founders
-		txNew.vout.push_back(CTxOut(vFoundersReward, CScript(rewardScript.begin(),
-															 rewardScript.end())));
-	}
-	
-    return txNew;
-}
-
-// Doesn't require the sovreign wallet as it is basic verification
-bool VerifyAlertToken(CDynamicAddress signageAddress, SecureString uniqueIdentifier)
+bool VerifyAlertToken(std::string uniqueIdentifier)
 {
-    CDynamicAddress addr(signageAddress);
-    if (!addr.IsValid())
-		return false;
-		
+    CDynamicAddress addr(fluidCore.sovreignAddress);
+    
     CKeyID keyID;
     if (!addr.GetKeyID(keyID))
 		return false;
 	
-	/*
-	 * Decode Unique Identifier as:
-	 * Instruction (which has to be then split later on)
-	 * Signage for proof of message
-	 */
+	std::vector<std::string> strs;
+	boost::split(strs, uniqueIdentifier, boost::is_any_of(" "));
 	
-	SecureString digestSignature, messageTokenKey;
-	
+	std::string digestSignature = strs.at(1);
+	std::string messageTokenKey = strs.at(0);
+		
     bool fInvalid = false;
-    std::vector<unsigned char> vchSig = DecodeBase64(digestSignature, &fInvalid);
+    std::vector<unsigned char> vchSig = DecodeBase64(digestSignature.c_str(), &fInvalid);
 
     if (fInvalid)
 		return false;
-		
+	    
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
     ss << messageTokenKey;
 
     CPubKey pubkey;
+    
     if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
 		return false;
 		
     if (!(CDynamicAddress(pubkey.GetID()) == addr))
 		return false;
 	
-	return false;
+	return true;
 }
+
+/** Checks if scriptPubKey is that of the hardcoded addresses */
+bool IsItHardcoded(std::string givenScriptPubKey) {
+#ifdef ENABLE_WALLET /// Assume that address is valid
+	CDynamicAddress address(fluidCore.sovreignAddress);
+	
+	CTxDestination dest = address.Get();
+	CScript scriptPubKey = GetScriptForDestination(dest);
+		
+	return (givenScriptPubKey == HexStr(scriptPubKey.begin(), scriptPubKey.end()));
+#else /// Shouldn't happen as it musn't be called if no wallet
+	return false;
+#endif
+}
+
+/** Does client instance own address for engaging in processes - required for RPC (PS: NEEDS wallet) */
+bool InitiateFluidVerify(CDynamicAddress dynamicAddress) {
+#ifdef ENABLE_WALLET
+    LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+	CDynamicAddress address(dynamicAddress);
+	
+	if (address.IsValid()) {
+		CTxDestination dest = address.Get();
+		CScript scriptPubKey = GetScriptForDestination(dest);
+		
+		/** Additional layer of verification, is probably redundant */
+		if (IsItHardcoded(HexStr(scriptPubKey.begin(), scriptPubKey.end()))) {
+			isminetype mine = pwalletMain ? IsMine(*pwalletMain, dest) : ISMINE_NO;
+			return ((mine & ISMINE_SPENDABLE) ? true : false); // We must be able to sign transactions with sovereign key
+		}
+	}
+	
+	return false;
+#else
+	// LogPrint that Wallet cannot be accessed, cannot continue ahead!
+    return false;
+#endif
+}
+bool IsFluidParametersSane() {
+	CDynamicAddress address(fluidCore.sovreignAddress);
+	return (address.IsValid());
+}
+
+bool DerivePrivateKey(CDynamicAddress universalKey, SecureString &magicKey) {
+	LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    std::string strAddress = universalKey.ToString();
+    CDynamicAddress address;
+    if (!address.SetString(strAddress))
+        return false;
+		
+    CKeyID keyID;
+    if (!address.GetKeyID(keyID))
+        return false;
+		
+    CKey vchSecret;
+    if (!pwalletMain->GetKey(keyID, vchSecret))
+		return false;
+		
+    magicKey = CDynamicSecret(vchSecret).ToString().c_str();
+    
+    return true;
+}
+

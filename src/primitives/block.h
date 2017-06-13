@@ -19,7 +19,19 @@
  * in the block is a special one that creates a new coin owned by the creator
  * of the block.
  */
-class CBlockHeader
+
+// TODO: Use this as starting point to add money supply as part of block structure
+//       along with other structural modifications, possibly messing up a possible
+//       compact blocks implementation
+
+class FluidBlocks {
+public:
+	bool Version5Activated(int64_t time) {
+		return /* (time >= 1535347800) */ true;
+	}
+};
+
+class CBlockHeader : public FluidBlocks
 {
 public:
     // header

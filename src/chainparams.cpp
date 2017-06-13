@@ -11,6 +11,7 @@
 #include "hash.h"
 #include "consensus/merkle.h"
 #include "streams.h"
+#include "duality/fluid/fluidkeys.h"
 
 #include "tinyformat.h"
 #include "util.h"
@@ -157,7 +158,7 @@ public:
         pchMessageStart[1] = 0x42;
         pchMessageStart[2] = 0x55;
         pchMessageStart[3] = 0x61;
-        vAlertPubKey = ParseHex("04ae9821c0e83ed7b23a08513047ec23e3acf41be066239d48c7571032efc858b30af168516aaf3320f57c431cf697de8dfd00b0c86112c231dbef04de46b8a731");
+        vAlertPubKey = ParseHex("76a914db6e61a69e67f5a5084f65be89accfaff2001fbd88ac");
         nDefaultPort = 31300;
         nMaxTipAge = 24 * 60 * 64;
         nPruneAfterHeight = 20545;
@@ -167,12 +168,12 @@ public:
         if(startNewChain == true) { MineGenesis(genesis, consensus.powLimit, true); }
 
         consensus.hashGenesisBlock = genesis.GetHash();
-        		
+
         if(!startNewChain) {
             assert(consensus.hashGenesisBlock == uint256S("0x00000ce9ce63ee661a41dd01fccaa4407e28e684cf925c58c87374082f07806d"));
             assert(genesis.hashMerkleRoot == uint256S("0xe89257a8e8dc153acd33b55c571d4b4878fce912cc4e334c2a4bddcd3cbbfcc9"));
 		}
-		
+
         vSeeds.push_back(CDNSSeedData("dnsseeder.io", "dyn.dnsseeder.io"));
         vSeeds.push_back(CDNSSeedData("dnsseeder.com", "dyn.dnsseeder.com"));
         vSeeds.push_back(CDNSSeedData("dnsseeder.host", "dyn.dnsseeder.host"));

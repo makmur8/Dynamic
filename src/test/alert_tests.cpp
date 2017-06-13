@@ -24,9 +24,9 @@
 #include <boost/test/unit_test.hpp>
 
 //
-// Sign a CAlert and serialize it
+// Sign a CBroadcast and serialize it
 //
-bool SignAndSave(CAlert &alert)
+bool SignAndSave(CBroadcast &alert)
 {
     // Sign
     if(!alert.Sign())
@@ -57,7 +57,7 @@ bool SignAndSave(CAlert &alert)
 //
 void GenerateAlertTests()
 {
-    CAlert alert;
+    CBroadcast alert;
     alert.nRelayUntil   = 60;
     alert.nExpiration   = 24 * 60 * 60;
     alert.nID           = 1;
@@ -116,7 +116,7 @@ struct ReadAlerts : public TestingSetup
         try {
             while (!stream.eof())
             {
-                CAlert alert;
+                CBroadcast alert;
                 stream >> alert;
                 alerts.push_back(alert);
             }
@@ -137,7 +137,7 @@ struct ReadAlerts : public TestingSetup
         return result;
     }
 
-    std::vector<CAlert> alerts;
+    std::vector<CBroadcast> alerts;
 };
 
 BOOST_FIXTURE_TEST_SUITE(Alert_tests, ReadAlerts)
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    BOOST_FOREACH(const CAlert& alert, alerts)
+    BOOST_FOREACH(const CBroadcast& alert, alerts)
     {
         BOOST_CHECK(alert.CheckSignature(alertKey));
     }
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
 
     mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
 
-    BOOST_FOREACH(CAlert alert, alerts)
+    BOOST_FOREACH(CBroadcast alert, alerts)
         alert.ProcessAlert(alertKey, false);
 
     std::vector<std::string> r = read_lines(temp);

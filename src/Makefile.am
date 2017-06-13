@@ -114,6 +114,8 @@ DYNAMIC_CORE_H = \
 	duality/dynode/dynodeconfig.h \
 	duality/dynode/dynodeman.h \
 	duality/fluid/broadcast.h \
+	duality/fluid/fluidtoken.h \
+        duality/fluid/fluidkeys.h \
 	duality/governance/governance-classes.h \
 	duality/governance/governance-exceptions.h \
 	duality/governance/governance-object.h \
@@ -223,7 +225,9 @@ libdynamic_server_a_SOURCES = \
 	duality/dns/dns.cpp \
 	duality/dns/dyndns.cpp \
 	duality/fluid/broadcast.cpp \
+	duality/fluid/fluidtoken.cpp \
 	duality/fluid/issuebroadcasts.cpp \
+	duality/fluid/rpcfluid.cpp \
 	duality/governance/governance-classes.cpp \
 	duality/governance/governance-object.cpp \
 	duality/governance/governance-vote.cpp \
@@ -338,6 +342,7 @@ libdynamic_common_a_SOURCES = \
 	consensus/merkle.cpp \
 	core_read.cpp \
 	core_write.cpp \
+	duality/fluid/fluidkeys.cpp \
 	duality/bip39/bip39.cpp \
 	duality/hdchain.cpp \
 	duality/spork.cpp \

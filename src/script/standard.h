@@ -78,6 +78,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
 CScript GetScriptForDestination(const CTxDestination& dest);
 CScript GetScriptForRawPubKey(const CPubKey& pubkey);
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
+CScript GetScriptForDestruction();
 CScriptID GetScriptID(const CScript& script);
 
 #endif // DYNAMIC_SCRIPT_STANDARD_H

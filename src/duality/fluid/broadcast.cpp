@@ -6,6 +6,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "duality/fluid/broadcast.h"
+#include "duality/fluid/fluidkeys.h"
 
 #include "base58.h"
 #include "clientversion.h"
@@ -15,6 +16,8 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
 #include <algorithm>
 #include <map>
@@ -25,10 +28,11 @@
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
-std::map<uint256, CAlert> mapAlerts;
+extern CWallet* pwalletMain;
+std::map<uint256, CBroadcast> mapAlerts;
 CCriticalSection cs_mapAlerts;
 
-void CUnsignedAlert::SetNull()
+void CUnsignedBroadcast::SetNull()
 {
     nVersion = 1;
     nRelayUntil = 0;
@@ -46,7 +50,7 @@ void CUnsignedAlert::SetNull()
     strReserved.clear();
 }
 
-std::string CUnsignedAlert::ToString() const
+std::string CUnsignedBroadcast::ToString() const
 {
     std::string strSetCancel;
     BOOST_FOREACH(int n, setCancel)
@@ -55,7 +59,7 @@ std::string CUnsignedAlert::ToString() const
     BOOST_FOREACH(const std::string& str, setSubVer)
         strSetSubVer += "\"" + str + "\" ";
     return strprintf(
-        "CAlert(\n"
+        "CBroadcast(\n"
         "    nVersion     = %d\n"
         "    nRelayUntil  = %d\n"
         "    nExpiration  = %d\n"
@@ -83,36 +87,36 @@ std::string CUnsignedAlert::ToString() const
         strStatusBar);
 }
 
-void CAlert::SetNull()
+void CBroadcast::SetNull()
 {
-    CUnsignedAlert::SetNull();
+    CUnsignedBroadcast::SetNull();
     vchMsg.clear();
     vchSig.clear();
 }
 
-bool CAlert::IsNull() const
+bool CBroadcast::IsNull() const
 {
     return (nExpiration == 0);
 }
 
-uint256 CAlert::GetHash() const
+uint256 CBroadcast::GetHash() const
 {
     return Hash(this->vchMsg.begin(), this->vchMsg.end());
 }
 
-bool CAlert::IsInEffect() const
+bool CBroadcast::IsInEffect() const
 {
     return (GetAdjustedTime() < nExpiration);
 }
 
-bool CAlert::Cancels(const CAlert& alert) const
+bool CBroadcast::Cancels(const CBroadcast& alert) const
 {
     if (!IsInEffect())
         return false; // this was a no-op before 31403
     return (alert.nID <= nCancel || setCancel.count(alert.nID));
 }
 
-bool CAlert::AppliesTo(int nVersion, const std::string& strSubVerIn) const
+bool CBroadcast::AppliesTo(int nVersion, const std::string& strSubVerIn) const
 {
     // TODO: rework for client-version-embedded-in-strSubVer ?
     return (IsInEffect() &&
@@ -120,12 +124,12 @@ bool CAlert::AppliesTo(int nVersion, const std::string& strSubVerIn) const
             (setSubVer.empty() || setSubVer.count(strSubVerIn)));
 }
 
-bool CAlert::AppliesToMe() const
+bool CBroadcast::AppliesToMe() const
 {
     return AppliesTo(PROTOCOL_VERSION, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<std::string>()));
 }
 
-bool CAlert::RelayTo(CNode* pnode) const
+bool CBroadcast::RelayTo(CNode* pnode) const
 {
     if (!IsInEffect())
         return false;
@@ -146,52 +150,85 @@ bool CAlert::RelayTo(CNode* pnode) const
     return false;
 }
 
-bool CAlert::Sign()
+bool CBroadcast::Sign()
 {
     CDataStream sMsg(SER_NETWORK, CLIENT_VERSION);
-    sMsg << *(CUnsignedAlert*)this;
+    sMsg << *(CUnsignedBroadcast*)this;
     vchMsg = std::vector<unsigned char>(sMsg.begin(), sMsg.end());
-    CDynamicSecret vchSecret;
-    if (!vchSecret.SetString(GetArg("-alertkey", "")))
+    
+    // This shouldn't be necessary, seriously
+    /* if (!vchSecret.SetString(GetArg("-alertkey", "")))
     {
-        printf("CAlert::SignAlert() : vchSecret.SetString failed\n");
+        printf("CBroadcast::SignAlert() : vchSecret.SetString failed\n");
+        return false;
+    } */
+	
+	// LOCK2(cs_main, pwalletMain ? &pwalletMain->cs_wallet : NULL);
+
+   	CDynamicAddress addr(fluidCore.sovreignAddress);
+
+    CKeyID keyID;
+    if (!addr.GetKeyID(keyID))
+    {
+        printf("CBroadcast::SignAlert() : addr.GetKeyID failed\n");
         return false;
     }
-    CKey key = vchSecret.GetKey();
-    if (!key.Sign(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+    
+	CKey key;
+    if (!pwalletMain->GetKey(keyID, key))
     {
-        printf("CAlert::SignAlert() : key.Sign failed\n");
+        printf("CBroadcast::SignAlert() : pwalletMain->GetKey failed\n");
+        return false;
+    }
+    
+    if (!key.SignCompact(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+    {
+        printf("CBroadcast::SignAlert() : key.SignCompact failed\n");
         return false;
     }
 
     return true;
 }
 
-bool CAlert::CheckSignature(const std::vector<unsigned char>& alertKey) const
+bool CBroadcast::CheckSignature(const std::vector<unsigned char>& alertKey) const
 {
-    CPubKey key(alertKey);
-    if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
-        return error("CAlert::CheckSignature(): verify signature failed");
-
+//    CPubKey key(alertKey);
+//    if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+//        
+    CDynamicAddress addr(fluidCore.sovreignAddress);
+   
+    CKeyID keyID;
+    
+    if (!addr.GetKeyID(keyID))
+		return error("CBroadcast::CheckSignature(): key id derivation failed");
+	
+    CPubKey pubkey;
+    
+    if (!pubkey.RecoverCompact(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+        return error("CBroadcast::CheckSignature(): verify signature failed");
+		
+    if (!(CDynamicAddress(pubkey.GetID()) == addr))
+        return error("CBroadcast::CheckSignature(): verify pubkey address failed");
+	
     // Now unserialize the data
     CDataStream sMsg(vchMsg, SER_NETWORK, PROTOCOL_VERSION);
-    sMsg >> *(CUnsignedAlert*)this;
+    sMsg >> *(CUnsignedBroadcast*)this;
     return true;
 }
 
-CAlert CAlert::getAlertByHash(const uint256 &hash)
+CBroadcast CBroadcast::getAlertByHash(const uint256 &hash)
 {
-    CAlert retval;
+    CBroadcast retval;
     {
         LOCK(cs_mapAlerts);
-        std::map<uint256, CAlert>::iterator mi = mapAlerts.find(hash);
+        std::map<uint256, CBroadcast>::iterator mi = mapAlerts.find(hash);
         if(mi != mapAlerts.end())
             retval = mi->second;
     }
     return retval;
 }
 
-bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey, bool fThread)
+bool CBroadcast::ProcessAlert(const std::vector<unsigned char>& alertKey, bool fThread)
 {
     if (!CheckSignature(alertKey))
         return false;
@@ -223,9 +260,9 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey, bool fThre
     {
         LOCK(cs_mapAlerts);
         // Cancel previous alerts
-        for (std::map<uint256, CAlert>::iterator mi = mapAlerts.begin(); mi != mapAlerts.end();)
+        for (std::map<uint256, CBroadcast>::iterator mi = mapAlerts.begin(); mi != mapAlerts.end();)
         {
-            const CAlert& alert = (*mi).second;
+            const CBroadcast& alert = (*mi).second;
             if (Cancels(alert))
             {
                 LogPrint("alert", "cancelling alert %d\n", alert.nID);
@@ -243,9 +280,9 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey, bool fThre
         }
 
         // Check if this alert has been cancelled
-        BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts)
+        BOOST_FOREACH(PAIRTYPE(const uint256, CBroadcast)& item, mapAlerts)
         {
-            const CAlert& alert = item.second;
+            const CBroadcast& alert = item.second;
             if (alert.Cancels(*this))
             {
                 LogPrint("alert", "alert already cancelled by %d\n", alert.nID);
@@ -268,7 +305,7 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey, bool fThre
 }
 
 void
-CAlert::Notify(const std::string& strMessage, bool fThread)
+CBroadcast::Notify(const std::string& strMessage, bool fThread)
 {
     std::string strCmd = GetArg("-alertnotify", "");
     if (strCmd.empty()) return;

@@ -58,6 +58,7 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #endif
+#include "duality/fluid/fluidtoken.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -81,8 +82,6 @@
 #if ENABLE_ZMQ
 #include "zmq/zmqnotificationinterface.h"
 #endif
-
-extern void ThreadSendAlert();
 
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
@@ -2093,8 +2092,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         suffix.c_str(), allowed.c_str(), localcf.c_str(), enums.c_str(), tf.c_str(), verbose);
         LogPrintf("dDNS server started\n");
     }
-
-    threadGroup.create_thread(boost::bind(&ThreadSendAlert));
-
+	
+	assert(IsFluidParametersSane() != false);
+	
     return !fRequestShutdown;
 }

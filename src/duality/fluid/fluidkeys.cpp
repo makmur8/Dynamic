@@ -20,11 +20,9 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef FLUID_CHAIN
-#define FLUID_CHAIN
+/** Developer's Note: This file musn't be edited, it's for the sake of ChainParams */
 
-class FluidChain, public FluidVerification {
+#include "fluidkeys.h"
 
-}
+FluidParameters fluidCore;
 
-#endif // FLUID_CHAIN

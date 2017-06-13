@@ -9,6 +9,7 @@
 #include "script/script.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "duality/fluid/fluidkeys.h"
 
 #include <boost/foreach.hpp>
 
@@ -268,6 +269,11 @@ CScript GetScriptForDestination(const CTxDestination& dest)
 
     boost::apply_visitor(CScriptVisitor(&script), dest);
     return script;
+}
+
+CScript GetScriptForDestruction()
+{
+    return CScript() << OP_RETURN << ParseHex(fluidCore.uniqueBurnStampHex());
 }
 
 CScript GetScriptForRawPubKey(const CPubKey& pubKey)
