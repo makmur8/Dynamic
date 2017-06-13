@@ -8,13 +8,13 @@
 #ifndef DYNAMIC_TXMEMPOOL_H
 #define DYNAMIC_TXMEMPOOL_H
 
-#include "addressindex.h"
+#include "api/bitcore/addressindex.h"
 #include "amount.h"
 #include "coins.h"
 #include "indirectmap.h"
 #include "primitives/transaction.h"
 #include "random.h"
-#include "spentindex.h"
+#include "api/bitcore/spentindex.h"
 #include "sync.h"
 
 #include <list>

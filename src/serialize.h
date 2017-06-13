@@ -953,6 +953,15 @@ public:
     size_t size() const {
         return nSize;
     }
+	
+	int GetVersion() const { return nVersion; }
+	int GetType() const { return nType; }
 };
+
+template <typename S, typename T>
+size_t GetSerializeSize(const S& s, const T& t)
+{
+    return (CSizeComputer(s.GetType(), s.GetVersion()) << t).size();
+}
 
 #endif // DYNAMIC_SERIALIZE_H

@@ -411,6 +411,9 @@ if test x$use_lcov = xyes; then
     [AC_MSG_ERROR("lcov testing requested but --coverage flag does not work")])
 fi
 
+dnl Check for __int128
+AC_CHECK_TYPES([__int128])
+
 dnl Check for endianness
 AC_C_BIGENDIAN
 
