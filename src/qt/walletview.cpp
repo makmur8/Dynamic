@@ -24,7 +24,7 @@
 #include "multisigdialog.h"
 
 #include "dnspage.h"
-#include "dynodeconfig.h"
+#include "duality/dynode/dynodeconfig.h"
 #include "ui_interface.h"
 
 #include <QAction>

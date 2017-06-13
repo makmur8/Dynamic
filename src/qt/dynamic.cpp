@@ -19,7 +19,7 @@
 #include "optionsmodel.h"
 #include "platformstyle.h"
 #include "splashscreen.h"
-#include "dynodeconfig.h"
+#include "duality/dynode/dynodeconfig.h"
 #include "utilitydialog.h"
 #include "winshutdownmonitor.h"
 #ifdef ENABLE_WALLET
@@ -29,7 +29,7 @@
 
 #include "chainparams.h"
 #include "init.h"
-#include "rpcserver.h"
+#include "api/rpc/rpcserver.h"
 #include "scheduler.h"
 #include "ui_interface.h"
 #include "util.h"

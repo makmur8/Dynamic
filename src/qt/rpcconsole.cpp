@@ -14,8 +14,8 @@
 
 #include "main.h"
 #include "chainparams.h"
-#include "rpcserver.h"
-#include "rpcclient.h"
+#include "api/rpc/rpcserver.h"
+#include "api/rpc/rpcclient.h"
 #include "util.h"
 
 #include <univalue.h>

@@ -4,7 +4,7 @@
 
 // Unit tests for alert system
 
-#include "alert.h"
+#include "duality/fluid/broadcast.h"
 #include "chain.h"
 #include "chainparams.h"
 #include "clientversion.h"

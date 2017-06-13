@@ -13,7 +13,7 @@
 #include "optionsmodel.h"
 #include "walletmodel.h"
 
-#include "privatesend.h"
+#include "duality/privatesend/privatesend.h"
 
 #include <QKeyEvent>
 #include <QMessageBox>

@@ -15,7 +15,7 @@
 #include "walletmodel.h"
 
 #include "base58.h"
-#include "dns/dns.h"
+#include "duality/dns/dns.h"
 #include "main.h"
 #include "ui_interface.h"
 #include "wallet/wallet.h"

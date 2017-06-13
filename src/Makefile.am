@@ -65,16 +65,16 @@ endif
 .PHONY: FORCE check-symbols check-security
 # dynamic #
 DYNAMIC_CORE_H = \
-  activedynode.h \
+  duality/dynode/activedynode.h \
   addressindex.h \
   spentindex.h \
   addrman.h \
-  alert.h \
+  duality/fluid/broadcast.h \
   amount.h \
   arith_uint256.h \
   base58.h \
-  bip39_english.h \
-  bip39.h \
+  duality/bip39/bip39_english.h \
+  duality/bip39/bip39.h \
   bloom.h \
   cachemap.h \
   cachemultimap.h \
@@ -100,30 +100,30 @@ DYNAMIC_CORE_H = \
   core_io.h \
   core_memusage.h \
   dbwrapper.h \
-  dns/dns.h \
-  dns/dyndns.h \
-  dns/hooks.h \
-  dynode.h \
-  dynode-payments.h \
-  dynode-sync.h \
-  dynodeman.h \
-  dynodeconfig.h \
+  duality/dns/dns.h \
+  duality/dns/dyndns.h \
+  duality/dns/hooks.h \
+  duality/dynode/dynode.h \
+  duality/dynode/dynode-payments.h \
+  duality/dynode/dynode-sync.h \
+  duality/dynode/dynodeman.h \
+  duality/dynode/dynodeconfig.h \
   flat-database.h \
-  governance.h \
-  governance-classes.h \
-  governance-exceptions.h \
-  governance-object.h \
-  governance-vote.h \
-  governance-votedb.h \
+  duality/governance/governance.h \
+  duality/governance/governance-classes.h \
+  duality/governance/governance-exceptions.h \
+  duality/governance/governance-object.h \
+  duality/governance/governance-vote.h \
+  duality/governance/governance-votedb.h \
   hash.h \
-  hdchain.h \
-  httprpc.h \
-  httpserver.h \
+  duality/hdchain.h \
+  api/http/httprpc.h \
+  api/http/httpserver.h \
   indirectmap.h \
   init.h \
-  instantsend.h \
+  duality/instantsend/instantsend.h \
   key.h \
-  keepass.h \
+  duality/keepass.h \
   keystore.h \
   limitedmap.h \
   main.h \
@@ -142,16 +142,16 @@ DYNAMIC_CORE_H = \
   prevector.h \
   primitives/block.h \
   primitives/transaction.h \
-  privatesend.h \
-  psnotificationinterface.h \
-  privatesend-relay.h \
+  duality/privatesend/privatesend.h \
+  duality/privatesend/psnotificationinterface.h \
+  duality/privatesend/privatesend-relay.h \
   protocol.h \
   pubkey.h \
   random.h \
   reverselock.h \
-  rpcclient.h \
-  rpcprotocol.h \
-  rpcserver.h \
+  api/rpc/rpcclient.h \
+  api/rpc/rpcprotocol.h \
+  api/rpc/rpcserver.h \
   scheduler.h \
   script/interpreter.h \
   script/script.h \
@@ -160,7 +160,7 @@ DYNAMIC_CORE_H = \
   script/sign.h \
   script/standard.h \
   serialize.h \
-  spork.h \
+  duality/spork.h \
   streams.h \
   support/allocators/secure.h \
   support/allocators/zeroafterfree.h \
@@ -204,21 +204,21 @@ libdynamic_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(DYNAMIC_INCLUDES) $(MINIUPNPC_CP
 libdynamic_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libdynamic_server_a_SOURCES = \
   addrman.cpp \
-  alert.cpp \
+  duality/fluid/broadcast.cpp \
   bloom.cpp \
   chain.cpp \
   checkpoints.cpp \
   checkforks.cpp \
   dbwrapper.cpp \
-  dns/dns.cpp \
-  dns/dyndns.cpp \
-  governance.cpp \
-  governance-classes.cpp \
-  governance-object.cpp \
-  governance-vote.cpp \
-  governance-votedb.cpp \
-  httprpc.cpp \
-  httpserver.cpp \
+  duality/dns/dns.cpp \
+  duality/dns/dyndns.cpp \
+  duality/governance/governance.cpp \
+  duality/governance/governance-classes.cpp \
+  duality/governance/governance-object.cpp \
+  duality/governance/governance-vote.cpp \
+  duality/governance/governance-votedb.cpp \
+  api/http/httprpc.cpp \
+  api/http/httpserver.cpp \
   init.cpp \
   main.cpp \
   merkleblock.cpp \
@@ -231,16 +231,16 @@ libdynamic_server_a_SOURCES = \
   policy/policy.cpp \
   pow.cpp \
   rest.cpp \
-  rpcblockchain.cpp \
-  rpcdynode.cpp \
-  rpcgovernance.cpp \
-  rpcmining.cpp \
-  rpcmisc.cpp \
-  rpcnet.cpp \
-  rpcrawtransaction.cpp \
-  rpcserver.cpp \
+  api/rpc/rpcblockchain.cpp \
+  api/rpc/rpcdynode.cpp \
+  api/rpc/rpcgovernance.cpp \
+  api/rpc/rpcmining.cpp \
+  api/rpc/rpcmisc.cpp \
+  api/rpc/rpcnet.cpp \
+  api/rpc/rpcrawtransaction.cpp \
+  api/rpc/rpcserver.cpp \
   script/sigcache.cpp \
-  sendalert.cpp \
+  duality/fluid/issuebroadcasts.cpp \
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \
@@ -267,18 +267,18 @@ endif
 libdynamic_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(DYNAMIC_INCLUDES)
 libdynamic_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libdynamic_wallet_a_SOURCES = \
-  activedynode.cpp \
-  dynode.cpp \
-  dynode-payments.cpp \
-  dynode-sync.cpp \
-  dynodeconfig.cpp \
-  dynodeman.cpp \
-  instantsend.cpp \
-  keepass.cpp \
+  duality/dynode/activedynode.cpp \
+  duality/dynode/dynode.cpp \
+  duality/dynode/dynode-payments.cpp \
+  duality/dynode/dynode-sync.cpp \
+  duality/dynode/dynodeconfig.cpp \
+  duality/dynode/dynodeman.cpp \
+  duality/instantsend/instantsend.cpp \
+  duality/keepass.cpp \
   policy/rbf.cpp \
-  privatesend.cpp \
-  privatesend-relay.cpp \
-  psnotificationinterface.cpp \
+  duality/privatesend/privatesend.cpp \
+  duality/privatesend/privatesend-relay.cpp \
+  duality/privatesend/psnotificationinterface.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/rpcdump.cpp \
@@ -328,7 +328,7 @@ libdynamic_common_a_SOURCES = \
   amount.cpp \
   arith_uint256.cpp \
   base58.cpp \
-  bip39.cpp \
+  duality/bip39/bip39.cpp \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
@@ -336,7 +336,7 @@ libdynamic_common_a_SOURCES = \
   core_read.cpp \
   core_write.cpp \
   hash.cpp \
-  hdchain.cpp \
+  duality/hdchain.cpp \
   key.cpp \
   keystore.cpp \
   netbase.cpp \
@@ -350,7 +350,7 @@ libdynamic_common_a_SOURCES = \
   script/script_error.cpp \
   script/sign.cpp \
   script/standard.cpp \
-  spork.cpp \
+  duality/spork.cpp \
   $(DYNAMIC_CORE_H)
 
 # util: shared between all executables.
@@ -365,7 +365,7 @@ libdynamic_util_a_SOURCES = \
   compat/glibcxx_sanity.cpp \
   compat/strnlen.cpp \
   random.cpp \
-  rpcprotocol.cpp \
+  api/rpc/rpcprotocol.cpp \
   support/cleanse.cpp \
   support/lockedpool.cpp \
   sync.cpp \
@@ -384,7 +384,7 @@ endif
 libdynamic_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(DYNAMIC_INCLUDES)
 libdynamic_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libdynamic_cli_a_SOURCES = \
-  rpcclient.cpp \
+  api/rpc/rpcclient.cpp \
   $(DYNAMIC_CORE_H)
 
 nodist_libdynamic_util_a_SOURCES = $(srcdir)/obj/build.h

@@ -10,7 +10,7 @@
 
 #include "amount.h"
 #include "wallet/db.h"
-#include "hdchain.h"
+#include "duality/hdchain.h"
 #include "key.h"
 
 #include <list>

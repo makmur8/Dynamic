@@ -8,7 +8,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "test/test_dynamic.h"
-#include "bip39.h"
+#include "duality/bip39/bip39.h"
 
 #include <boost/test/unit_test.hpp>
 

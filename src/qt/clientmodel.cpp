@@ -11,7 +11,7 @@
 #include "guiconstants.h"
 #include "peertablemodel.h"
 
-#include "alert.h"
+#include "duality/fluid/broadcast.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "clientversion.h"
@@ -20,9 +20,9 @@
 #include "ui_interface.h"
 #include "util.h"
 
-#include "dynodeman.h"
-#include "dynode-sync.h"
-#include "privatesend.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/privatesend/privatesend.h"
 
 #include <stdint.h>
 

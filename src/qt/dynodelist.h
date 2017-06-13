@@ -10,7 +10,7 @@
 
 #include "platformstyle.h"
 
-#include "dynode.h"
+#include "duality/dynode/dynode.h"
 #include "sync.h"
 #include "util.h"
 

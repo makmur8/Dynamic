@@ -9,7 +9,7 @@
 #include "chain.h"
 #include "init.h"
 #include "main.h"
-#include "rpcserver.h"
+#include "api/rpc/rpcserver.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "sync.h"

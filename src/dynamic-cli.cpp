@@ -7,8 +7,8 @@
 
 #include "chainparamsbase.h"
 #include "clientversion.h"
-#include "rpcclient.h"
-#include "rpcprotocol.h"
+#include "api/rpc/rpcclient.h"
+#include "api/rpc/rpcprotocol.h"
 #include "util.h"
 #include "utilstrencodings.h"
 

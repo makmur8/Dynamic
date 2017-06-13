@@ -7,15 +7,15 @@
 
 #include "chainparams.h"
 #include "clientversion.h"
-#include "httpserver.h"
-#include "httprpc.h"
+#include "api/http/httpserver.h"
+#include "api/http/httprpc.h"
 #include "init.h"
 #include "noui.h"
-#include "rpcserver.h"
+#include "api/rpc/rpcserver.h"
 #include "scheduler.h"
 #include "util.h"
 
-#include "dynodeconfig.h"
+#include "duality/dynode/dynodeconfig.h"
 
 #include <stdio.h>
 

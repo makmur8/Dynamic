@@ -31,7 +31,7 @@
 #endif
 
 #include "chainparams.h"
-#include "dynode-sync.h"
+#include "duality/dynode/dynode-sync.h"
 #include "dynodelist.h"
 #include "init.h"
 #include "ui_interface.h"

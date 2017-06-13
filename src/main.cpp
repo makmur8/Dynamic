@@ -8,27 +8,27 @@
 #include "main.h"
 
 #include "addrman.h"
-#include "alert.h"
+#include "duality/fluid/broadcast.h"
 #include "arith_uint256.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
 #include "consensus/consensus.h"
-#include "dns/dns.h"
-#include "dynode-payments.h"
-#include "dynode-sync.h"
-#include "dynodeman.h"
-#include "governance.h"
+#include "duality/dns/dns.h"
+#include "duality/dynode/dynode-payments.h"
+#include "duality/dynode/dynode-sync.h"
+#include "duality/dynode/dynodeman.h"
+#include "duality/governance/governance.h"
 #include "hash.h"
 #include "init.h"
-#include "instantsend.h"
+#include "duality/instantsend/instantsend.h"
 #include "consensus/merkle.h"
 #include "merkleblock.h"
 #include "net.h"
 #include "consensus/params.h"
 #include "policy/policy.h"
 #include "pow.h"
-#include "privatesend.h"
+#include "duality/privatesend/privatesend.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
@@ -40,7 +40,7 @@
 #include "ui_interface.h"
 #include "undo.h"
 #include "util.h"
-#include "spork.h"
+#include "duality/spork.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
 #include "consensus/validation.h"
@@ -6998,12 +6998,6 @@ bool SendMessages(CNode* pto)
         //
         // Message: getdata (non-blocks)
         //
-        int64_t nFirst = -1;
-        if(!pto->mapAskFor.empty()) {
-            nFirst = (*pto->mapAskFor.begin()).first;
-        }
-        // debug=1, seems to produce mostly this message
-        //LogPrint("net", "SendMessages (mapAskFor) -- before loop: nNow = %d, nFirst = %d\n", nNow, nFirst);
         while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
         {
             const CInv& inv = (*pto->mapAskFor.begin()).second;

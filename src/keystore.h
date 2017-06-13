@@ -8,7 +8,7 @@
 #ifndef DYNAMIC_KEYSTORE_H
 #define DYNAMIC_KEYSTORE_H
 
-#include "hdchain.h"
+#include "duality/hdchain.h"
 #include "key.h"
 #include "pubkey.h"
 #include "script/script.h"

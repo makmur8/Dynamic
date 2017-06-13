@@ -14,7 +14,7 @@
 
 #include "base58.h"
 #include "consensus/consensus.h"
-#include "instantsend.h"
+#include "duality/instantsend/instantsend.h"
 #include "main.h"
 #include "script/script.h"
 #include "timedata.h"
